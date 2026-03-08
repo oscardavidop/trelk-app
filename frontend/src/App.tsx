@@ -25,6 +25,9 @@ import PaymentsPage from './pages/PaymentsPage';
 import BotCommandsPage from './pages/BotCommandsPage';
 import CommandListPage from './pages/CommandListPage';
 import BotCommandDetailPage from './pages/BotCommandDetailPage';
+import AchievementsPage from './pages/AchievementsPage';
+import DiscoverPage from './pages/DiscoverPage';
+import ActivityPage from './pages/ActivityPage';
 import Toast from './components/Toast';
 import { useThemeStore } from './stores/theme';
 import CountryPage from './pages/CountryPage';
@@ -104,6 +107,9 @@ function App() {
           <Route path="/users/ui/:userId/bot-commands" element={<BotCommandsPage />} />
           <Route path="/users/ui/:userId/bot-commands/list" element={<CommandListPage />} />
           <Route path="/users/ui/:userId/bot-commands/:command" element={<BotCommandDetailPage />} />
+          <Route path="/users/ui/:userId/achievements" element={<AchievementsPage />} />
+          <Route path="/users/ui/:userId/discover" element={<DiscoverPage />} />
+          <Route path="/users/ui/:userId/activity" element={<ActivityPage />} />
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />

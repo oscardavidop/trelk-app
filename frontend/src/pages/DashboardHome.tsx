@@ -1,48 +1,42 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { useFavoritesStore } from '../stores/favorites';
+import { useGamificationStore, levelFromXP } from '../stores/gamification';
 import { useEffect, useState } from 'react';
 import { fileUrl } from '../services/favoritesApi';
+import XPProgress from '../components/XPProgress';
+import CommandShortcuts from '../components/commands/CommandShortcuts';
+import RecentCommands from '../components/commands/RecentCommands';
+import { cmdSlug } from '../data/botCommands';
 import { 
   Heart, 
   Terminal, 
   Crown, 
   Receipt, 
-  Palette, 
-  Layers, 
-  Maximize2, 
-  Search, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Trophy,
+  Compass,
+  Clock
 } from 'lucide-react';
-
-/* ── Mock data ── */
-const POPULAR_COMMANDS = [
-  { name: '/imagine', desc: 'Genera una imagen desde texto', icon: Palette },
-  { name: '/variations', desc: 'Crea variaciones de una imagen', icon: Layers },
-  { name: '/upscale', desc: 'Aumenta la resolución', icon: Maximize2 },
-  { name: '/describe', desc: 'Describe una imagen con IA', icon: Search },
-];
-
-const INSPIRATION = {
-  caption: 'A dreamy landscape with floating islands at sunset, digital art masterpiece',
-  gradient: 'from-purple-500/40 via-pink-500/30 to-orange-500/40',
-};
 
 export default function DashboardHome() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { user, haptic } = useTelegram();
   const { items, load: loadFavs, loading: favsLoading } = useFavoritesStore();
+  const { xp, streak, xpToast, updateStreak, achievements } = useGamificationStore();
   const [showGreeting, setShowGreeting] = useState(false);
 
   const firstName = user?.first_name || 'User';
   const photoUrl = user?.photo_url;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   useEffect(() => {
     loadFavs();
+    updateStreak();
     requestAnimationFrame(() => setShowGreeting(true));
-  }, [loadFavs]);
+  }, [loadFavs, updateStreak]);
 
   const recentFavs = items.slice(0, 6);
 
@@ -73,8 +67,9 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* ── Quick actions (Bento Grid) ── */}
-      <div className="px-5 py-3">
+      {/* ── Quick actions grid (Bento Grid) ── */}
+      <section className="mt-5 px-5">
+        <h2 className="text-[15px] font-bold text-tg-text tracking-tight mb-2.5">Accesos directos</h2>
         <div className="grid grid-cols-2 gap-3">
           
           <button onClick={() => go('/favorites')} className="flex items-center gap-3 p-3.5 rounded-[20px] bg-tg-secondary border border-tg-border/30 text-left active:scale-[0.96] transition-all shadow-sm hover:brightness-110">
@@ -118,7 +113,65 @@ export default function DashboardHome() {
           </button>
           
         </div>
+      </section>
+
+      {/* ── XP + Streak Mini Card ── */}
+      <div className="px-5 mb-1 py-8">
+        <XPProgress compact />
       </div>
+
+      {/* ── Quick Actions (bot commands) ── */}
+      <section className="mt-4">
+        <div className="flex items-center justify-between px-5 mb-2.5">
+          <h2 className="text-[15px] font-bold text-tg-text tracking-tight">Acciones rápidas</h2>
+          <button onClick={() => go('/bot-commands')} className="text-[12px] font-bold text-tg-accent">
+            Ver todos
+          </button>
+        </div>
+        <CommandShortcuts onRun={(cmd) => go(`/bot-commands/${cmdSlug(cmd)}`)} />
+      </section>
+
+      {/* ── Gamification Strip ── */}
+      <div className="px-5 mt-4">
+        <div className="flex gap-2.5">
+          <button onClick={() => go('/achievements')} className="flex-1 flex items-center gap-3 p-3.5 rounded-[18px] bg-tg-secondary border border-tg-border/20 text-left active:scale-[0.97] transition-all">
+            <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+              <Trophy size={18} className="text-white" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[14px] font-bold text-tg-text">{unlockedCount} Logros</div>
+              <div className="text-[11px] text-tg-hint">{achievements.length - unlockedCount} pendientes</div>
+            </div>
+          </button>
+          <button onClick={() => go('/discover')} className="flex-1 flex items-center gap-3 p-3.5 rounded-[18px] bg-tg-secondary border border-tg-border/20 text-left active:scale-[0.97] transition-all">
+            <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+              <Compass size={18} className="text-white" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[14px] font-bold text-tg-text">Descubrir</div>
+              <div className="text-[11px] text-tg-hint">Explora comandos</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Recently Used Commands ── */}
+      <section className="mt-5">
+        <div className="flex items-center justify-between px-5 mb-2.5">
+          <h2 className="text-[15px] font-bold text-tg-text tracking-tight flex items-center gap-1.5">
+            <Clock size={14} className="text-tg-hint" /> Usados recientemente
+          </h2>
+          <button onClick={() => go('/activity')} className="text-[12px] font-bold text-tg-accent">
+            Historial
+          </button>
+        </div>
+        <div className="px-5">
+          <RecentCommands onTap={(cmd) => {
+            const slug = cmd.replace('/', '');
+            go(`/bot-commands/${slug}`);
+          }} />
+        </div>
+      </section>
 
       {/* ── Recent Favorites ── */}
       <section className="mt-4">
@@ -181,40 +234,14 @@ export default function DashboardHome() {
         )}
       </section>
 
-      {/* ── Popular Commands (Estilo iOS List) ── */}
-      <section className="mt-6 px-5">
-        <h2 className="text-[16px] font-bold text-tg-text tracking-tight mb-3">Comandos populares</h2>
-        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-          <div className="divide-y divide-tg-border/20">
-            {POPULAR_COMMANDS.map((cmd) => (
-              <button
-                key={cmd.name}
-                onClick={() => go('/hub')}
-                className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors"
-              >
-                <div className="w-9 h-9 rounded-[10px] bg-tg-surface/40 flex items-center justify-center flex-shrink-0">
-                  <cmd.icon size={18} className="text-tg-text/80" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text tracking-tight">{cmd.name}</div>
-                  <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5">{cmd.desc}</div>
-                </div>
-                <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Inspiration Card ── */}
-      <section className="mt-8 px-5 pb-4">
+      <section className="mt-6 px-5 pb-4">
         <h2 className="text-[16px] font-bold text-tg-text tracking-tight mb-3">Inspiración del día</h2>
         <button
           onClick={() => go('/favorites/inspiration')}
           className="w-full relative overflow-hidden rounded-[24px] active:scale-[0.97] transition-all duration-300 shadow-lg group"
         >
-          {/* Fondo animado */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${INSPIRATION.gradient} opacity-80 group-hover:opacity-100 transition-opacity`} />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/40 via-pink-500/30 to-orange-500/40 opacity-80 group-hover:opacity-100 transition-opacity" />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" />
           
           <div className="relative p-6 border border-white/10 rounded-[24px]">
@@ -226,7 +253,7 @@ export default function DashboardHome() {
             </div>
             
             <p className="text-[15px] text-white leading-snug font-medium text-left">
-              "{INSPIRATION.caption}"
+              &ldquo;A dreamy landscape with floating islands at sunset, digital art masterpiece&rdquo;
             </p>
             
             <div className="mt-5 flex items-center gap-1.5 text-white font-bold text-[13px] bg-white/15 w-max px-3.5 py-2 rounded-full">
@@ -236,6 +263,16 @@ export default function DashboardHome() {
           </div>
         </button>
       </section>
+
+      {/* ── XP Toast ── */}
+      {xpToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] animate-bounce-in">
+          <div className="bg-amber-500 text-white px-5 py-2.5 rounded-full shadow-xl shadow-amber-500/30 flex items-center gap-2">
+            <span className="text-[14px] font-black">+{xpToast.amount} XP</span>
+            <span className="text-[12px] font-medium opacity-90">{xpToast.label}</span>
+          </div>
+        </div>
+      )}
 
     </div>
   );
