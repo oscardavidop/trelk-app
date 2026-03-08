@@ -1,14 +1,15 @@
 import { useGamificationStore } from '../../stores/gamification';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Terminal } from 'lucide-react';
 
+// Formateo de tiempo ligeramente más limpio
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
   if (mins < 1) return 'ahora';
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) return `${mins} min`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
+  if (hrs < 24) return `${hrs} h`;
+  return `${Math.floor(hrs / 24)} d`;
 }
 
 interface RecentCommandsProps {
@@ -22,24 +23,39 @@ export default function RecentCommands({ onTap }: RecentCommandsProps) {
   if (cmdEntries.length === 0) return null;
 
   return (
-    <div className="bg-tg-secondary rounded-[20px] border border-tg-border/20 overflow-hidden">
-      <div className="divide-y divide-tg-border/10">
+    <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
+      <div className="divide-y divide-white/5">
         {cmdEntries.map((e) => (
           <button
             key={e.id}
             onClick={() => onTap?.(e.command!)}
-            className="w-full flex items-center gap-3 p-3.5 text-left active:bg-tg-surface/30 transition-colors"
+            className="w-full flex items-center gap-3.5 p-4 text-left transition-colors hover:bg-white/[0.02] active:bg-white/[0.04] group"
           >
-            <div className="w-8 h-8 rounded-[10px] bg-tg-accent/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-[11px] font-bold text-tg-accent">▶</span>
+            {/* ── Icono ── */}
+            <div className="w-9 h-9 rounded-[10px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center flex-shrink-0 shadow-inner transition-transform group-hover:scale-105">
+              <Terminal size={16} className="text-tg-accent" strokeWidth={2.5} />
             </div>
+            
+            {/* ── Textos ── */}
             <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-bold text-tg-text font-mono truncate">
-                {e.command}{e.args ? ` ${e.args}` : ''}
+              <div className="text-[15px] font-bold text-tg-text font-mono tracking-tight truncate">
+                {e.command}
+                {e.args && (
+                  <span className="text-[13px] font-medium text-tg-hint/70 font-sans italic ml-1.5">
+                    {e.args}
+                  </span>
+                )}
               </div>
-              <div className="text-[11px] text-tg-hint mt-0.5">hace {timeAgo(e.timestamp)}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5">
+                hace {timeAgo(e.timestamp)}
+              </div>
             </div>
-            <ChevronRight size={16} className="text-tg-hint/40 flex-shrink-0" />
+
+            {/* ── Flecha ── */}
+            <ChevronRight 
+              size={18} 
+              className="text-tg-hint/40 flex-shrink-0 transition-transform group-hover:translate-x-0.5" 
+            />
           </button>
         ))}
       </div>
