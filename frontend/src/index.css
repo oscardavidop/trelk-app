@@ -1,0 +1,492 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === CSS Variables — RGB triplets for Tailwind opacity modifier support === */
+:root {
+  /* Legacy hex vars (kept for non-Tailwind CSS classes) */
+  --tg-bg: #1a2026;
+  --tg-secondary: #212a33;
+  --tg-surface: #293540;
+  --tg-accent: #248BDA;
+  --tg-text: #ffffff;
+  --tg-text-secondary: #7d8b97;
+  --tg-hint: #7d8b97;
+  --tg-link: #5eaadf;
+  --tg-destructive: #e5545e;
+  --tg-success: #50b85d;
+  --tg-border: #293540;
+
+  /* RGB triplet vars for Tailwind alpha support */
+  --tg-bg-rgb: 26 32 38;
+  --tg-secondary-rgb: 33 42 51;
+  --tg-surface-rgb: 41 53 64;
+  --tg-accent-rgb: 36 139 218;
+  --tg-text-rgb: 255 255 255;
+  --tg-text-secondary-rgb: 125 139 151;
+  --tg-hint-rgb: 125 139 151;
+  --tg-link-rgb: 94 170 223;
+  --tg-destructive-rgb: 229 84 94;
+  --tg-success-rgb: 80 184 93;
+  --tg-border-rgb: 41 53 64;
+}
+
+/* Light mode override */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark) {
+    --tg-bg: #f0f2f5;
+    --tg-secondary: #ffffff;
+    --tg-surface: #e8eaed;
+    --tg-accent: #2481cc;
+    --tg-text: #1a1a1a;
+    --tg-text-secondary: #6b7280;
+    --tg-hint: #6b7280;
+    --tg-link: #2481cc;
+    --tg-destructive: #dc3545;
+    --tg-success: #28a745;
+    --tg-border: #d1d5db;
+
+    --tg-bg-rgb: 240 242 245;
+    --tg-secondary-rgb: 255 255 255;
+    --tg-surface-rgb: 232 234 237;
+    --tg-accent-rgb: 36 129 204;
+    --tg-text-rgb: 26 26 26;
+    --tg-text-secondary-rgb: 107 114 128;
+    --tg-hint-rgb: 107 114 128;
+    --tg-link-rgb: 36 129 204;
+    --tg-destructive-rgb: 220 53 69;
+    --tg-success-rgb: 40 167 69;
+    --tg-border-rgb: 209 213 219;
+  }
+}
+
+/* Explicit light class for Telegram WebApp theme */
+.light {
+  --tg-bg: #f0f2f5;
+  --tg-secondary: #ffffff;
+  --tg-surface: #e8eaed;
+  --tg-accent: #2481cc;
+  --tg-text: #1a1a1a;
+  --tg-text-secondary: #6b7280;
+  --tg-hint: #6b7280;
+  --tg-link: #2481cc;
+  --tg-destructive: #dc3545;
+  --tg-success: #28a745;
+  --tg-border: #d1d5db;
+
+  --tg-bg-rgb: 240 242 245;
+  --tg-secondary-rgb: 255 255 255;
+  --tg-surface-rgb: 232 234 237;
+  --tg-accent-rgb: 36 129 204;
+  --tg-text-rgb: 26 26 26;
+  --tg-text-secondary-rgb: 107 114 128;
+  --tg-hint-rgb: 107 114 128;
+  --tg-link-rgb: 36 129 204;
+  --tg-destructive-rgb: 220 53 69;
+  --tg-success-rgb: 40 167 69;
+  --tg-border-rgb: 209 213 219;
+}
+
+/* Use Telegram theme variables if available */
+body {
+  background-color: var(--tg-bg);
+  color: var(--tg-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Toast animations === */
+.toast-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.toast-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;
+}
+.toast-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast-exit-active {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+/* === Toggle switch === */
+.tm-toggle {
+  position: relative;
+  width: 42px;
+  height: 26px;
+  border-radius: 13px;
+  background: #555;
+  transition: background 0.2s;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tm-toggle.on {
+  background: var(--tg-accent);
+}
+.tm-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+.tm-toggle.on::after {
+  transform: translateX(16px);
+}
+
+/* === Checkbox custom === */
+.tm-checkbox {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #555;
+  transition: all 0.2s;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tm-checkbox.checked {
+  background: var(--tg-accent);
+  border-color: var(--tg-accent);
+}
+.tm-checkbox.checked::after {
+  content: '✓';
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* === Section styling matching BotFather === */
+.tm-section {
+  margin-bottom: 0;
+}
+
+.tm-section-header {
+  padding: 12px 22px 8px;
+  color: var(--tg-hint);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tm-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 22px;
+  background: var(--tg-secondary);
+  min-height: 48px;
+  gap: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.tm-row:hover {
+  background: var(--tg-surface);
+}
+.tm-row:first-child {
+  border-radius: 12px 12px 0 0;
+}
+.tm-row:last-child {
+  border-radius: 0 0 12px 12px;
+}
+.tm-row:only-child {
+  border-radius: 12px;
+}
+
+.tm-row + .tm-row {
+  border-top: 0.5px solid rgba(255, 255, 255, 0.06);
+}
+
+.tm-row-link::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--tg-hint);
+  border-bottom: 2px solid var(--tg-hint);
+  transform: rotate(-45deg);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* === Help text === */
+.help-text {
+  padding: 8px 22px 16px;
+  color: var(--tg-hint);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* === Dropdown styling === */
+.tm-dropdown {
+  position: relative;
+}
+.tm-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 160px;
+  background: var(--tg-surface);
+  border-radius: 12px;
+  padding: 4px 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.tm-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  color: var(--tg-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tm-dropdown-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+.tm-dropdown-item.selected {
+  color: var(--tg-accent);
+}
+
+/* === Form input === */
+.tm-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--tg-text);
+  font-size: 16px;
+  outline: none;
+  padding: 0;
+}
+.tm-input::placeholder {
+  color: var(--tg-hint);
+}
+
+/* === Search field === */
+.tm-search-field {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--tg-surface);
+  border-radius: 12px;
+  gap: 8px;
+}
+
+/* === Scrollbar hidden (mobile-like) === */
+::-webkit-scrollbar {
+  display: none;
+}
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* === Avatar === */
+.tm-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* === Intro section === */
+.tm-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 22px 16px;
+  text-align: center;
+}
+
+/* === Page transition animations === */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.tm-main {
+  top: var(--tg-top-offset, 0px);
+}
+
+/* === Bottom Navigation === */
+.btm-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  background: rgba(var(--tg-secondary-rgb, 33 42 51) / 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid rgba(var(--tg-border-rgb, 41 53 64) / 0.5);
+}
+.btm-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  padding: 4px 0 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+.btm-nav-item:active {
+  transform: scale(0.92);
+}
+.btm-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.btm-nav-active .btm-nav-icon {
+  transform: scale(1.08);
+}
+.btm-nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+.btm-nav-dot {
+  position: absolute;
+  top: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--tg-accent);
+}
+
+/* === Glass Card === */
+.glass-card {
+  background: rgba(var(--tg-secondary-rgb, 33 42 51) / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(var(--tg-border-rgb, 41 53 64) / 0.5);
+}
+
+/* Hide scrollbar for horizontal scroll */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out both;
+}
+
+/* Staggered children animation */
+.animate-stagger > * {
+  animation: fade-in 0.25s ease-out both;
+}
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 200ms; }
+.animate-stagger > *:nth-child(7) { animation-delay: 240ms; }
+.animate-stagger > *:nth-child(8) { animation-delay: 280ms; }
+
+/* Smooth active press */
+.tm-row:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth toggle transitions */
+.tm-toggle {
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.tm-toggle.on {
+  box-shadow: 0 0 8px rgba(36, 139, 218, 0.3);
+}
+.tm-toggle::after {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth checkbox transitions */
+.tm-checkbox {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tm-checkbox.checked {
+  transform: scale(1.05);
+}
+
+/* Section icon styles */
+.tm-menu-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tm-menu-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.2;
+}

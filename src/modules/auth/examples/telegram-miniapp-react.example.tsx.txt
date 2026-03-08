@@ -1,0 +1,340 @@
+/**
+ * Frontend React para Telegram Mini App — Autenticación automática
+ *
+ * Flujo:
+ * 1. La Mini App se abre dentro de Telegram
+ * 2. Se obtiene window.Telegram.WebApp.initData (inyectado por SDK)
+ * 3. Se envía initData al backend POST /auth/telegram
+ * 4. El backend valida HMAC, crea/encuentra usuario, devuelve JWT
+ * 5. El JWT se almacena en memoria (NO localStorage para seguridad)
+ * 6. Todas las peticiones subsiguientes incluyen el JWT
+ *
+ * Instalación SDK Telegram: incluir en index.html:
+ *   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+ */
+
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from 'react';
+
+// ─── Tipos ───
+
+interface TelegramUser {
+  id: number;
+  telegramId: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photoUrl: string;
+  lang: string;
+  tz: string;
+  preferences: Record<string, boolean>;
+}
+
+interface AuthState {
+  user: TelegramUser | null;
+  accessToken: string | null;
+  isLoading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+}
+
+interface AuthContextType extends AuthState {
+  /** Reintenta la autenticación manualmente */
+  retry: () => Promise<void>;
+  /** Cierra sesión */
+  logout: () => Promise<void>;
+  /** Realiza una petición autenticada al backend */
+  authFetch: (url: string, options?: RequestInit) => Promise<Response>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+// ─── Configuración ───
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+
+// ─── Telegram WebApp SDK types ───
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        initData: string;
+        initDataUnsafe: {
+          user?: {
+            id: number;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+            language_code?: string;
+            is_premium?: boolean;
+            photo_url?: string;
+          };
+          auth_date: number;
+          hash: string;
+        };
+        ready: () => void;
+        expand: () => void;
+        close: () => void;
+        MainButton: {
+          text: string;
+          show: () => void;
+          hide: () => void;
+          onClick: (cb: () => void) => void;
+        };
+        themeParams: Record<string, string>;
+        colorScheme: 'light' | 'dark';
+      };
+    };
+  }
+}
+
+// ─── AuthProvider ───
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    accessToken: null,
+    isLoading: true,
+    error: null,
+    isAuthenticated: false,
+  });
+
+  // Ref para evitar doble autenticación en StrictMode
+  const authInProgress = useRef(false);
+  // Ref para el token (evita stale closures en authFetch)
+  const tokenRef = useRef<string | null>(null);
+
+  const authenticate = useCallback(async () => {
+    if (authInProgress.current) return;
+    authInProgress.current = true;
+
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const tg = window.Telegram?.WebApp;
+
+      if (!tg?.initData) {
+        throw new Error(
+          'Esta aplicación debe abrirse desde Telegram. No se encontró initData.',
+        );
+      }
+
+      // Informar a Telegram que la app está lista
+      tg.ready();
+      tg.expand();
+
+      // Enviar initData al backend para validación HMAC + login
+      const response = await fetch(`${API_BASE}/auth/telegram`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg =
+          errorData?.message ?? `Error de autenticación (${response.status})`;
+        throw new Error(errorMsg);
+      }
+
+      const { data } = await response.json();
+
+      tokenRef.current = data.accessToken;
+
+      setState({
+        user: data.user,
+        accessToken: data.accessToken,
+        isLoading: false,
+        error: null,
+        isAuthenticated: true,
+      });
+
+      // Programar refresh automático antes de que expire el JWT
+      const refreshMs = (data.expiresIn - 60) * 1000; // 1 min antes
+      if (refreshMs > 0) {
+        setTimeout(() => {
+          authInProgress.current = false;
+          authenticate();
+        }, refreshMs);
+      }
+    } catch (err: any) {
+      console.error('[TelegramAuth] Error:', err.message);
+      setState({
+        user: null,
+        accessToken: null,
+        isLoading: false,
+        error: err.message,
+        isAuthenticated: false,
+      });
+    } finally {
+      authInProgress.current = false;
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    if (tokenRef.current) {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokenRef.current}`,
+        },
+      }).catch(() => {});
+    }
+
+    tokenRef.current = null;
+    setState({
+      user: null,
+      accessToken: null,
+      isLoading: false,
+      error: null,
+      isAuthenticated: false,
+    });
+  }, []);
+
+  /**
+   * Wrapper de fetch que incluye el JWT automáticamente.
+   * Si el token expira, intenta re-autenticar.
+   */
+  const authFetch = useCallback(
+    async (url: string, options: RequestInit = {}): Promise<Response> => {
+      const headers = new Headers(options.headers);
+
+      if (tokenRef.current) {
+        headers.set('Authorization', `Bearer ${tokenRef.current}`);
+      }
+
+      const response = await fetch(`${API_BASE}${url}`, {
+        ...options,
+        headers,
+      });
+
+      // Si recibimos 401, intentar re-autenticar con initData fresco
+      if (response.status === 401 && window.Telegram?.WebApp?.initData) {
+        await authenticate();
+
+        if (tokenRef.current) {
+          headers.set('Authorization', `Bearer ${tokenRef.current}`);
+          return fetch(`${API_BASE}${url}`, { ...options, headers });
+        }
+      }
+
+      return response;
+    },
+    [authenticate],
+  );
+
+  const retry = useCallback(async () => {
+    authInProgress.current = false;
+    await authenticate();
+  }, [authenticate]);
+
+  // Auto-login al montar
+  useEffect(() => {
+    authenticate();
+  }, [authenticate]);
+
+  return (
+    <AuthContext.Provider
+      value={{ ...state, retry, logout, authFetch }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// ─── Hook ───
+
+export function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth debe usarse dentro de <AuthProvider>');
+  }
+  return ctx;
+}
+
+// ─── Componente de ejemplo ───
+
+export function App() {
+  return (
+    <AuthProvider>
+      <MainContent />
+    </AuthProvider>
+  );
+}
+
+function MainContent() {
+  const { user, isLoading, error, isAuthenticated, retry, authFetch } =
+    useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <p>Autenticando con Telegram...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-screen">
+        <h2>Error de autenticación</h2>
+        <p>{error}</p>
+        <button onClick={retry}>Reintentar</button>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="error-screen">
+        <p>No se pudo autenticar</p>
+        <button onClick={retry}>Reintentar</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app">
+      <header>
+        <img src={user.photoUrl} alt={user.firstName} />
+        <h1>
+          ¡Hola, {user.firstName}!
+        </h1>
+        <span>@{user.username}</span>
+      </header>
+
+      {/* Ejemplo de petición autenticada */}
+      <ExampleAuthenticatedComponent authFetch={authFetch} />
+    </div>
+  );
+}
+
+function ExampleAuthenticatedComponent({
+  authFetch,
+}: {
+  authFetch: (url: string, options?: RequestInit) => Promise<Response>;
+}) {
+  const [data, setData] = useState<any>(null);
+
+  const loadProfile = async () => {
+    const res = await authFetch('/auth/me');
+    const json = await res.json();
+    setData(json);
+  };
+
+  return (
+    <div>
+      <button onClick={loadProfile}>Cargar perfil desde backend</button>
+      {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+    </div>
+  );
+}

@@ -1,0 +1,15 @@
+.git
+.gitignore
+node_modules
+dist
+*.md
+*.log
+.env
+.env.*
+!.env.example
+frontend/node_modules
+tmp/
+cache/
+logs/
+*.ts.bak
+*.ts.deprecated

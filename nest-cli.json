@@ -1,0 +1,7 @@
+{
+    "watchOptions": {
+        "ignored": [
+            "**/src/locales/**"
+        ]
+    }
+}
