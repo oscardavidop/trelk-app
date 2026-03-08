@@ -3,12 +3,21 @@ import { useState, useCallback } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
 import { useToastStore } from '../stores';
 import { BOT_COMMANDS, findCommand, cmdSlug, CATEGORY_META } from '../data/botCommands';
-import { 
-  Heart, Copy, Share, Send, AlertTriangle, 
-  Hash, MessageSquare, Lock, Settings2, 
-  Flag, ArrowLeft, ArrowRight, CheckCircle2, 
+import { getStats, getExamples, getChangelog, getComments, getRelated } from '../data/commandMocks';
+import CommandStats from '../components/commands/CommandStats';
+import CommandExamples from '../components/commands/CommandExamples';
+import CommandChangelog from '../components/commands/CommandChangelog';
+import CommandComments from '../components/commands/CommandComments';
+import RelatedCommands from '../components/commands/RelatedCommands';
+import CommandPlayground from '../components/commands/CommandPlayground';
+import CommandSuggestions from '../components/commands/CommandSuggestions';
+import {
+  Heart, Copy, Share, Send, AlertTriangle,
+  Hash, MessageSquare, Lock, Settings2,
+  Flag, ArrowLeft, ArrowRight, CheckCircle2,
   Star
 } from 'lucide-react';
+import { StickySectionHeader } from '@/components/StickyHeader';
 
 /* ─── Mock screenshots for preview ─── */
 const MOCK_SCREENSHOTS = [
@@ -73,56 +82,85 @@ export default function BotCommandDetailPage() {
 
   const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: '📦' };
   const mainSlug = cmdSlug(cmd);
-
   return (
     <div className="pb-24 animate-fade-in relative">
-      
-      {/* ── Hero Header ── */}
-      <section className="relative px-5 pt-8 pb-5 border-b border-white/5 bg-gradient-to-b from-tg-secondary/30 to-transparent">
-        <div className="flex items-start gap-4">
-          <div
-            className="w-[72px] h-[72px] rounded-[22px] flex items-center justify-center flex-shrink-0 text-[32px] shadow-inner ring-[4px] ring-tg-bg"
-            style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30` }}
-          >
-            <span className="drop-shadow-sm">
-                <cat.icon className="w-8 h-8" style={{ color: cat.color }} />
-            </span>
-          </div>
-          
-          <div className="flex-1 min-w-0 pt-1">
-            <h1 className="text-[26px] font-extrabold text-tg-text font-mono tracking-tight leading-none truncate">/{mainSlug}</h1>
-            <p className="text-[14px] font-medium text-tg-hint/90 mt-2 leading-relaxed">{cmd.description}</p>
 
-            {/* Badges */}
-            <div className="flex flex-wrap gap-2 mt-3.5">
-              <span
-                className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm"
-                style={{ color: cat.color, background: `${cat.color}15`, border: `1px solid ${cat.color}20` }}
-              >
-                {cat.label}
+      {/* ── Hero Header ── */}
+      <StickySectionHeader>
+        <section className="relative px-5 pt-5 pb-2">
+          <div className="flex items-start gap-4">
+            {/* ── Icono del Comando (Squircle) ── */}
+            <div
+              className="w-[72px] h-[72px] rounded-[22px] flex items-center justify-center flex-shrink-0 text-[32px] shadow-inner ring-[4px] ring-tg-bg"
+              style={{ backgroundColor: `${cat.color}15`, border: `1px solid ${cat.color}30` }}
+            >
+              <span className="drop-shadow-sm flex items-center justify-center">
+                {typeof cat.icon !== 'string' ? (
+                  <cat.icon className="w-8 h-8" style={{ color: cat.color }} />
+                ) : (
+                  cat.icon
+                )}
               </span>
-              {cmd.supportsInline && (
-                <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-blue-400 bg-blue-500/10 border border-blue-500/20">
-                  Inline
+            </div>
+
+            {/* ── Textos y Badges ── */}
+            {/* pr-12 evita que el texto se monte encima del botón de favoritos absoluto */}
+            <div className="flex-1  pr-12">
+              <h1 className="text-[26px] font-extrabold text-tg-text font-mono tracking-tight leading-none truncate">
+                /{mainSlug}
+              </h1>
+              <p className="text-[14px] font-medium text-tg-hint/90 mt-2.5 leading-relaxed">
+                {cmd.description}
+              </p>
+
+              {/* ── Badges ── */}
+              <div className="flex flex-wrap gap-2 mt-3.5">
+                <span
+                  className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm"
+                  style={{ color: cat.color, backgroundColor: `${cat.color}15`, border: `1px solid ${cat.color}20` }}
+                >
+                  {cat.label}
                 </span>
-              )}
-              {cmd.requireArgs && (
-                <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-amber-500 bg-amber-500/10 border border-amber-500/20">
-                  Args Requeridos
-                </span>
-              )}
+
+                {cmd.supportsInline && (
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-blue-500 bg-blue-500/10 border border-blue-500/20 shadow-sm">
+                    Inline
+                  </span>
+                )}
+
+                {cmd.requireArgs && (
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-amber-600 bg-amber-500/10 border border-amber-500/20 shadow-sm">
+                    Args*
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Fav button */}
-        <button
-          onClick={() => { setIsFav(!isFav); haptic?.impactOccurred('light'); }}
-          className="absolute top-8 right-5 w-10 h-10 rounded-full bg-black/20 border border-white/5 flex items-center justify-center active:scale-90 transition-all hover:bg-white/[0.04]"
-        >
-          <Heart size={20} className={`transition-colors ${isFav ? 'text-pink-500 fill-pink-500' : 'text-tg-hint/70'}`} />
-        </button>
-      </section>
+          {/* ── Botón de Favoritos ── */}
+          {/* Adaptativo: bg-tg-text/[0.03] se ve bien en fondos blancos y oscuros */}
+          <button
+            onClick={() => {
+              setIsFav(!isFav);
+              haptic?.impactOccurred('light');
+            }}
+            className="absolute top-8 right-5 w-10 h-10 rounded-full bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center active:scale-90 transition-all hover:bg-tg-text/[0.08] shadow-sm"
+            title={isFav ? "Quitar de favoritos" : "Añadir a favoritos"}
+          >
+            <Heart
+              size={20}
+              className={`transition-all duration-300 ${isFav
+                ? 'text-pink-500 fill-pink-500 scale-110'
+                : 'text-tg-hint/70 scale-100 hover:text-tg-text'
+                }`}
+            />
+          </button>
+        </section>
+      </StickySectionHeader>
+
+
+      {/* ── Stats Strip ── */}
+      {getStats(mainSlug) && <div className="mt-5"><CommandStats stats={getStats(mainSlug)!} /></div>}
 
       {/* ── Botón de Acción Rápida (Ejecutar) ── */}
       <section className="px-5 mt-6">
@@ -146,9 +184,8 @@ export default function BotCommandDetailPage() {
             <code className="text-[15px] font-mono font-bold text-tg-text tracking-tight truncate">{cmd.usage}</code>
             <button
               onClick={() => copyText(cmd.usage)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[12px] font-bold transition-all active:scale-95 flex-shrink-0 ml-3 ${
-                copied ? 'bg-emerald-500/15 text-emerald-400' : 'bg-tg-accent/10 text-tg-accent hover:bg-tg-accent/20'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[12px] font-bold transition-all active:scale-95 flex-shrink-0 ml-3 ${copied ? 'bg-emerald-500/15 text-emerald-400' : 'bg-tg-accent/10 text-tg-accent hover:bg-tg-accent/20'
+                }`}
             >
               {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
               {copied ? 'Copiado' : 'Copiar'}
@@ -156,6 +193,9 @@ export default function BotCommandDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Playground ── */}
+      <CommandPlayground commandSlug={mainSlug} usage={cmd.usage} />
 
       {/* ── Aliases ── */}
       <section className="px-5 mt-6">
@@ -180,7 +220,7 @@ export default function BotCommandDetailPage() {
         <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest px-2 mb-2">Detalles Técnicos</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
           <div className="divide-y divide-white/5">
-            
+
             {/* Row: Argumentos */}
             <div className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors">
               <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner ${cmd.requireArgs ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}`}>
@@ -264,7 +304,7 @@ export default function BotCommandDetailPage() {
               <div key={step} className="flex items-start gap-3.5 relative">
                 {/* Línea conectora */}
                 {i !== arr.length - 1 && <div className="absolute left-[13px] top-8 bottom-[-20px] w-[2px] bg-white/5" />}
-                
+
                 <div className="w-7 h-7 rounded-[10px] bg-tg-accent/15 border border-tg-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5 z-10">
                   <span className="text-[13px] font-black text-tg-accent">{step}</span>
                 </div>
@@ -289,16 +329,15 @@ export default function BotCommandDetailPage() {
           <Share size={18} className="text-tg-hint" />
           Compartir
         </button>
-        
+
         {/* Reportar */}
         <button
           onClick={() => { setReported(true); haptic?.notificationOccurred('success'); showToast('Reporte enviado', 'success'); }}
           disabled={reported}
-          className={`w-full py-3.5 rounded-[16px] border text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${
-            reported 
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' 
-              : 'bg-tg-secondary border-tg-border/50 text-tg-text active:scale-95 hover:bg-white/[0.02]'
-          }`}
+          className={`w-full py-3.5 rounded-[16px] border text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${reported
+            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+            : 'bg-tg-secondary border-tg-border/50 text-tg-text active:scale-95 hover:bg-white/[0.02]'
+            }`}
         >
           {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint" />}
           {reported ? 'Reportado' : 'Reportar Error'}
@@ -332,6 +371,21 @@ export default function BotCommandDetailPage() {
           )}
         </div>
       </section>
+
+      {/* ── Ejemplos de Uso ── */}
+      {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
+
+      {/* ── Changelog ── */}
+      {getChangelog(mainSlug).length > 0 && <CommandChangelog entries={getChangelog(mainSlug)} />}
+
+      {/* ── Comentarios ── */}
+      {getComments(mainSlug).length > 0 && <CommandComments comments={getComments(mainSlug)} />}
+
+      {/* ── Sugerencias ── */}
+      <CommandSuggestions onSelect={(s) => goTo(s)} />
+
+      {/* ── Comandos Relacionados ── */}
+      {getRelated(mainSlug).length > 0 && <RelatedCommands slugs={getRelated(mainSlug)} />}
 
       {/* ── Navigation (Anterior / Siguiente) ── */}
       <section className="px-5 mt-8">

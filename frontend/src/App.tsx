@@ -28,6 +28,8 @@ import BotCommandDetailPage from './pages/BotCommandDetailPage';
 import AchievementsPage from './pages/AchievementsPage';
 import DiscoverPage from './pages/DiscoverPage';
 import ActivityPage from './pages/ActivityPage';
+import CommandFavoritesPage from './pages/CommandFavoritesPage';
+import LabsPage from './pages/LabsPage';
 import Toast from './components/Toast';
 import { useThemeStore } from './stores/theme';
 import CountryPage from './pages/CountryPage';
@@ -110,6 +112,8 @@ function App() {
           <Route path="/users/ui/:userId/achievements" element={<AchievementsPage />} />
           <Route path="/users/ui/:userId/discover" element={<DiscoverPage />} />
           <Route path="/users/ui/:userId/activity" element={<ActivityPage />} />
+          <Route path="/users/ui/:userId/command-favorites" element={<CommandFavoritesPage />} />
+          <Route path="/users/ui/:userId/labs" element={<LabsPage />} />
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />

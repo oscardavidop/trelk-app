@@ -52,7 +52,7 @@ export default function DashboardHome() {
     <div className="pb-24 animate-fade-in relative overflow-x-hidden">
       
       {/* ── Saludo Hero ── */}
-      <div className={`px-5 pt-8 pb-3 transition-all duration-700 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <div className={`px-4 pt-8 pb-3 transition-all duration-700 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <div className="flex items-center gap-3.5 mb-2">
           {photoUrl ? (
             <img src={photoUrl} alt="Perfil" className="w-[52px] h-[52px] rounded-full ring-[3px] ring-tg-accent/20 object-cover shadow-sm" />
@@ -71,11 +71,11 @@ export default function DashboardHome() {
       </div>
 
       {/* ── Grid de Accesos Directos (Bento Grid) ── */}
-      <section className="mt-4 px-5">
+      <section className="mt-4 px-4">
         <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest px-1 mb-2.5">Panel de Control</h2>
         <div className="grid grid-cols-2 gap-3">
           
-          <button onClick={() => go('/favorites')} className="flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
+          <button onClick={() => go('/favorites')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Heart size={20} className="text-white fill-white/20" />
             </div>
@@ -85,7 +85,7 @@ export default function DashboardHome() {
             </div>
           </button>
           
-          <button onClick={() => go('/commands')} className="flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
+          <button onClick={() => go('/commands')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-blue-500 to-tg-accent flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Terminal size={20} className="text-white" />
             </div>
@@ -95,7 +95,7 @@ export default function DashboardHome() {
             </div>
           </button>
           
-          <button onClick={() => go('/subscription')} className="flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
+          <button onClick={() => go('/subscription')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Crown size={20} className="text-white" />
             </div>
@@ -105,7 +105,7 @@ export default function DashboardHome() {
             </div>
           </button>
           
-          <button onClick={() => go('/payments')} className="flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
+          <button onClick={() => go('/payments')} className="flex items-center gap-3.5 p-3  rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Receipt size={20} className="text-white" />
             </div>
@@ -119,7 +119,7 @@ export default function DashboardHome() {
       </section>
 
       {/* ── Mini Tarjeta XP + Racha ── */}
-      <div className="px-5 mt-6 mb-2">
+      <div className="px-4 mt-6 mb-2">
         <XPProgress compact />
       </div>
 
@@ -136,7 +136,7 @@ export default function DashboardHome() {
       </section>
 
       {/* ── Franja de Gamificación (Logros y Descubrir) ── */}
-      <div className="px-5 mt-6">
+      <div className="px-4 mt-6">
         <div className="grid grid-cols-2 gap-3">
           
           <button 
@@ -180,7 +180,7 @@ export default function DashboardHome() {
             Ver historial
           </button>
         </div>
-        <div className="px-5">
+        <div className="px-4">
           <RecentCommands onTap={(cmd) => {
             const slug = cmd.replace('/', '');
             go(`/bot-commands/${slug}`);
@@ -201,14 +201,14 @@ export default function DashboardHome() {
         
         {favsLoading && recentFavs.length === 0 ? (
           /* Esqueleto de Carga */
-          <div className="flex gap-3 overflow-x-auto px-5 pb-2 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex gap-3 overflow-x-auto px-4 pb-2 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[1, 2, 3].map((i) => (
               <div key={i} className="w-28 h-28 flex-shrink-0 rounded-[20px] bg-tg-secondary border border-tg-border/50 animate-pulse shadow-sm" />
             ))}
           </div>
         ) : recentFavs.length > 0 ? (
           /* Lista Real */
-          <div className="flex gap-3 overflow-x-auto px-5 pb-3 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex gap-3 overflow-x-auto px-4 pb-3 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {recentFavs.map((fav) => {
               const thumb = (fav.data?.media_type === 'photo' && fav.engine_id) ? fileUrl(fav.engine_id) : null;
               
@@ -257,7 +257,7 @@ export default function DashboardHome() {
       </section>
 
       {/* ── Tarjeta de Inspiración (Glassmorphism Prominente) ── */}
-      <section className="mt-8 px-5 pb-4">
+      <section className="mt-8 px-4 pb-4">
         <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest mb-3">Inspiración del día</h2>
         
         <button
@@ -295,7 +295,7 @@ export default function DashboardHome() {
       {/* ── Toast de XP (Notificación flotante) ── */}
       {xpToast && (
         <div className="fixed bottom-[100px] left-1/2 -translate-x-1/2 z-[100] animate-bounce-in pointer-events-none">
-          <div className="bg-amber-500 text-white px-5 py-3 rounded-full shadow-[0_8px_30px_rgba(245,158,11,0.4)] flex items-center gap-2.5 border border-white/20 backdrop-blur-md">
+          <div className="bg-amber-500 text-white px-4 py-3 rounded-full shadow-[0_8px_30px_rgba(245,158,11,0.4)] flex items-center gap-2.5 border border-white/20 backdrop-blur-md">
             <span className="text-[16px] font-black drop-shadow-sm">+{xpToast.amount} XP</span>
             <span className="text-[13px] font-bold opacity-90">{xpToast.label}</span>
           </div>

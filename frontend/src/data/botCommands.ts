@@ -26,16 +26,6 @@ export interface BotCommand {
 
 export type CommandCategory = 'all' | 'utilities' | 'music' | 'entertainment' | 'media' | 'ai' | 'social' | 'tools';
 
-// export const CATEGORY_META: Record<string, { label: string; color: string; icon: string }> = {
-//   utilities:     { label: 'Utilidades',      color: '#3b82f6', icon: '🔧' },
-//   music:         { label: 'Música',          color: '#f59e0b', icon: '🎵' },
-//   entertainment: { label: 'Entretenimiento', color: '#a855f7', icon: '🎮' },
-//   media:         { label: 'Media',           color: '#ec4899', icon: '📸' },
-//   ai:            { label: 'AI',              color: '#10b981', icon: '🤖' },
-//   social:        { label: 'Social',          color: '#06b6d4', icon: '💬' },
-//   tools:         { label: 'Herramientas',    color: '#ef4444', icon: '⚙️' },
-// };
-
 
 export const CATEGORY_META: Record<
   string,

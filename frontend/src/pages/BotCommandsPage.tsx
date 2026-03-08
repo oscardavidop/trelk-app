@@ -4,6 +4,7 @@ import { BOT_COMMANDS, POPULAR_SLUGS, cmdSlug, CATEGORY_META, getCategories, fin
 import CommandCard from '../components/commands/CommandCard';
 import StickyHeader from '../components/StickyHeader';
 import { Flame, Star, Folder, ArrowRight } from 'lucide-react';
+import CommandFavoritesPage from './CommandFavoritesPage';
 
 const TRENDING = ['chatgpt', 'dl', 'play', 'img'];
 

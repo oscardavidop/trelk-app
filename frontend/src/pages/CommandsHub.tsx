@@ -15,6 +15,7 @@ import {
   ImageIcon,
   Compass
 } from 'lucide-react';
+import CommandFavoritesPage from './CommandFavoritesPage';
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
 const PREMIUM_COMMANDS = [
@@ -200,6 +201,7 @@ export default function CommandsHub() {
           </div>
         )}
       </section>
+      
     </div>
   );
 }
