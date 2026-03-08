@@ -37,7 +37,7 @@ export default function CommandExamples({ examples }: Props) {
       <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
         <div className="divide-y divide-tg-border/50">
           {visible.map((ex, i) => (
-            <div key={i} className="p-2 transition-colors hover:bg-tg-text/[0.02] group">
+            <div key={i} className="p-2 px-3 transition-colors hover:bg-tg-text/[0.02] group">
               
               {/* ── Descripción del ejemplo ── */}
               <div className="mb-2.5">

@@ -4,18 +4,19 @@ import { useTelegram } from '../hooks/useTelegram';
 import { useFavoritesStore } from '../stores/favorites';
 import { useConfigStore } from '../stores/config';
 import { fileUrl } from '../services/favoritesApi';
-import { 
-  Sparkles, 
-  Maximize2, 
-  Palette, 
-  Terminal, 
-  ChevronRight, 
-  Plus, 
+import {
+  Sparkles,
+  Maximize2,
+  Palette,
+  Terminal,
+  ChevronRight,
+  Plus,
   Heart,
   ImageIcon,
-  Compass
+  Compass,
+  Star,
+  FlaskConical
 } from 'lucide-react';
-import CommandFavoritesPage from './CommandFavoritesPage';
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
 const PREMIUM_COMMANDS = [
@@ -46,7 +47,7 @@ export default function CommandsHub() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      
+
       {/* ── Header ── */}
       <div className="px-5 pt-8 pb-4">
         <h1 className="text-[26px] font-extrabold text-tg-text tracking-tight leading-none">Comandos</h1>
@@ -72,6 +73,41 @@ export default function CommandsHub() {
         </button>
       </section>
 
+      <section className="mt-5 px-5">
+        <div className="grid grid-cols-2 gap-3">
+
+          {/* ── Botón Favoritos ── */}
+          <button
+            onClick={() => go('/command-favorites')}
+            className="flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all hover:bg-tg-text/[0.02] shadow-sm group"
+          >
+            {/* gradient bg */}
+            <div className="w-11 h-11 rounded-[14px] bg-amber-500 border border-amber-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-inner bg-gradient-to-br from-amber-400 to-yellow-500">
+              <Star size={20} className="fill-amber-500/20 text-white" />
+            </div>
+            <div className="min-w-0 flex-1 pt-0.5">
+              <div className="text-[15px] font-extrabold text-tg-text tracking-tight truncate">Favoritos</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Mis comandos</div>
+            </div>
+          </button>
+
+          {/* ── Botón Labs ── */}
+          <button
+            onClick={() => go('/labs')}
+            className="flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all hover:bg-tg-text/[0.02] shadow-sm group"
+          >
+            <div className="w-11 h-11 rounded-[14px] bg-purple-500 border border-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-inner bg-gradient-to-br from-purple-400 to-pink-500">
+              <FlaskConical size={20} className="fill-purple-500/20 text-white" />
+            </div>
+            <div className="min-w-0 flex-1 pt-0.5">
+              <div className="text-[15px] font-extrabold text-tg-text tracking-tight truncate">Labs</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Experimental</div>
+            </div>
+          </button>
+
+        </div>
+      </section>
+
       {/* ── Premium Commands (Carrusel Horizontal) ── */}
       <section className="mt-5">
         <div className="flex items-center justify-between px-5 mb-3">
@@ -80,7 +116,7 @@ export default function CommandsHub() {
             Ver todos
           </button>
         </div>
-        
+
         {/* Scroll oculto nativamente */}
         <div className="flex gap-3 overflow-x-auto w-full px-5 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {PREMIUM_COMMANDS.map((cmd) => (
@@ -112,7 +148,7 @@ export default function CommandsHub() {
             Gestionar
           </button>
         </div>
-        
+
         {userCommands.length > 0 ? (
           <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
             <div className="divide-y divide-tg-border/20">
@@ -158,7 +194,7 @@ export default function CommandsHub() {
             Ver galería
           </button>
         </div>
-        
+
         {favsLoading && recentFavs.length === 0 ? (
           <div className="grid grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -201,7 +237,7 @@ export default function CommandsHub() {
           </div>
         )}
       </section>
-      
+
     </div>
   );
 }

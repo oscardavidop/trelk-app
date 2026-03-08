@@ -11,6 +11,8 @@ import CommandComments from '../components/commands/CommandComments';
 import RelatedCommands from '../components/commands/RelatedCommands';
 import CommandPlayground from '../components/commands/CommandPlayground';
 import CommandSuggestions from '../components/commands/CommandSuggestions';
+import ReportErrorModal from '../components/commands/ReportErrorModal';
+
 import {
   Heart, Copy, Share, Send, AlertTriangle,
   Hash, MessageSquare, Lock, Settings2,
@@ -18,7 +20,7 @@ import {
   Star
 } from 'lucide-react';
 import { StickySectionHeader } from '@/components/StickyHeader';
-
+import { useScrollCollapse,useScrollHeader  } from '@/hooks/useScrollCollapse';
 /* ─── Mock screenshots for preview ─── */
 const MOCK_SCREENSHOTS = [
   'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+1',
@@ -38,7 +40,9 @@ export default function BotCommandDetailPage() {
   const [reported, setReported] = useState(false);
   const [isFav, setIsFav] = useState(false);
   const [copied, setCopied] = useState(false);
-
+  const [showReportModal, setShowReportModal] = useState(false);
+  // const collapsed = useScrollCollapse(90);
+  const collapsed = useScrollHeader(110);
   /* ─── Navigation helpers ─── */
   const currentIdx = cmd ? BOT_COMMANDS.findIndex((c) => cmdSlug(c) === cmdSlug(cmd)) : -1;
   const prevCmd = currentIdx > 0 ? BOT_COMMANDS[currentIdx - 1] : undefined;
@@ -85,79 +89,101 @@ export default function BotCommandDetailPage() {
   return (
     <div className="pb-24 animate-fade-in relative">
 
-      {/* ── Hero Header ── */}
       <StickySectionHeader>
-        <section className="relative px-5 pt-5 pb-2">
-          <div className="flex items-start gap-4">
-            {/* ── Icono del Comando (Squircle) ── */}
+
+        <section
+          className={`relative px-5 transition-all duration-300 ${collapsed ? 'pt-2 pb-2' : 'pt-5 pb-2'
+            }`}
+        >
+
+          <div className="flex items-center gap-4">
+
+            {/* Icon */}
             <div
-              className="w-[72px] h-[72px] rounded-[22px] flex items-center justify-center flex-shrink-0 text-[32px] shadow-inner ring-[4px] ring-tg-bg"
-              style={{ backgroundColor: `${cat.color}15`, border: `1px solid ${cat.color}30` }}
+              className={`rounded-[22px] flex items-center justify-center transition-all duration-300
+      ${collapsed ? 'w-10 h-10 text-[18px]' : 'w-[72px] h-[72px] text-[32px]'}`}
+              style={{
+                backgroundColor: `${cat.color}15`,
+                border: `1px solid ${cat.color}30`
+              }}
             >
-              <span className="drop-shadow-sm flex items-center justify-center">
-                {typeof cat.icon !== 'string' ? (
-                  <cat.icon className="w-8 h-8" style={{ color: cat.color }} />
-                ) : (
-                  cat.icon
-                )}
-              </span>
+              {typeof cat.icon !== 'string'
+                ? <cat.icon className="w-6 h-6" style={{ color: cat.color }} />
+                : cat.icon}
             </div>
 
-            {/* ── Textos y Badges ── */}
-            {/* pr-12 evita que el texto se monte encima del botón de favoritos absoluto */}
-            <div className="flex-1  pr-12">
-              <h1 className="text-[26px] font-extrabold text-tg-text font-mono tracking-tight leading-none truncate">
+            {/* Text */}
+            <div className="flex-1 pr-8 min-w-0">
+
+              <h1
+                className={`font-extrabold font-mono tracking-tight truncate transition-all duration-300
+        ${collapsed ? 'text-[16px]' : 'text-[26px]'}`}
+              >
                 /{mainSlug}
               </h1>
-              <p className="text-[14px] font-medium text-tg-hint/90 mt-2.5 leading-relaxed">
+
+              {/* description */}
+              <p
+                className={`text-tg-hint transition-all duration-300 overflow-hidden max-h-[60px] opacity-100 text-[14px] mt-2`}
+              >
                 {cmd.description}
               </p>
 
-              {/* ── Badges ── */}
-              <div className="flex flex-wrap gap-2 mt-3.5">
+              {/* badges */}
+              <div
+                className={`flex flex-wrap gap-2 transition-all duration-300
+        ${collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-[50px] opacity-100 mt-3'}`}
+              >
                 <span
-                  className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm"
-                  style={{ color: cat.color, backgroundColor: `${cat.color}15`, border: `1px solid ${cat.color}20` }}
+                  className="text-[10px] font-extrabold uppercase  px-2.5 py-1 rounded-full"
+                  style={{
+                    color: cat.color,
+                    backgroundColor: `${cat.color}15`,
+                    border: `1px solid ${cat.color}20`
+                  }}
                 >
                   {cat.label}
                 </span>
 
                 {cmd.supportsInline && (
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-blue-500 bg-blue-500/10 border border-blue-500/20 shadow-sm">
+                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full text-blue-500 bg-blue-500/10 border border-blue-500/20">
                     Inline
                   </span>
                 )}
 
                 {cmd.requireArgs && (
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-amber-600 bg-amber-500/10 border border-amber-500/20 shadow-sm">
+                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full text-amber-600 bg-amber-500/10 border border-amber-500/20">
                     Args*
                   </span>
                 )}
               </div>
+
             </div>
+
           </div>
 
-          {/* ── Botón de Favoritos ── */}
-          {/* Adaptativo: bg-tg-text/[0.03] se ve bien en fondos blancos y oscuros */}
+          {/* Fav */}
           <button
             onClick={() => {
               setIsFav(!isFav);
               haptic?.impactOccurred('light');
             }}
-            className="absolute top-8 right-5 w-10 h-10 rounded-full bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center active:scale-90 transition-all hover:bg-tg-text/[0.08] shadow-sm"
-            title={isFav ? "Quitar de favoritos" : "Añadir a favoritos"}
+            className={`absolute right-5 transition-all duration-300
+    ${collapsed ? 'top-2' : 'top-8'}
+    w-10 h-10 rounded-full bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center`}
           >
             <Heart
               size={20}
-              className={`transition-all duration-300 ${isFav
+              className={`transition-all ${isFav
                 ? 'text-pink-500 fill-pink-500 scale-110'
-                : 'text-tg-hint/70 scale-100 hover:text-tg-text'
+                : 'text-tg-hint/70'
                 }`}
             />
           </button>
-        </section>
-      </StickySectionHeader>
 
+        </section>
+
+      </StickySectionHeader>
 
       {/* ── Stats Strip ── */}
       {getStats(mainSlug) && <div className="mt-5"><CommandStats stats={getStats(mainSlug)!} /></div>}
@@ -178,7 +204,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Bloque de Uso (Usage) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest px-2 mb-2">Uso del Comando</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">Uso del Comando</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
           <div className="flex items-center justify-between px-4 py-4">
             <code className="text-[15px] font-mono font-bold text-tg-text tracking-tight truncate">{cmd.usage}</code>
@@ -198,15 +224,19 @@ export default function BotCommandDetailPage() {
       <CommandPlayground commandSlug={mainSlug} usage={cmd.usage} />
 
       {/* ── Aliases ── */}
-      <section className="px-5 mt-6">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest px-2 mb-2">Aliases Permitidos</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 shadow-sm">
+      <section className="px-5 mt-8">
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-1 mb-3 flex items-center gap-1.5">
+          <Hash size={14} className="text-tg-accent" /> Aliases Permitidos
+        </h2>
+
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 shadow-sm animate-slide-up">
           <div className="flex flex-wrap gap-2.5">
             {cmd.name.map((alias) => (
               <button
                 key={alias}
                 onClick={() => copyText(`/${alias}`)}
-                className="px-3.5 py-1.5 rounded-[12px] bg-black/20 border border-white/5 text-[14px] font-mono font-medium text-tg-text/90 active:scale-95 transition-all hover:border-white/10"
+                title="Copiar alias"
+                className="px-3.5 py-1.5 rounded-[10px] bg-tg-text/[0.04] border border-tg-border/30 text-[14px] font-mono font-bold text-tg-text/90 active:scale-95 transition-all hover:bg-tg-text/[0.08] hover:text-tg-text shadow-inner"
               >
                 /{alias}
               </button>
@@ -217,7 +247,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Parámetros (Ajustes Estilo iOS) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest px-2 mb-2">Detalles Técnicos</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">Detalles Técnicos</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
           <div className="divide-y divide-white/5">
 
@@ -281,7 +311,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Screenshots ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest px-2 mb-3">Vista previa</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-3">Vista previa</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {MOCK_SCREENSHOTS.map((src, i) => (
             <div key={i} className="flex-shrink-0 w-[180px] h-[320px] rounded-[24px] overflow-hidden bg-tg-secondary border border-white/5 shadow-md">
@@ -293,7 +323,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Cómo funciona ── */}
       <section className="px-5 mt-4">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest px-2 mb-2">Cómo funciona</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">Cómo funciona</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-5 shadow-sm">
           <div className="space-y-5">
             {[
@@ -332,7 +362,7 @@ export default function BotCommandDetailPage() {
 
         {/* Reportar */}
         <button
-          onClick={() => { setReported(true); haptic?.notificationOccurred('success'); showToast('Reporte enviado', 'success'); }}
+          onClick={() => { setShowReportModal(true); haptic?.impactOccurred('light'); }}
           disabled={reported}
           className={`w-full py-3.5 rounded-[16px] border text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${reported
             ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
@@ -345,33 +375,53 @@ export default function BotCommandDetailPage() {
       </section>
 
       {/* ── Calificar Comando ── */}
-      <section className="px-5 mt-3">
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-5 text-center shadow-sm">
+      <section className="px-5 mt-6 mb-8">
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-6 text-center shadow-sm relative overflow-hidden">
+
+          {/* Brillo ambiental sutil de fondo */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-tg-text/[0.02] pointer-events-none" />
+
           {hasRated ? (
-            <div className="py-1 animate-scale-in">
-              <Star size={32} className="mx-auto text-amber-400 fill-amber-400 mb-2" />
-              <p className="text-[15px] font-bold text-tg-text">¡Gracias por calificar!</p>
-              <p className="text-[13px] font-medium text-tg-hint mt-1">Le diste {rating} estrella{rating > 1 ? 's' : ''}</p>
+            /* ── Estado: Calificado (Éxito) ── */
+            <div className="py-2 animate-slide-up relative z-10">
+              <div className="w-16 h-16 mx-auto bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-3 shadow-inner">
+                <Star size={32} className="text-amber-500 fill-amber-500 drop-shadow-md animate-bounce-in" />
+              </div>
+              <p className="text-[16px] font-extrabold text-tg-text tracking-tight">¡Gracias por calificar!</p>
+              <p className="text-[13px] font-medium text-tg-hint mt-1">
+                Le diste <span className="text-amber-500 font-bold">{rating} estrella{rating > 1 ? 's' : ''}</span>
+              </p>
             </div>
           ) : (
-            <>
-              <p className="text-[14px] font-bold text-tg-text mb-3">¿Qué te parece este comando?</p>
-              <div className="flex justify-center gap-2">
+            /* ── Estado: Sin Calificar ── */
+            <div className="relative z-10">
+              <p className="text-[14px] font-bold text-tg-text mb-4 tracking-tight">¿Qué te parece este comando?</p>
+              <div className="flex justify-center gap-2.5">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
-                    onClick={() => { setRating(n); setHasRated(true); haptic?.notificationOccurred('success'); }}
-                    className="w-12 h-12 rounded-[14px] bg-black/20 border border-white/5 flex items-center justify-center text-[22px] active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group"
+                    onClick={() => {
+                      setRating(n);
+                      setHasRated(true);
+                      haptic?.notificationOccurred('success');
+                    }}
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center text-[22px] active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-inner"
+                    title={`Calificar con ${n} estrellas`}
                   >
-                    <Star size={24} className={n <= rating ? 'text-amber-400 fill-amber-400' : 'text-tg-hint/30 group-hover:text-amber-400/50'} />
+                    <Star
+                      size={24}
+                      className={`transition-colors duration-300 ${n <= rating
+                        ? 'text-amber-500 fill-amber-500 drop-shadow-sm'
+                        : 'text-tg-hint/30 group-hover:text-amber-500/50'
+                        }`}
+                    />
                   </button>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       </section>
-
       {/* ── Ejemplos de Uso ── */}
       {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
 
@@ -395,7 +445,7 @@ export default function BotCommandDetailPage() {
               onClick={() => goTo(cmdSlug(prevCmd))}
               className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-left active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm group"
             >
-              <div className="flex items-center gap-1 text-[10px] font-bold text-tg-hint uppercase tracking-widest mb-1.5">
+              <div className="flex items-center gap-1 text-[10px] font-bold text-tg-hint uppercase  mb-1.5">
                 <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> Anterior
               </div>
               <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(prevCmd)}</div>
@@ -407,7 +457,7 @@ export default function BotCommandDetailPage() {
               onClick={() => goTo(cmdSlug(nextCmd))}
               className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-right active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm group"
             >
-              <div className="flex items-center justify-end gap-1 text-[10px] font-bold text-tg-hint uppercase tracking-widest mb-1.5">
+              <div className="flex items-center justify-end gap-1 text-[10px] font-bold text-tg-hint uppercase  mb-1.5">
                 Siguiente <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
               </div>
               <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(nextCmd)}</div>
@@ -415,6 +465,18 @@ export default function BotCommandDetailPage() {
           ) : <div className="flex-1" />}
         </div>
       </section>
+
+      {/* ── Report Modal ── */}
+      <ReportErrorModal
+        commandSlug={mainSlug}
+        open={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={() => {
+          setReported(true);
+          haptic?.notificationOccurred('success');
+          showToast('Reporte enviado', 'success');
+        }}
+      />
 
     </div>
   );

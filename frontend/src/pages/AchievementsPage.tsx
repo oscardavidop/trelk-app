@@ -4,6 +4,7 @@ import AchievementCard from '../components/achievements/AchievementCard';
 import XPProgress from '../components/XPProgress';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { Trophy, Medal } from 'lucide-react';
+import StickyHeader from '@/components/StickyHeader';
 
 type Filter = 'all' | 'unlocked' | 'locked';
 
@@ -30,20 +31,13 @@ export default function AchievementsPage() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      
-      {/* ── Header ── */}
-      <div className="px-5 pt-8 pb-5 flex items-center gap-3.5">
-        <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-          <Trophy className="w-6 h-6 text-amber-500" />
-        </div>
-        <div>
-          <h1 className="text-[24px] font-extrabold text-tg-text tracking-tight leading-none">Logros</h1>
-          <p className="text-[13px] font-medium text-tg-hint/80 mt-1">Completa retos para ganar recompensas</p>
-        </div>
-      </div>
+      <StickyHeader title="Logros" subtitle="Completa retos para ganar recompensas" 
+      icon={<div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+        <Trophy className="w-6 h-6 text-amber-500" />
+      </div>} />
 
       {/* ── XP Card ── */}
-      <div className="px-5 mb-5 animate-slide-up">
+      <div className="px-5 mb-5 animate-slide-up mt-4">
         <XPProgress />
       </div>
 
@@ -72,11 +66,10 @@ export default function AchievementsPage() {
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-[13px] font-bold transition-all active:scale-95 border ${
-                filter === f.key
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-[13px] font-bold transition-all active:scale-95 border ${filter === f.key
                   ? 'bg-tg-accent border-tg-accent text-white shadow-[0_4px_12px_rgba(var(--tg-accent-rgb),0.25)]'
                   : 'bg-tg-secondary border-tg-border/50 text-tg-hint hover:bg-white/[0.02]'
-              }`}
+                }`}
             >
               {f.label}
             </button>
@@ -105,7 +98,7 @@ export default function AchievementsPage() {
           </div>
         )}
       </div>
-      
+
     </div>
   );
 }

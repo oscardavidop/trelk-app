@@ -7,6 +7,7 @@ import { fileUrl } from '../services/favoritesApi';
 import XPProgress from '../components/XPProgress';
 import CommandShortcuts from '../components/commands/CommandShortcuts';
 import RecentCommands from '../components/commands/RecentCommands';
+import CommandUsageCounter from '../components/stats/CommandUsageCounter';
 import { cmdSlug } from '../data/botCommands';
 import { 
   Heart, 
@@ -18,7 +19,9 @@ import {
   Trophy,
   Compass,
   Clock,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Star,
+  FlaskConical
 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -68,6 +71,11 @@ export default function DashboardHome() {
             <p className="text-[14px] font-medium text-tg-hint/80 tracking-wide">Bienvenido de vuelta</p>
           </div>
         </div>
+      </div>
+
+      {/* ── Global Usage Counter ── */}
+      <div className="px-4 mt-3">
+        <CommandUsageCounter />
       </div>
 
       {/* ── Grid de Accesos Directos (Bento Grid) ── */}

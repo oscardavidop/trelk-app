@@ -511,3 +511,10 @@ body {
   height: 17px;
   stroke-width: 2.2;
 }
+
+.sticky-header {
+  transition:
+    padding 0.15s ease,
+    height 0.15s ease,
+    backdrop-filter 0.15s ease;
+}

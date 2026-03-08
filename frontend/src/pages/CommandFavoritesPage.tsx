@@ -9,6 +9,7 @@ import {
   Star, Pin, FolderPlus, HeartOff, ArrowUpDown,
   ChevronRight, Search, Folder, Music, Brain, Wrench
 } from 'lucide-react';
+import StickyHeader from '@/components/StickyHeader';
 
 const FOLDER_ICONS: Record<string, typeof Music> = { music: Music, brain: Brain, wrench: Wrench };
 
@@ -59,129 +60,151 @@ export default function CommandFavoritesPage() {
   }, [favs, search, sort]);
 
   return (
-    <div className="pb-16 animate-fade-in">
-      {/* Header */}
-      <div className="px-5 pt-6 pb-2">
-        <h1 className="text-[24px] font-extrabold text-tg-text tracking-tight">Comandos Favoritos</h1>
-        <p className="text-[13px] text-tg-hint mt-1">{favs.length} comandos guardados</p>
-      </div>
-
-      {/* Search + Sort */}
-      <div className="px-5 mt-3 flex gap-2.5">
+    <div className="pb-24 animate-fade-in relative">
+      <StickyHeader title="Favoritos" subtitle={`${favs.length} comandos guardados`} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
+      {/* ── Buscador + Ordenamiento ── */}
+      <div className="px-5 mt-2 flex gap-2.5">
         <div className="flex-1 relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tg-hint/40" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tg-hint/50" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar favoritos…"
-            className="w-full bg-tg-secondary border border-tg-border/20 rounded-[14px] py-3 pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/40 outline-none focus:border-tg-accent/40 transition-colors"
+            className="w-full bg-tg-text/[0.03] border border-tg-border/40 rounded-[16px] py-3.5 pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors shadow-inner"
           />
         </div>
-        <div className="relative">
-          <button
-            onClick={() => setSort((s) => SORT_OPTIONS[(SORT_OPTIONS.findIndex((o) => o.key === s) + 1) % SORT_OPTIONS.length].key)}
-            className="h-full px-3.5 bg-tg-secondary border border-tg-border/20 rounded-[14px] flex items-center gap-1.5 active:scale-95 transition-all"
-          >
-            <ArrowUpDown size={15} className="text-tg-hint" />
-            <span className="text-[12px] font-bold text-tg-text">{SORT_OPTIONS.find((o) => o.key === sort)?.label}</span>
-          </button>
-        </div>
+        
+        <button
+          onClick={() => {
+            haptic?.impactOccurred('light');
+            setSort((s) => SORT_OPTIONS[(SORT_OPTIONS.findIndex((o) => o.key === s) + 1) % SORT_OPTIONS.length].key);
+          }}
+          className="h-full px-4 bg-tg-secondary border border-tg-border/50 rounded-[16px] flex items-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-tg-text/[0.02]"
+        >
+          <ArrowUpDown size={15} className="text-tg-accent" />
+          <span className="text-[13px] font-bold text-tg-text">{SORT_OPTIONS.find((o) => o.key === sort)?.label}</span>
+        </button>
       </div>
 
-      {/* Folders */}
+      {/* ── Carpetas (Carrusel) ── */}
       {showFolders && (
-        <section className="mt-5 px-5">
-          <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest">Carpetas</h2>
-            <button onClick={() => setShowFolders(false)} className="text-[11px] text-tg-hint">Ocultar</button>
+        <section className="mt-6">
+          <div className="flex items-center justify-between px-6 mb-3">
+            <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest">Carpetas</h2>
+            <button onClick={() => setShowFolders(false)} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
+              Ocultar
+            </button>
           </div>
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          
+          <div className="flex gap-3 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {COMMAND_FOLDERS.map((folder) => {
               const Icon = FOLDER_ICONS[folder.icon] ?? Folder;
               return (
                 <button
                   key={folder.id}
-                  className="flex-shrink-0 bg-tg-secondary border border-tg-border/20 rounded-[16px] p-3.5 min-w-[140px] text-left active:scale-[0.97] transition-all"
+                  className="flex-shrink-0 bg-tg-secondary border border-tg-border/50 rounded-[20px] p-4 min-w-[140px] text-left active:scale-[0.96] transition-transform shadow-sm hover:bg-tg-text/[0.02] group"
                 >
                   <div
-                    className="w-9 h-9 rounded-[10px] flex items-center justify-center mb-2"
-                    style={{ background: `${folder.color}15` }}
+                    className="w-10 h-10 rounded-[12px] flex items-center justify-center mb-3 shadow-inner transition-transform group-hover:scale-105"
+                    style={{ backgroundColor: `${folder.color}15`, border: `1px solid ${folder.color}20` }}
                   >
-                    <Icon size={17} style={{ color: folder.color }} />
+                    <Icon size={18} style={{ color: folder.color }} />
                   </div>
-                  <div className="text-[13px] font-bold text-tg-text">{folder.name}</div>
-                  <div className="text-[11px] text-tg-hint mt-0.5">{folder.commands.length} comandos</div>
+                  <div className="text-[14px] font-bold text-tg-text tracking-tight truncate">{folder.name}</div>
+                  <div className="text-[11px] font-medium text-tg-hint mt-0.5">{folder.commands.length} comandos</div>
                 </button>
               );
             })}
-            {/* Add folder */}
-            <button className="flex-shrink-0 border-2 border-dashed border-tg-border/30 rounded-[16px] p-3.5 min-w-[100px] flex flex-col items-center justify-center active:scale-95 transition-all">
-              <FolderPlus size={20} className="text-tg-hint/50 mb-1" />
-              <span className="text-[11px] font-bold text-tg-hint/60">Nueva</span>
+            
+            {/* ── Botón Nueva Carpeta ── */}
+            <button className="flex-shrink-0 border-2 border-dashed border-tg-border/40 bg-tg-text/[0.01] hover:bg-tg-text/[0.03] rounded-[20px] p-4 min-w-[110px] flex flex-col items-center justify-center active:scale-95 transition-all group">
+              <div className="w-10 h-10 rounded-full bg-tg-text/[0.04] flex items-center justify-center mb-2 group-hover:bg-tg-accent/10 transition-colors">
+                <FolderPlus size={18} className="text-tg-hint group-hover:text-tg-accent transition-colors" />
+              </div>
+              <span className="text-[12px] font-bold text-tg-hint group-hover:text-tg-text transition-colors">Nueva</span>
             </button>
           </div>
         </section>
       )}
 
-      {/* Command list */}
-      <section className="mt-5 px-5">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-2.5">
+      {/* ── Lista de Comandos ── */}
+      <section className="mt-6 px-5">
+        <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest mb-3 px-1">
           Todos ({filtered.length})
         </h2>
 
         {filtered.length > 0 ? (
-          <div className="bg-tg-secondary rounded-[20px] border border-tg-border/20 overflow-hidden">
-            <div className="divide-y divide-tg-border/10">
+          <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
+            <div className="divide-y divide-tg-border/50">
               {filtered.map((cmd) => {
                 const slug = cmdSlug(cmd);
                 const cat = CATEGORY_META[cmd.category];
                 const CatIcon = cat?.icon;
+                const isComponent = typeof CatIcon !== 'string';
+
                 return (
-                  <div key={slug} className="flex items-center gap-3 p-3.5">
+                  <div key={slug} className="flex items-center justify-between p-4 transition-colors hover:bg-tg-text/[0.02] group">
+                    
+                    {/* Área clickeable principal */}
                     <button
                       onClick={() => go(slug)}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+                      className="flex items-center gap-3.5 flex-1 min-w-0 text-left"
                     >
                       <div
-                        className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
-                        style={{ background: `${cat?.color}15` }}
+                        className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner transition-transform group-hover:scale-105"
+                        style={{ backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
                       >
-                        {CatIcon && <CatIcon size={18} style={{ color: cat?.color }} />}
+                        {isComponent && CatIcon ? (
+                          // @ts-ignore
+                          <CatIcon size={18} style={{ color: cat?.color }} />
+                        ) : (
+                          <span className="text-[16px] drop-shadow-sm">{CatIcon}</span>
+                        )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[14px] font-bold text-tg-text font-mono truncate">/{slug}</div>
-                        <div className="text-[11px] text-tg-hint truncate mt-0.5">{cmd.description}</div>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <div className="text-[15px] font-bold text-tg-text font-mono tracking-tight truncate">/{slug}</div>
+                        <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5">{cmd.description}</div>
                       </div>
                     </button>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <button className="w-8 h-8 rounded-[10px] bg-tg-surface/20 flex items-center justify-center active:scale-90 transition-all">
-                        <Pin size={13} className="text-tg-hint/60" />
+                    {/* Acciones */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0 pl-3">
+                      <button 
+                        className="w-8 h-8 rounded-[10px] bg-tg-text/[0.04] border border-tg-border/30 flex items-center justify-center active:scale-90 transition-all hover:bg-tg-text/[0.08] hover:text-tg-text"
+                        title="Fijar"
+                      >
+                        <Pin size={14} className="text-tg-hint/70 hover:text-tg-text transition-colors" />
                       </button>
+                      
                       <button
                         onClick={() => removeFav(slug)}
-                        className="w-8 h-8 rounded-[10px] bg-red-500/10 flex items-center justify-center active:scale-90 transition-all"
+                        className="w-8 h-8 rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center active:scale-90 transition-all hover:bg-red-500/20"
+                        title="Eliminar de favoritos"
                       >
-                        <HeartOff size={13} className="text-red-400" />
+                        <HeartOff size={14} className="text-red-400" />
                       </button>
                     </div>
+                    
                   </div>
                 );
               })}
             </div>
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Star size={32} className="mx-auto text-tg-hint/20 mb-3" />
-            <p className="text-[14px] font-bold text-tg-text">Sin resultados</p>
-            <p className="text-[12px] text-tg-hint mt-1">
-              {search ? 'Intenta con otra búsqueda' : 'Aún no tienes comandos favoritos'}
+          /* ── Estado Vacío ── */
+          <div className="text-center py-16 bg-tg-secondary border border-tg-border/50 rounded-[20px] shadow-sm px-5">
+            <div className="w-16 h-16 mx-auto bg-tg-text/[0.03] border border-tg-border/30 rounded-full flex items-center justify-center mb-4 shadow-inner">
+              <Star size={32} className="text-tg-hint/30" />
+            </div>
+            <p className="text-[16px] font-extrabold text-tg-text tracking-tight">Sin resultados</p>
+            <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 leading-relaxed max-w-[200px] mx-auto">
+              {search ? 'No encontramos ningún comando que coincida con tu búsqueda.' : 'Aún no tienes comandos guardados en tus favoritos.'}
             </p>
           </div>
         )}
       </section>
+      
     </div>
   );
 }
