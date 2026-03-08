@@ -1,6 +1,6 @@
 import type { BotCommand } from '../../data/botCommands';
 import { cmdSlug, CATEGORY_META } from '../../data/botCommands';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, UnlinkIcon } from 'lucide-react';
 
 interface Props {
     cmd: BotCommand;
@@ -10,7 +10,7 @@ interface Props {
 
 export default function CommandCard({ cmd, onClick, compact }: Props) {
     const slug = cmdSlug(cmd);
-    const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: '📦' };
+    const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: UnlinkIcon };
 
     // ── MODO COMPACTO (Para listas largas dentro de un contenedor divide-y) ──
     if (compact) {

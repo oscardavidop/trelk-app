@@ -1,0 +1,873 @@
+[
+  {
+    "name": [
+      "menú",
+      "commands",
+      "opciones",
+      "main"
+    ],
+    "group": "menu",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Mostrar el menú principal de opciones",
+    "supportsInline": false,
+    "alias": [
+      "menú",
+      "commands",
+      "opciones",
+      "main"
+    ],
+    "protected": false,
+    "uniqueName": "menu"
+  },
+  {
+    "name": [
+      "aki",
+      "adivina",
+      "guess"
+    ],
+    "group": "akinator",
+    "category": "entertainment",
+    "usage": "/akinator <mood>",
+    "requireArgs": false,
+    "maxLengthArgs": 2,
+    "description": "Juego de Akinator",
+    "supportsInline": true,
+    "inlineIcon": "https://img.icons8.com/?size=1200&id=bNhSwg0z3eNc&format=png",
+    "alias": [
+      "aki",
+      "adivina",
+      "guess"
+    ],
+    "protected": false,
+    "uniqueName": "akinator"
+  },
+  {
+    "name": [
+      "dogs",
+      "perro",
+      "perros",
+      "guau",
+      "guau"
+    ],
+    "group": "dog",
+    "category": "fun",
+    "usage": "/dog",
+    "requireArgs": false,
+    "description": "Envía una imagen aleatoria de un perro.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/8277/8277432.png",
+    "alias": [
+      "dogs",
+      "perro",
+      "perros",
+      "guau",
+      "guau"
+    ],
+    "protected": false,
+    "uniqueName": "dog"
+  },
+  {
+    "name": [
+      "cats",
+      "gato",
+      "gatos",
+      "miau"
+    ],
+    "group": "cat",
+    "category": "fun",
+    "usage": "/cat",
+    "requireArgs": false,
+    "description": "Envía una imagen aleatoria de un gato.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/8277/8277431.png",
+    "alias": [
+      "cats",
+      "gato",
+      "gatos",
+      "miau"
+    ],
+    "protected": false,
+    "uniqueName": "cat"
+  },
+  {
+    "name": [],
+    "group": "mydogs",
+    "category": "fun",
+    "usage": "/mydogs",
+    "requireArgs": false,
+    "description": "Muestra tus perros favoritos.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/3257/3257933.png",
+    "alias": [],
+    "protected": false,
+    "uniqueName": "mydogs"
+  },
+  {
+    "name": [],
+    "group": "mycats",
+    "category": "fun",
+    "usage": "/mycats",
+    "requireArgs": false,
+    "description": "Muestra tus gatos favoritos.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/9215/9215610.png",
+    "alias": [],
+    "protected": false,
+    "uniqueName": "mycats"
+  },
+  {
+    "name": [
+      "apkinfo",
+      "apk-info",
+      "appinfo",
+      "app-info"
+    ],
+    "group": "apk",
+    "category": "utilities",
+    "usage": "/apk <package_name | term>",
+    "requireArgs": true,
+    "description": "Busca información y descarga archivos APK.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/8263/8263246.png",
+    "alias": [
+      "apkinfo",
+      "apk-info",
+      "appinfo",
+      "app-info"
+    ],
+    "protected": false,
+    "uniqueName": "apk"
+  },
+  {
+    "name": [
+      "text-to-speech",
+      "texttospeech",
+      "gtts",
+      "voz",
+      "hablar"
+    ],
+    "group": "tts",
+    "category": "utilities",
+    "usage": "/tts <text>",
+    "requireArgs": true,
+    "maxLengthArgs": 200,
+    "description": "Convierte texto a voz.",
+    "supportsInline": false,
+    "alias": [
+      "text-to-speech",
+      "texttospeech",
+      "gtts",
+      "voz",
+      "hablar"
+    ],
+    "protected": false,
+    "uniqueName": "tts"
+  },
+  {
+    "name": [],
+    "group": "xnx",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Descarga contenido de XNXX.",
+    "supportsInline": false,
+    "alias": [],
+    "protected": false,
+    "uniqueName": "xnx"
+  },
+  {
+    "name": [
+      "tt",
+      "tiktokdl",
+      "tiktokdownload",
+      "tiktokvideo"
+    ],
+    "group": "tiktok",
+    "category": "downloader",
+    "usage": "",
+    "requireArgs": true,
+    "description": "Descarga contenido de TikTok.",
+    "supportsInline": false,
+    "alias": [
+      "tt",
+      "tiktokdl",
+      "tiktokdownload",
+      "tiktokvideo"
+    ],
+    "protected": false,
+    "uniqueName": "tiktok"
+  },
+  {
+    "name": [
+      "fbdown",
+      "fbdownload",
+      "facebook",
+      "facebookdl",
+      "facebookdownload"
+    ],
+    "group": "fb",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": true,
+    "description": "Descarga contenido de Facebook.",
+    "supportsInline": false,
+    "alias": [
+      "fbdown",
+      "fbdownload",
+      "facebook",
+      "facebookdl",
+      "facebookdownload"
+    ],
+    "protected": false,
+    "uniqueName": "fb"
+  },
+  {
+    "name": [
+      "twitter",
+      "twitterdl",
+      "twitterdownload"
+    ],
+    "group": "xdl",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": true,
+    "description": "Descarga contenido de Twitter.",
+    "supportsInline": false,
+    "alias": [
+      "twitter",
+      "twitterdl",
+      "twitterdownload"
+    ],
+    "protected": false,
+    "uniqueName": "xdl"
+  },
+  {
+    "name": [],
+    "group": "news",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "maxLengthArgs": 15,
+    "description": "No description provided.",
+    "supportsInline": false,
+    "alias": [],
+    "protected": false,
+    "uniqueName": "news"
+  },
+  {
+    "name": [
+      "rate"
+    ],
+    "group": "feedback",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Envía tu opinión o calificación.",
+    "supportsInline": false,
+    "alias": [
+      "rate"
+    ],
+    "protected": false,
+    "uniqueName": "feedback"
+  },
+  {
+    "name": [
+      "ayuda",
+      "commands",
+      "comandos"
+    ],
+    "group": "help",
+    "category": "information",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Mostrar la lista de comandos disponibles",
+    "supportsInline": false,
+    "alias": [
+      "ayuda",
+      "commands",
+      "comandos"
+    ],
+    "protected": false,
+    "uniqueName": "help"
+  },
+  {
+    "name": [
+      "image",
+      "imagen",
+      "foto",
+      "picture"
+    ],
+    "group": "img",
+    "category": "tools",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Busca imágenes en línea utilizando varios motores de búsqueda.",
+    "supportsInline": false,
+    "alias": [
+      "image",
+      "imagen",
+      "foto",
+      "picture"
+    ],
+    "protected": false,
+    "uniqueName": "img"
+  },
+  {
+    "name": [
+      "email",
+      "tempmail",
+      "correo",
+      "correo_temporal"
+    ],
+    "group": "mail",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Crea un correo temporal para recibir emails anónimos.",
+    "supportsInline": false,
+    "alias": [
+      "email",
+      "tempmail",
+      "correo",
+      "correo_temporal"
+    ],
+    "protected": false,
+    "uniqueName": "mail"
+  },
+  {
+    "name": [
+      "song",
+      "cancion",
+      "musica",
+      "music"
+    ],
+    "group": "play",
+    "category": "music",
+    "usage": "/play <song name or artist>",
+    "requireArgs": false,
+    "description": "Reproduce una canción o lista de reproducción desde YouTube.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/189/189638.png",
+    "alias": [
+      "song",
+      "cancion",
+      "musica",
+      "music"
+    ],
+    "protected": false,
+    "uniqueName": "play"
+  },
+  {
+    "name": [
+      "letras",
+      "ly",
+      "l",
+      "letra",
+      "lyric"
+    ],
+    "group": "lyrics",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Obtiene las letras de una canción.",
+    "supportsInline": false,
+    "alias": [
+      "letras",
+      "ly",
+      "l",
+      "letra",
+      "lyric"
+    ],
+    "protected": false,
+    "uniqueName": "lyrics"
+  },
+  {
+    "name": [
+      "ip",
+      "infoip",
+      "ipquery",
+      "queryip",
+      "ipsearch",
+      "searchip"
+    ],
+    "group": "ipinfo",
+    "category": "utilities",
+    "usage": "/ipinfo <ip_address>",
+    "requireArgs": true,
+    "description": "Obtiene información detallada sobre una dirección IP.",
+    "supportsInline": false,
+    "alias": [
+      "ip",
+      "infoip",
+      "ipquery",
+      "queryip",
+      "ipsearch",
+      "searchip"
+    ],
+    "protected": false,
+    "uniqueName": "ipinfo"
+  },
+  {
+    "name": [
+      "whoislookup",
+      "whois-lookup",
+      "whoissearch",
+      "whois-search"
+    ],
+    "group": "whois",
+    "category": "utilities",
+    "usage": "/whois <domain_or_ip>",
+    "requireArgs": true,
+    "description": "Realiza una consulta WHOIS para un dominio o dirección IP.",
+    "supportsInline": false,
+    "alias": [
+      "whoislookup",
+      "whois-lookup",
+      "whoissearch",
+      "whois-search"
+    ],
+    "protected": false,
+    "uniqueName": "whois"
+  },
+  {
+    "name": [
+      "dnslookup",
+      "lookupdns",
+      "dnssearch",
+      "searchdns",
+      "dnsinfo",
+      "infodns",
+      "dnsquery"
+    ],
+    "group": "dns",
+    "category": "utilities",
+    "usage": "/dns <domain>",
+    "requireArgs": true,
+    "description": "Realiza una consulta DNS para un dominio.",
+    "supportsInline": false,
+    "alias": [
+      "dnslookup",
+      "lookupdns",
+      "dnssearch",
+      "searchdns",
+      "dnsinfo",
+      "infodns",
+      "dnsquery"
+    ],
+    "protected": false,
+    "uniqueName": "dns"
+  },
+  {
+    "name": [
+      "codigoqr",
+      "generateqr",
+      "qr-code",
+      "qrcode"
+    ],
+    "group": "qr",
+    "category": "utilities",
+    "usage": "/qr <text to encode>",
+    "requireArgs": true,
+    "maxLengthArgs": 500,
+    "description": "Genera un código QR a partir del texto.",
+    "supportsInline": false,
+    "alias": [
+      "codigoqr",
+      "generateqr",
+      "qr-code",
+      "qrcode"
+    ],
+    "protected": false,
+    "uniqueName": "qr"
+  },
+  {
+    "name": [],
+    "group": "quiz",
+    "category": "entertainment",
+    "usage": "/quiz",
+    "requireArgs": false,
+    "description": "Inicia un quiz sobre cultura general.",
+    "supportsInline": false,
+    "alias": [],
+    "protected": false,
+    "uniqueName": "quiz"
+  },
+  {
+    "name": [
+      "numtoroman",
+      "inttoroman"
+    ],
+    "group": "roman",
+    "category": "utilities",
+    "usage": "/roman <number | roman_numeral>",
+    "requireArgs": true,
+    "maxLengthArgs": 15,
+    "description": "Convierte números enteros a números romanos y viceversa.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/18416/18416684.png",
+    "alias": [
+      "numtoroman",
+      "inttoroman"
+    ],
+    "protected": false,
+    "uniqueName": "roman"
+  },
+  {
+    "name": [
+      "ajustes",
+      "configuración"
+    ],
+    "group": "settings",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Ajustar las configuraciones del bot",
+    "supportsInline": false,
+    "alias": [
+      "ajustes",
+      "configuración"
+    ],
+    "protected": false,
+    "uniqueName": "settings"
+  },
+  {
+    "name": [
+      "screenshotweb",
+      "screenshot",
+      "webss",
+      "captura"
+    ],
+    "group": "ssweb",
+    "category": "utilities",
+    "usage": "/ssweb <url>",
+    "requireArgs": true,
+    "description": "Toma una captura de pantalla de un sitio web.",
+    "supportsInline": false,
+    "alias": [
+      "screenshotweb",
+      "screenshot",
+      "webss",
+      "captura"
+    ],
+    "protected": false,
+    "uniqueName": "ssweb"
+  },
+  {
+    "name": [
+      "hashmd5",
+      "hash",
+      "md5hash"
+    ],
+    "group": "tools",
+    "category": "utilities",
+    "usage": "/md5 <text to hash>",
+    "requireArgs": true,
+    "description": "Convierte texto a su hash MD5.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/14422/14422103.png",
+    "alias": [
+      "hashmd5",
+      "hash",
+      "md5hash"
+    ],
+    "protected": false,
+    "uniqueName": "md5"
+  },
+  {
+    "name": [
+      "clave",
+      "pass",
+      "contraseña",
+      "contrasena",
+      "contrasenya",
+      "passwordgenerator",
+      "passwordgenerator",
+      "generarpass"
+    ],
+    "group": "password",
+    "category": "utilities",
+    "usage": "/password <length>",
+    "requireArgs": false,
+    "description": "Genera una contraseña aleatoria.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/4543/4543404.png",
+    "alias": [
+      "clave",
+      "pass",
+      "contraseña",
+      "contrasena",
+      "contrasenya",
+      "passwordgenerator",
+      "passwordgenerator",
+      "generarpass"
+    ],
+    "protected": false,
+    "uniqueName": "password"
+  },
+  {
+    "name": [
+      "id",
+      "meid",
+      "mid",
+      "miid",
+      "mychatid",
+      "chatid",
+      "mychat",
+      "chat"
+    ],
+    "group": "myid",
+    "category": "utilities",
+    "usage": "/myid",
+    "requireArgs": false,
+    "description": "Muestra info. del chat.",
+    "supportsInline": false,
+    "alias": [
+      "id",
+      "meid",
+      "mid",
+      "miid",
+      "mychatid",
+      "chatid",
+      "mychat",
+      "chat"
+    ],
+    "protected": false,
+    "uniqueName": "myid"
+  },
+  {
+    "name": [
+      "uppercase",
+      "upper",
+      "mayusculas"
+    ],
+    "group": "mayus",
+    "category": "utilities",
+    "usage": "/mayus <text to convert>",
+    "requireArgs": true,
+    "description": "Convierte el texto a mayúsculas.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/4013/4013257.png",
+    "alias": [
+      "uppercase",
+      "upper",
+      "mayusculas"
+    ],
+    "protected": false,
+    "uniqueName": "mayus"
+  },
+  {
+    "name": [
+      "lowercase",
+      "lower",
+      "minusculas"
+    ],
+    "group": "minus",
+    "category": "utilities",
+    "usage": "/minus <text to convert>",
+    "requireArgs": true,
+    "description": "Convierte el texto a minúsculas.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/9881/9881662.png",
+    "alias": [
+      "lowercase",
+      "lower",
+      "minusculas"
+    ],
+    "protected": false,
+    "uniqueName": "minus"
+  },
+  {
+    "name": [
+      "revertir",
+      "invertir"
+    ],
+    "group": "reverse",
+    "category": "utilities",
+    "usage": "/reverse <text to reverse>",
+    "requireArgs": true,
+    "description": "Invierte el texto proporcionado.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/335/335522.png",
+    "alias": [
+      "revertir",
+      "invertir"
+    ],
+    "protected": false,
+    "uniqueName": "reverse"
+  },
+  {
+    "name": [
+      "capitalizar",
+      "capi"
+    ],
+    "group": "capitalize",
+    "category": "utilities",
+    "usage": "/capitalize <text to capitalize>",
+    "requireArgs": true,
+    "description": "Capitaliza la primera letra de cada palabra.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/6631/6631411.png",
+    "alias": [
+      "capitalizar",
+      "capi"
+    ],
+    "protected": false,
+    "uniqueName": "capitalize"
+  },
+  {
+    "name": [
+      "acortar",
+      "shorturl",
+      "shortlink",
+      "tinyurl",
+      "bitly"
+    ],
+    "group": "shorten",
+    "category": "utilities",
+    "usage": "/shorten <url to shorten>",
+    "requireArgs": true,
+    "maxLengthArgs": 2048,
+    "description": "Acorta una URL.",
+    "supportsInline": false,
+    "alias": [
+      "acortar",
+      "shorturl",
+      "shortlink",
+      "tinyurl",
+      "bitly"
+    ],
+    "protected": false,
+    "uniqueName": "shorten"
+  },
+  {
+    "name": [
+      "traductor",
+      "translate",
+      "translator"
+    ],
+    "group": "t",
+    "category": "utilities",
+    "usage": "/translate <target_lang> <text to translate>",
+    "requireArgs": true,
+    "maxLengthArgs": 500,
+    "description": "Traduce un texto a otro idioma.",
+    "supportsInline": false,
+    "alias": [
+      "traductor",
+      "translate",
+      "translator"
+    ],
+    "protected": false,
+    "uniqueName": "t"
+  },
+  {
+    "name": [
+      "tic_tac_toe",
+      "tictactoe"
+    ],
+    "group": "ttt",
+    "category": "entertainment",
+    "usage": "/ttt",
+    "requireArgs": false,
+    "description": "Juego de Tic Tac Toe [BETA]",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/5791/5791753.png",
+    "alias": [
+      "tic_tac_toe",
+      "tictactoe"
+    ],
+    "protected": false,
+    "uniqueName": "ttt"
+  },
+  {
+    "name": [
+      "wikipedia",
+      "wikihow",
+      "wikimedia"
+    ],
+    "group": "wiki",
+    "category": "utilities",
+    "usage": "/wiki <search_term>",
+    "requireArgs": true,
+    "maxLengthArgs": 30,
+    "minLengthArgs": 3,
+    "description": "Busca información en Wikipedia.",
+    "supportsInline": true,
+    "inlineIcon": "https://cdn-icons-png.flaticon.com/512/3670/3670328.png",
+    "alias": [
+      "wikipedia",
+      "wikihow",
+      "wikimedia"
+    ],
+    "protected": false,
+    "uniqueName": "wiki"
+  },
+  {
+    "name": [
+      "alert",
+      "task",
+      "reminder",
+      "notify"
+    ],
+    "group": "alerta",
+    "category": "utilities",
+    "usage": "/alert <time> <message>",
+    "requireArgs": true,
+    "description": "Establece una alerta o recordatorio.",
+    "supportsInline": false,
+    "alias": [
+      "alert",
+      "task",
+      "reminder",
+      "notify"
+    ],
+    "protected": false,
+    "uniqueName": "alerta"
+  },
+  {
+    "name": [
+      "cancelalert",
+      "canceltask",
+      "deletealert",
+      "delete_alert",
+      "borraralerta",
+      "dalerts"
+    ],
+    "group": "dalert",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": true,
+    "description": "Cancela o elimina una alerta programada.",
+    "supportsInline": false,
+    "alias": [
+      "cancelalert",
+      "canceltask",
+      "deletealert",
+      "delete_alert",
+      "borraralerta",
+      "dalerts"
+    ],
+    "protected": false,
+    "uniqueName": "dalert"
+  },
+  {
+    "name": [
+      "list_alert",
+      "listaralertas"
+    ],
+    "group": "listalert",
+    "category": "uncategorized",
+    "usage": "",
+    "requireArgs": false,
+    "description": "Lista todas las alertas programadas.",
+    "supportsInline": false,
+    "alias": [
+      "list_alert",
+      "listaralertas"
+    ],
+    "protected": false,
+    "uniqueName": "listalert"
+  }
+]

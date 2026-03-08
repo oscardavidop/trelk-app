@@ -39,7 +39,7 @@ export class UserService {
    * Si existe, actualiza los campos de perfil de Telegram (idempotente).
    */
   async findOrCreateFromTelegram(tgUser: TelegramUserData): Promise<UserDocument> {
-    const existing = await this.userModel.findOne({ telegramId: tgUser.id }).exec();
+    const existing = await this.userModel.findOne({ id: tgUser.id }).exec();
 
     if (existing) {
       // Actualizar campos que pudieron cambiar en Telegram

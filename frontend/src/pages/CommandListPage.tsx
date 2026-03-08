@@ -3,9 +3,12 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { BOT_COMMANDS, cmdSlug } from '../data/botCommands';
 import CommandCard from '../components/commands/CommandCard';
-import CommandFilters, { type SortKey } from '../components/commands/CommandFilters';
+import CommandFilters from '../components/commands/CommandFilters';
+
 import StickyHeader from '../components/StickyHeader';
 import { Search } from 'lucide-react';
+
+type SortKey = 'alpha' | 'category';
 
 export default function CommandListPage() {
   const { userId } = useParams();
@@ -56,7 +59,7 @@ export default function CommandListPage() {
       
       {/* ── Cabecera Pegajosa y Filtros ── */}
       <StickyHeader title="Todos los Comandos" subtitle={`${BOT_COMMANDS.length} comandos disponibles`}>
-        <div className="px-5 mt-3 pb-3">
+        <div className="px-5 mt-3">
           <CommandFilters
             search={search}
             onSearchChange={setSearch}

@@ -20,7 +20,8 @@ import {
   Star
 } from 'lucide-react';
 import { StickySectionHeader } from '@/components/StickyHeader';
-import { useScrollCollapse,useScrollHeader  } from '@/hooks/useScrollCollapse';
+import { useScrollCollapse, useScrollHeader } from '@/hooks/useScrollCollapse';
+import CommentsWidget from '@/components/CommentsWidget';
 /* ─── Mock screenshots for preview ─── */
 const MOCK_SCREENSHOTS = [
   'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+1',
@@ -313,11 +314,24 @@ export default function BotCommandDetailPage() {
       <section className="px-5 mt-8">
         <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-3">Vista previa</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {MOCK_SCREENSHOTS.map((src, i) => (
-            <div key={i} className="flex-shrink-0 w-[180px] h-[320px] rounded-[24px] overflow-hidden bg-tg-secondary border border-white/5 shadow-md">
-              <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
-            </div>
-          ))}
+          {
+            cmd.photos && cmd.photos.length > 0 ? (
+              cmd.photos.map((url, i) => (
+                <img
+                  key={i}
+                  src={`https://cdn.trelk.site/assets/img/commands/md5/1.jpg`}
+                  alt={`Screenshot ${i + 1}`}
+                  className="w-[280px] h-[500px] rounded-[20px] object-cover border border-tg-border/50 shadow-sm flex-shrink-0"
+                />
+              ))
+            ) : (
+              MOCK_SCREENSHOTS.map((src, i) => (
+                <div key={i} className="flex-shrink-0 w-[180px] h-[320px] rounded-[24px] overflow-hidden bg-tg-secondary border border-white/5 shadow-md">
+                  <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              ))
+            )
+          }
         </div>
       </section>
 
@@ -422,8 +436,10 @@ export default function BotCommandDetailPage() {
           )}
         </div>
       </section>
+
       {/* ── Ejemplos de Uso ── */}
       {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
+
 
       {/* ── Changelog ── */}
       {getChangelog(mainSlug).length > 0 && <CommandChangelog entries={getChangelog(mainSlug)} />}
@@ -437,7 +453,19 @@ export default function BotCommandDetailPage() {
       {/* ── Comandos Relacionados ── */}
       {getRelated(mainSlug).length > 0 && <RelatedCommands slugs={getRelated(mainSlug)} />}
 
-      {/* ── Navigation (Anterior / Siguiente) ── */}
+      {/* comments section */}
+      <section className="px-5 mt-8">
+        <div className="flex items-center gap-2 px-2 mb-3">
+          <MessageSquare size={14} className="text-tg-accent" />
+          <span className="text-[12px] font-bold text-tg-hint uppercase">Comentarios</span>
+        </div>
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 shadow-sm mb-8">
+          <CommentsWidget />
+        </div>
+      </section>
+
+
+      {/* ── Navigation (Anterior d/ Siguiente) ── */}
       <section className="px-5 mt-8">
         <div className="flex gap-3">
           {prevCmd ? (
@@ -474,7 +502,7 @@ export default function BotCommandDetailPage() {
         onSubmit={() => {
           setReported(true);
           haptic?.notificationOccurred('success');
-          showToast('Reporte enviado', 'success');
+          showToast('Reporte envkiado', 'success');
         }}
       />
 
