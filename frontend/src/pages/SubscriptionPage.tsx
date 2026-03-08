@@ -81,7 +81,7 @@ export function ConfirmModal({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-6 animate-fade-in">
             <div
                 ref={modalRef}
-                className="bg-tg-secondary border border-white/5 rounded-[24px] p-6 max-w-sm w-full shadow-2xl animate-scale-in flex flex-col max-h-[80vh]"
+                className="bg-tg-secondary border border-tg-border/20 rounded-[24px] p-6 max-w-sm w-full shadow-2xl animate-scale-in flex flex-col max-h-[80vh]"
             >
                 <h3 className="text-[19px] font-bold text-tg-text mb-3 flex-shrink-0 tracking-tight">
                     {title}
@@ -96,7 +96,7 @@ export function ConfirmModal({
                 <div className="flex gap-3 mt-auto flex-shrink-0">
                     <button
                         onClick={onCancel}
-                        className="flex-1 py-3 rounded-xl bg-white/[0.08] text-tg-text text-[15px] font-medium transition-colors hover:bg-white/15 active:bg-white/20"
+                        className="flex-1 py-3 rounded-xl bg-tg-surface text-tg-text text-[15px] font-medium transition-colors hover:bg-tg-surface/80 active:bg-tg-surface/60"
                     >
                         Cancelar
                     </button>

@@ -27,7 +27,7 @@ export default function AppLayout() {
         key={location.pathname}
         className="animate-fade-in"
         style={{
-          paddingTop: 'var(--tg-top-offset, --tg-top2-offset)',
+          paddingTop: 'var(--tg-top-offset, var(--tg-top2-offset, 0px))',
           paddingBottom: isMainTab ? 'calc(env(safe-area-inset-bottom, 0px) + 80px)' : undefined,
         }}
       >

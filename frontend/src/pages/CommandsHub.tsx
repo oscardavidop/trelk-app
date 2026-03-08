@@ -12,7 +12,8 @@ import {
   ChevronRight, 
   Plus, 
   Heart,
-  ImageIcon
+  ImageIcon,
+  Compass
 } from 'lucide-react';
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
@@ -51,8 +52,27 @@ export default function CommandsHub() {
         <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">Herramientas y favoritos</p>
       </div>
 
+      {/* ── Explorar Bot Commands (NEW) ── */}
+      <section className="mt-2 px-5">
+        <button
+          onClick={() => go('/bot-commands')}
+          className="w-full bg-gradient-to-br from-tg-accent/10 to-violet-500/10 border border-tg-accent/20 rounded-[22px] p-5 text-left active:scale-[0.98] transition-all duration-200 group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-tg-accent to-blue-600 flex items-center justify-center shadow-lg shadow-tg-accent/20 flex-shrink-0">
+              <Compass size={26} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[17px] font-extrabold text-tg-text tracking-tight">Explorar Comandos</h3>
+              <p className="text-[13px] text-tg-hint mt-0.5">Descubre los {18} comandos del bot con búsqueda, categorías y más</p>
+            </div>
+            <ChevronRight size={20} className="text-tg-hint/40 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
+      </section>
+
       {/* ── Premium Commands (Carrusel Horizontal) ── */}
-      <section className="mt-2">
+      <section className="mt-5">
         <div className="flex items-center justify-between px-5 mb-3">
           <h2 className="text-[16px] font-bold text-tg-text tracking-tight">Premium</h2>
           <button onClick={() => go('/premium')} className="text-[13px] font-bold text-tg-accent hover:brightness-125 transition-colors">
@@ -94,12 +114,12 @@ export default function CommandsHub() {
         
         {userCommands.length > 0 ? (
           <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-tg-border/20">
               {userCommands.slice(0, 5).map(([key, cmd]) => (
                 <button
                   key={key}
                   onClick={() => go(`/commands/${key}`)}
-                  className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors"
+                  className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors"
                 >
                   <div className="w-10 h-10 rounded-[12px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center flex-shrink-0">
                     <Terminal size={18} className="text-tg-accent" />
@@ -141,7 +161,7 @@ export default function CommandsHub() {
         {favsLoading && recentFavs.length === 0 ? (
           <div className="grid grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="aspect-square rounded-[16px] bg-tg-secondary border border-white/5 animate-pulse" />
+              <div key={i} className="aspect-square rounded-[16px] bg-tg-secondary border border-tg-border/20 animate-pulse" />
             ))}
           </div>
         ) : recentFavs.length > 0 ? (
@@ -152,7 +172,7 @@ export default function CommandsHub() {
                 <button
                   key={fav._id}
                   onClick={() => go('/favorites')}
-                  className="aspect-square relative rounded-[16px] overflow-hidden active:scale-[0.94] transition-all duration-200 group bg-tg-secondary border border-white/5 shadow-sm"
+                  className="aspect-square relative rounded-[16px] overflow-hidden active:scale-[0.94] transition-all duration-200 group bg-tg-secondary border border-tg-border/20 shadow-sm"
                 >
                   {thumb ? (
                     <img src={thumb} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -173,7 +193,7 @@ export default function CommandsHub() {
           </div>
         ) : (
           <div className="p-6 rounded-[20px] bg-tg-secondary border border-tg-border/30 text-center">
-            <div className="w-12 h-12 mx-auto bg-white/[0.04] rounded-full flex items-center justify-center mb-3">
+            <div className="w-12 h-12 mx-auto bg-tg-surface/30 rounded-full flex items-center justify-center mb-3">
               <Heart size={24} className="text-tg-hint/40" />
             </div>
             <div className="text-[14px] font-medium text-tg-hint">Tu galería de favoritos aparecerá aquí</div>

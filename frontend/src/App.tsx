@@ -22,6 +22,9 @@ import SubscriptionPage from './pages/SubscriptionPage';
 import FavoritesPage from './pages/FavoritesPage';
 import InspirationPage from './pages/InspirationPage';
 import PaymentsPage from './pages/PaymentsPage';
+import BotCommandsPage from './pages/BotCommandsPage';
+import CommandListPage from './pages/CommandListPage';
+import BotCommandDetailPage from './pages/BotCommandDetailPage';
 import Toast from './components/Toast';
 import { useThemeStore } from './stores/theme';
 import CountryPage from './pages/CountryPage';
@@ -41,6 +44,11 @@ function App() {
       webApp.ready();
       webApp.MainButton.setParams({ color: '#248BDA' });
       webApp.disableVerticalSwipes();
+
+      try {
+        webApp.setHeaderColor('bg_color');
+        webApp.setBackgroundColor('bg_color');
+      } catch { /* older clients */ }
 
       if (['android', 'ios'].includes(webApp.platform)) {
         document.body.classList.add('mobile', `platform-${webApp.platform}`);
@@ -93,6 +101,9 @@ function App() {
           <Route path="/users/ui/:userId/subscription" element={<SubscriptionPage />} />
           <Route path="/users/ui/:userId/favorites" element={<FavoritesPage />} />
           <Route path="/users/ui/:userId/payments" element={<PaymentsPage />} />
+          <Route path="/users/ui/:userId/bot-commands" element={<BotCommandsPage />} />
+          <Route path="/users/ui/:userId/bot-commands/list" element={<CommandListPage />} />
+          <Route path="/users/ui/:userId/bot-commands/:command" element={<BotCommandDetailPage />} />
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />

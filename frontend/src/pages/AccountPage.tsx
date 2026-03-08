@@ -67,7 +67,7 @@ export default function AccountPage() {
         <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2 px-1">
           Datos de Telegram
         </h2>
-        <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-white/5 animate-slide-up">
+        <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up">
           <ReadonlyRow label="Nombre visible" value={displayName} />
           <ReadonlyRow label="Username" value={user?.username ? `@${user.username}` : '—'} />
           <ReadonlyRow label="ID de Usuario" value={String(user?.id || '—')} mono />
@@ -80,7 +80,7 @@ export default function AccountPage() {
         <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2 px-1">
           Perfil en Trelk
         </h2>
-        <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-white/5 animate-slide-up" style={{ animationDelay: '50ms' }}>
+        <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up" style={{ animationDelay: '50ms' }}>
           <EditableRow 
             label="Nombre" 
             value={form.firstName} 
@@ -134,12 +134,12 @@ export default function AccountPage() {
               ? 'bg-tg-accent text-white active:scale-[0.98]'
               : saved
                 ? 'bg-emerald-500/15 text-emerald-500'
-                : 'bg-white/5 text-tg-hint cursor-not-allowed'
+                : 'bg-tg-surface/40 text-tg-hint cursor-not-allowed'
           }`}
         >
           {saving ? (
             <>
-              <Loader2 size={18} className="animate-spin text-white/70" />
+              <Loader2 size={18} className="animate-spin text-tg-hint" />
               <span>Guardando...</span>
             </>
           ) : saved ? (
@@ -160,7 +160,7 @@ export default function AccountPage() {
 
 function ReadonlyRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="px-5 py-3 hover:bg-white/[0.02] transition-colors flex flex-col justify-center min-h-[56px]">
+    <div className="px-5 py-3 hover:bg-tg-surface/40 transition-colors flex flex-col justify-center min-h-[56px]">
       <span className="text-[12px] text-tg-hint">{label}</span>
       <span className={`text-[15px] text-tg-text mt-0.5 ${mono ? 'font-mono text-[13px]' : ''}`}>
         {value}
@@ -173,7 +173,7 @@ function EditableRow({ label, value, onChange, placeholder, type = 'text' }: {
   label: string; value: string; onChange: (v: string) => void; placeholder: string; type?: string;
 }) {
   return (
-    <div className="px-5 py-2.5 bg-transparent hover:bg-white/[0.01] transition-colors focus-within:bg-white/[0.02] flex flex-col justify-center min-h-[56px]">
+    <div className="px-5 py-2.5 bg-transparent hover:bg-tg-surface/30 transition-colors focus-within:bg-tg-surface/40 flex flex-col justify-center min-h-[56px]">
       <span className="text-[12px] text-tg-hint">{label}</span>
       <input
         type={type}

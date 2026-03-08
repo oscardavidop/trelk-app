@@ -86,7 +86,7 @@ export default function PaymentsTable({
       {/* ── Loading skeleton ── */}
       {loading && (
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-lg">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="p-4 flex items-center gap-4 animate-pulse">
                 <div className="w-10 h-10 rounded-[12px] bg-white/5 shrink-0" />
@@ -119,7 +119,7 @@ export default function PaymentsTable({
       {/* ── Events list (Estilo Menú iOS) ── */}
       {!loading && events.length > 0 && (
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-lg animate-fade-in">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             {events.map((event) => {
               const meta = EVENT_META[event.eventType] || { label: event.eventType, color: 'text-tg-text' };
               const amount = event.resource?.amount?.total;

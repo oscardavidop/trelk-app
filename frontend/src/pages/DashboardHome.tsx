@@ -132,7 +132,7 @@ export default function DashboardHome() {
         {favsLoading && recentFavs.length === 0 ? (
           <div className="flex gap-3 px-5 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="w-28 h-28 flex-shrink-0 rounded-[18px] bg-tg-secondary border border-white/5 animate-pulse" />
+              <div key={i} className="w-28 h-28 flex-shrink-0 rounded-[18px] bg-tg-secondary border border-tg-border/20 animate-pulse" />
             ))}
           </div>
         ) : recentFavs.length > 0 ? (
@@ -150,10 +150,10 @@ export default function DashboardHome() {
                       src={thumb}
                       alt=""
                       loading="lazy"
-                      className="w-28 h-28 rounded-[18px] object-cover bg-tg-secondary border border-white/5 shadow-sm"
+                      className="w-28 h-28 rounded-[18px] object-cover bg-tg-secondary border border-tg-border/20 shadow-sm"
                     />
                   ) : (
-                    <div className="w-28 h-28 rounded-[18px] bg-tg-secondary border border-white/5 flex flex-col items-center justify-center p-2 text-center">
+                    <div className="w-28 h-28 rounded-[18px] bg-tg-secondary border border-tg-border/20 flex flex-col items-center justify-center p-2 text-center">
                       <Heart size={20} className="text-tg-hint/40 mb-2" />
                       <span className="text-tg-hint text-[10px] font-medium leading-tight line-clamp-2">
                         {fav.data?.caption || fav.context}
@@ -168,7 +168,7 @@ export default function DashboardHome() {
           </div>
         ) : (
           <div className="mx-5 p-6 rounded-[20px] bg-tg-secondary border border-tg-border/30 text-center">
-            <div className="w-12 h-12 mx-auto bg-white/[0.04] rounded-full flex items-center justify-center mb-3">
+            <div className="w-12 h-12 mx-auto bg-tg-surface/30 rounded-full flex items-center justify-center mb-3">
               <Sparkles size={24} className="text-tg-hint/40" />
             </div>
             <div className="text-[14px] font-medium text-tg-hint leading-relaxed">
@@ -185,14 +185,14 @@ export default function DashboardHome() {
       <section className="mt-6 px-5">
         <h2 className="text-[16px] font-bold text-tg-text tracking-tight mb-3">Comandos populares</h2>
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             {POPULAR_COMMANDS.map((cmd) => (
               <button
                 key={cmd.name}
                 onClick={() => go('/hub')}
-                className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors"
+                className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors"
               >
-                <div className="w-9 h-9 rounded-[10px] bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-[10px] bg-tg-surface/40 flex items-center justify-center flex-shrink-0">
                   <cmd.icon size={18} className="text-tg-text/80" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -225,11 +225,11 @@ export default function DashboardHome() {
               </span>
             </div>
             
-            <p className="text-[15px] text-white/95 leading-snug font-medium text-left">
+            <p className="text-[15px] text-white leading-snug font-medium text-left">
               "{INSPIRATION.caption}"
             </p>
             
-            <div className="mt-5 flex items-center gap-1.5 text-white font-bold text-[13px] bg-white/10 w-max px-3.5 py-2 rounded-full">
+            <div className="mt-5 flex items-center gap-1.5 text-white font-bold text-[13px] bg-white/15 w-max px-3.5 py-2 rounded-full">
               <span>Explorar más</span>
               <ChevronRight size={14} strokeWidth={2.5} />
             </div>

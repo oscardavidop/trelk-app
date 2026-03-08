@@ -1,10 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Star, Plus, Trash2, Search, Zap } from 'lucide-react';
+import { Star, Plus, Trash2, Search, Zap, Loader2 } from 'lucide-react';
 import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
 import Select from '@/components/Select';
+import { useHideIsland } from '@/hooks/useHideIsland';
 
 const ALLOWED_ALIAS = [
   'chatgpt-premium',
@@ -20,6 +21,7 @@ export default function PremiumCommandsPage() {
   const { haptic } = useTelegram();
   const showToast = useToastStore((s) => s.show);
   const { config, loading, load, savePremiumCommand, removePremiumCommand } = useConfigStore();
+  useHideIsland();
 
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -61,17 +63,18 @@ export default function PremiumCommandsPage() {
     }
   };
 
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-8 h-8 text-tg-hint animate-spin" />
       </div>
     );
   }
 
   return (
-    <main className="pb-12 animate-fade-in relative" style={{ top: 'var(--tg-top-offset, 0px)' }}>
-      
+    <main className="pb-12 animate-fade-in relative">
+
       {/* ── Intro Premium (Estilo Hero) ── */}
       <div className="relative pt-8 pb-6 px-6 text-center bg-gradient-to-b from-amber-500/10 to-transparent border-b border-white/5">
         <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(245,158,11,0.3)] ring-4 ring-amber-500/20">
@@ -85,7 +88,7 @@ export default function PremiumCommandsPage() {
 
       {/* ── Buscador Pegajoso (Sticky) ── */}
       <div className="sticky top-0 z-20 px-4 py-3 bg-tg-bg/90 backdrop-blur-xl border-b border-tg-border/30">
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-black/20 border border-white/5 rounded-[14px] shadow-inner focus-within:border-amber-500/40 transition-colors">
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-tg-surface/50 border border-tg-border/20 rounded-[14px] shadow-inner focus-within:border-amber-500/40 transition-colors">
           <Search className="w-5 h-5 text-tg-hint shrink-0" />
           <input
             type="search"
@@ -100,7 +103,7 @@ export default function PremiumCommandsPage() {
       </div>
 
       <div className="px-4 mt-5">
-        
+
         {/* Título de Sección */}
         <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest pl-2 mb-2">
           Gestión ({entries.length})
@@ -108,19 +111,17 @@ export default function PremiumCommandsPage() {
 
         {/* ── Contenedor Principal Estilo iOS ── */}
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-lg">
-          <div className="divide-y divide-white/5">
-            
+          <div className="divide-y divide-tg-border/20">
+
             {/* ── Botón Agregar Comando ── */}
             <div className="bg-tg-secondary">
               <button
-                className={`w-full flex items-center gap-3 p-4 transition-colors active:bg-white/[0.02] ${
-                  showAdd ? 'bg-amber-500/5' : ''
-                }`}
+                className={`w-full flex items-center gap-3 p-4 transition-colors active:bg-white/[0.02] ${showAdd ? 'bg-amber-500/5' : ''
+                  }`}
                 onClick={() => { setShowAdd(!showAdd); haptic?.impactOccurred('light'); }}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                  showAdd ? 'bg-amber-500 text-white' : 'bg-amber-500/15 text-amber-500'
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${showAdd ? 'bg-amber-500 text-white' : 'bg-amber-500/15 text-amber-500'
+                  }`}>
                   <Plus className={`w-5 h-5 transition-transform duration-300 ${showAdd ? 'rotate-45' : ''}`} />
                 </div>
                 <span className={`text-[15px] font-bold ${showAdd ? 'text-tg-text' : 'text-amber-500'}`}>
@@ -130,12 +131,12 @@ export default function PremiumCommandsPage() {
 
               {/* ── Formulario Desplegable ── */}
               <div className={`grid transition-all duration-300 ease-in-out ${showAdd ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                <div className="overflow-hidden bg-black/10 border-t border-white/5">
+                <div className="overflow-hidden bg-tg-surface/30 border-t border-tg-border/20">
                   <div className="p-4 space-y-4">
-                    
+
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-tg-hint/70 uppercase tracking-widest pl-1">Comando (Trigger)</label>
-                      <div className="flex items-center gap-2 px-3.5 py-3 bg-tg-surface rounded-[14px] border border-white/5 focus-within:border-amber-500/40 transition-colors">
+                      <div className="flex items-center gap-2 px-3.5 py-3 bg-tg-surface rounded-[14px] border border-tg-border/20 focus-within:border-amber-500/40 transition-colors">
                         <span className="text-tg-hint/50 font-mono font-bold text-[16px]">/</span>
                         <input
                           className="w-full bg-transparent text-[15px] text-tg-text outline-none font-mono placeholder:text-tg-hint/40 placeholder:font-sans"
@@ -184,7 +185,7 @@ export default function PremiumCommandsPage() {
                 <p className="text-tg-hint text-[12px] mt-1">Toca en "Agregar comando" para empezar.</p>
               </div>
             )}
-            
+
             {entries.map(([key, cmd]) => (
               <div key={key} className="flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors group">
                 <div className="flex items-start gap-3.5 min-w-0">
@@ -194,7 +195,7 @@ export default function PremiumCommandsPage() {
                   <div className="min-w-0">
                     <span className="text-[15px] font-bold text-tg-text font-mono truncate tracking-tight">/{key}</span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[12px] font-medium text-tg-hint/90 bg-black/20 px-2 py-0.5 rounded-md">
+                      <span className="text-[12px] font-medium text-tg-hint/90 bg-tg-surface/50 px-2 py-0.5 rounded-md">
                         {cmd.alias}
                       </span>
                       {cmd.created_at && (
@@ -208,7 +209,7 @@ export default function PremiumCommandsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <button
                   className="w-10 h-10 rounded-full flex items-center justify-center text-tg-hint/50 hover:bg-red-500/10 hover:text-red-400 active:scale-90 transition-all flex-shrink-0 ml-3"
                   onClick={() => handleDelete(key)}
@@ -220,7 +221,7 @@ export default function PremiumCommandsPage() {
             ))}
           </div>
         </div>
-        
+
         {/* Footer Text */}
         <div className="mt-6 px-2 text-center flex items-start gap-2 justify-center">
           <Star className="w-4 h-4 text-amber-500/60 shrink-0 mt-0.5" />

@@ -93,7 +93,7 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
             className={`relative rounded-[24px] overflow-hidden transition-all duration-300 bg-tg-secondary ${
               isCurrent
                 ? 'border border-tg-accent shadow-[0_0_20px_rgba(var(--tg-accent-rgb),0.1)]'
-                : 'border border-white/[0.04]'
+                : 'border border-tg-border/20'
             }`}
           >
             {/* Header del Plan con Gradiente */}
@@ -107,7 +107,7 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
               <div className="relative z-10 flex items-start justify-between">
                 <div className="flex items-center gap-3.5">
                   <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner backdrop-blur-sm"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center border border-tg-border/20 shadow-inner backdrop-blur-sm"
                     style={{ background: `${plan.color}20` }}
                   >
                     <Icon className="w-6 h-6" style={{ color: plan.color }} />
@@ -141,7 +141,7 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
                 {plan.highlights.map((h) => (
                   <span
                     key={h}
-                    className="text-[11px] font-medium bg-black/20 border border-white/5 text-white/85 px-2.5 py-1 rounded-lg backdrop-blur-md"
+                    className="text-[11px] font-medium bg-tg-surface/60 border border-tg-border/20 text-tg-text/85 px-2.5 py-1 rounded-lg backdrop-blur-md"
                   >
                     {h}
                   </span>
@@ -157,7 +157,7 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
                     {f.included ? (
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
                     ) : (
-                      <X className="w-3.5 h-3.5 text-white/15" />
+                      <X className="w-3.5 h-3.5 text-tg-hint/30" />
                     )}
                   </div>
                   <span

@@ -58,12 +58,12 @@ export default function ThemePage() {
           Tema
         </h2>
         
-        <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-white/5 animate-slide-up">
+        <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up">
           {THEME_OPTIONS.map((opt) => (
             <button
               key={opt.mode}
               onClick={() => handleSelect(opt.mode)}
-              className="w-full flex items-center justify-between p-4 text-left transition-colors hover:bg-white/[0.02] active:bg-white/[0.04]"
+              className="w-full flex items-center justify-between p-4 text-left transition-colors hover:bg-tg-surface/40 active:bg-tg-surface/60"
             >
               <div className="flex items-center gap-3.5">
                 {/* Contenedor del Icono Estilo iOS */}

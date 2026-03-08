@@ -188,8 +188,6 @@ export default function SettingsPage() {
           onChange={(v) => handleToggle('auto_detect_lang', v)}
         />
         <MenuRow
-          icon={Languages}
-          iconBg="#5eaadf"
           label={t('lang_default')}
           to={`/users/ui/${userId}/set/lang`}
         />

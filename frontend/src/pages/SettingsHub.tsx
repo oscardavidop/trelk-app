@@ -78,10 +78,10 @@ export default function SettingsHub() {
         <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Preferencias</h2>
         
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             
             {/* Language */}
-            <button onClick={() => go('/set/lang')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/set/lang')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center flex-shrink-0">
                 <Globe size={18} className="text-sky-400" />
               </div>
@@ -93,7 +93,7 @@ export default function SettingsHub() {
             </button>
 
             {/* Timezone */}
-            <button onClick={() => go('/set/timezone')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/set/timezone')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
                 <Clock size={18} className="text-violet-400" />
               </div>
@@ -105,7 +105,7 @@ export default function SettingsHub() {
             </button>
 
             {/* Country */}
-            <button onClick={() => go('/set/country')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/set/country')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0">
                 <MapPin size={18} className="text-rose-400" />
               </div>
@@ -125,9 +125,9 @@ export default function SettingsHub() {
         <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Ajustes del Bot</h2>
         
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             
-            <button onClick={() => go('/settings')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/settings')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center flex-shrink-0">
                 <MessageSquare size={18} className="text-tg-accent" />
               </div>
@@ -138,7 +138,7 @@ export default function SettingsHub() {
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
 
-            <button onClick={() => go('/set/theme')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/set/theme')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0">
                 <Palette size={18} className="text-pink-400" />
               </div>
@@ -158,9 +158,9 @@ export default function SettingsHub() {
         <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Plan y Pagos</h2>
         
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             
-            <button onClick={() => go('/subscription')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/subscription')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                 <Crown size={18} className="text-amber-500" />
               </div>
@@ -171,7 +171,7 @@ export default function SettingsHub() {
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
 
-            <button onClick={() => go('/payments')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+            <button onClick={() => go('/payments')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <CreditCard size={18} className="text-emerald-500" />
               </div>

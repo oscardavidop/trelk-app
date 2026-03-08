@@ -100,7 +100,7 @@ export default function CommandsPage() {
 
         {/* ── Contenedor Principal Estilo iOS ── */}
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-lg animate-slide-up">
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-tg-border/20">
             
             {/* ── Botón Agregar Comando ── */}
             <div className="bg-tg-secondary">

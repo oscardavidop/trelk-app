@@ -187,7 +187,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="space-y-2.5">
       <h4 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest pl-2">{title}</h4>
       <div className="rounded-[16px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-sm">
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-tg-border/20">
           {children}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useIslandStore } from '../stores/islandStore';
 
 interface TopIslandProps {
   name: string;
@@ -6,10 +7,12 @@ interface TopIslandProps {
 }
 
 export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
+  const visible = useIslandStore((s) => s.visible);
+
   const isMobile = useMemo(() => document.body.classList.contains('mobile'), []);
 
   const [topPx, setTopPx] = useState(0);
-  const [isVisible, setIsVisible] = useState(false); // Para la animación de entrada
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (!isMobile) {
@@ -42,7 +45,7 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
     };
   }, [isMobile]);
 
-  if (!isMobile) return null;
+  if (!isMobile || !visible) return null;
 
   const initials = name
     .split(' ')
@@ -80,5 +83,11 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
         </span>
       </div>
     </div>
+  );
+}
+
+export function HidenTopIsland() {
+  return (
+    <div className="h-10" />
   );
 }

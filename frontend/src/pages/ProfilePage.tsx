@@ -140,7 +140,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-3 gap-3">
                     {stats.map((s) => (
                         <div key={s.label} className="bg-tg-secondary border border-tg-border/30 rounded-[20px] p-3.5 flex flex-col items-center justify-center shadow-sm">
-                            <div className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center mb-2">
+                            <div className="w-8 h-8 rounded-full bg-tg-surface/30 flex items-center justify-center mb-2">
                                 {s.icon}
                             </div>
                             <div className="text-[20px] font-extrabold text-tg-text tracking-tight leading-none">{s.value}</div>
@@ -154,10 +154,10 @@ export default function ProfilePage() {
             <section className="mt-8 px-5">
                 <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Actividad</h2>
                 <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-                    <div className="divide-y divide-white/5">
+                    <div className="divide-y divide-tg-border/20">
                         {activity.map((a) => (
                             <div key={a.label} className="flex items-center gap-3.5 p-4">
-                                <div className="w-9 h-9 rounded-[10px] bg-white/[0.04] flex items-center justify-center flex-shrink-0">
+                                <div className="w-9 h-9 rounded-[10px] bg-tg-surface/30 flex items-center justify-center flex-shrink-0">
                                     {a.icon}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -174,9 +174,9 @@ export default function ProfilePage() {
             <section className="mt-8 px-5 pb-4">
                 <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Acciones</h2>
                 <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-                    <div className="divide-y divide-white/5">
+                    <div className="divide-y divide-tg-border/20">
 
-                        <button onClick={() => go('/profile')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+                        <button onClick={() => go('/profile')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
                             <div className="w-9 h-9 rounded-[10px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center flex-shrink-0">
                                 <User size={18} className="text-tg-accent" />
                             </div>
@@ -187,7 +187,7 @@ export default function ProfilePage() {
                             <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
                         </button>
 
-                        <button onClick={() => go('/favorites')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors">
+                        <button onClick={() => go('/favorites')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
                             <div className="w-9 h-9 rounded-[10px] bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0">
                                 <DownloadCloud size={18} className="text-pink-400" />
                             </div>
@@ -212,7 +212,7 @@ export default function ProfilePage() {
                                     setShareOpen(true);
                                 }
                             }}
-                            className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors"
+                            className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors"
                         >
                             <div className="w-9 h-9 rounded-[10px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center flex-shrink-0">
                                 <Share2 size={18} className="text-sky-400" />
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                                 haptic?.impactOccurred('light');
                                 window.open('https://t.me/TrelkSupport', '_blank');
                             }}
-                            className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors"
+                            className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors"
                         >
                             <div className="w-9 h-9 rounded-[10px] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
                                 <LifeBuoy size={18} className="text-emerald-500" />

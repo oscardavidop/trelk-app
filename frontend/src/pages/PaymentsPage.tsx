@@ -59,7 +59,7 @@ export default function PaymentsPage() {
 
         {/* Tabs */}
         <div className="px-4 relative z-20 max-w-md mx-auto mt-4">
-          <div className="flex p-1 bg-tg-secondary border border-tg-border/50 rounded-full shadow-[0_6px_25px_-5px_rgba(0,0,0,0.3)] gap-0.5">
+          <div className="flex p-1 bg-tg-secondary border border-tg-border/50 rounded-full shadow-sm gap-0.5">
             {TABS.map((tab) => {
               const isActive = store.activeTab === tab.key;
               return (
@@ -67,8 +67,8 @@ export default function PaymentsPage() {
                   key={tab.key}
                   onClick={() => store.setActiveTab(tab.key)}
                   className={`relative flex-1 py-2 rounded-full text-[13px] font-bold transition-all duration-300 ease-out flex items-center justify-center gap-1.5 ${isActive
-                    ? 'bg-tg-accent text-white shadow-md'
-                    : 'text-tg-hint hover:text-tg-text/90 hover:bg-white/[0.04] active:scale-95'
+                    ? 'bg-tg-accent text-white shadow-sm'
+                    : 'text-tg-hint hover:text-tg-text/90 hover:bg-tg-surface/40 active:scale-95'
                     }`}
                 >
                   {/* icon */}
@@ -130,14 +130,14 @@ export default function PaymentsPage() {
                     <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">Resumen financiero</h3>
                     <div className="grid grid-cols-2 gap-3">
                       {store.totalSpent.map((s) => (
-                        <div key={s.currency} className="bg-white/5 rounded-xl p-3">
+                        <div key={s.currency} className="bg-tg-surface/50 rounded-xl p-3">
                           <p className="text-[10px] text-tg-hint mb-1">Total pagado ({s.currency})</p>
                           <p className="text-xl font-bold text-tg-text">${s.total.toFixed(2)}</p>
                           <p className="text-[10px] text-tg-hint mt-0.5">{s.count} transacciones</p>
                         </div>
                       ))}
                       {store.activeSubscription && (
-                        <div className="bg-white/5 rounded-xl p-3">
+                        <div className="bg-tg-surface/50 rounded-xl p-3">
                           <p className="text-[10px] text-tg-hint mb-1">Gasto mensual</p>
                           <p className="text-xl font-bold text-tg-accent">
                             ${store.activeSubscription.amount}
@@ -168,10 +168,10 @@ export default function PaymentsPage() {
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="rounded-2xl bg-tg-section p-5 animate-pulse">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/10" />
+                        <div className="w-10 h-10 rounded-xl bg-tg-surface/50" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 bg-white/10 rounded w-1/3" />
-                          <div className="h-2.5 bg-white/5 rounded w-1/2" />
+                          <div className="h-3 bg-tg-surface/50 rounded w-1/3" />
+                          <div className="h-2.5 bg-tg-surface/30 rounded w-1/2" />
                         </div>
                       </div>
                     </div>
@@ -181,7 +181,7 @@ export default function PaymentsPage() {
 
               {!store.loading && store.subscriptions.length === 0 && (
                 <div className="text-center py-16">
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-white/5 flex items-center justify-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-tg-surface/30 flex items-center justify-center">
                     <svg className="w-7 h-7 text-tg-hint/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
                     </svg>
@@ -223,7 +223,7 @@ export default function PaymentsPage() {
                 <button
                   onClick={store.loadMoreSubscriptions}
                   disabled={store.loadingMore}
-                  className="w-full py-3 rounded-xl bg-white/5 text-sm text-tg-hint font-medium transition-colors active:bg-white/10 disabled:opacity-50"
+                  className="w-full py-3 rounded-xl bg-tg-surface/50 text-sm text-tg-hint font-medium transition-colors active:bg-tg-surface disabled:opacity-50"
                 >
                   {store.loadingMore ? 'Cargando...' : 'Cargar más suscripciones'}
                 </button>

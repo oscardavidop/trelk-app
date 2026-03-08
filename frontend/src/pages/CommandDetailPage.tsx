@@ -142,7 +142,7 @@ export default function CommandDetailPage() {
             <FileJson size={14} className="text-tg-hint/70" /> Opciones Inline
           </h2>
           <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-sm">
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-tg-border/20">
               
               {/* Input Number Row */}
               <div className="flex items-center justify-between px-4 py-3 bg-transparent hover:bg-white/[0.01] transition-colors focus-within:bg-white/[0.02]">

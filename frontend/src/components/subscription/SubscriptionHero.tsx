@@ -37,7 +37,7 @@ export default function SubscriptionHero({ features }: Props) {
 
   return (
     <div className="mx-4 mt-4 animate-scale-in">
-      <div className={`relative rounded-[22px] overflow-hidden bg-gradient-to-br ${meta.gradient} p-5 ring-1 ring-white/[0.08]`}>
+      <div className={`relative rounded-[22px] overflow-hidden bg-gradient-to-br ${meta.gradient} p-5 ring-1 ring-tg-border/20`}>
         {/* Glow */}
         <div
           className="absolute -top-20 -right-20 w-44 h-44 rounded-full blur-3xl opacity-20 pointer-events-none"
@@ -69,9 +69,9 @@ export default function SubscriptionHero({ features }: Props) {
               { label: 'Velocidad', value: `${performance.response_speed_multiplier}x` },
               { label: 'Soporte', value: support.priority },
             ].map((s) => (
-              <div key={s.label} className="bg-black/15 backdrop-blur-sm rounded-2xl py-2.5 px-2 text-center border border-white/[0.04]">
-                <div className="text-[11px] text-tg-hint/70 font-medium mb-0.5">{s.label}</div>
-                <div className="text-[13px] font-bold text-white capitalize">{s.value}</div>
+              <div key={s.label} className="bg-tg-surface/50 backdrop-blur-sm rounded-2xl py-2.5 px-2 text-center border border-tg-border/10">
+                <div className="text-[11px] text-tg-hint font-medium mb-0.5">{s.label}</div>
+                <div className="text-[13px] font-bold text-tg-text capitalize">{s.value}</div>
               </div>
             ))}
           </div>
