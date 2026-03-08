@@ -218,7 +218,7 @@ export default function DashboardHome() {
           /* Lista Real */
           <div className="flex gap-3 overflow-x-auto px-4 pb-3 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {recentFavs.map((fav) => {
-              const thumb = (fav.data?.media_type === 'photo' && fav.engine_id) ? fileUrl(fav.engine_id) : null;
+              const thumb = (fav.data?.media_type === 'photo' && fav.data.photo) ? fileUrl(fav.data.photo[0].file_id) : null;
               
               return (
                 <button

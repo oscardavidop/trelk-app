@@ -1,28 +1,26 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { globalStats } from '../mocks/globalStats';
+import { fetchGlobalStats, type GlobalStats } from '../services/historyApi';
 
-interface GlobalStats {
-  commandsToday: number;
-  commandsYesterday: number;
-}
+const FALLBACK: GlobalStats = { commandsToday: 0, commandsYesterday: 0 };
 
 export function useGlobalStats() {
-  const [stats, setStats] = useState<GlobalStats>(globalStats);
+  const [stats, setStats] = useState<GlobalStats>(FALLBACK);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
-  const fetchStats = useCallback(() => {
-    // Future: replace with fetch('/api/stats/global').then(r => r.json())
-    // Simulate slight growth each refresh
-    setStats((prev) => ({
-      ...prev,
-      commandsToday: prev.commandsToday + Math.floor(Math.random() * 12) + 1,
-    }));
+  const load = useCallback(async () => {
+    try {
+      const data = await fetchGlobalStats();
+      setStats(data);
+    } catch {
+      // Silently fallback — keeps last known value
+    }
   }, []);
 
   useEffect(() => {
-    intervalRef.current = setInterval(fetchStats, 60_000);
+    load();
+    intervalRef.current = setInterval(load, 60_000);
     return () => clearInterval(intervalRef.current);
-  }, [fetchStats]);
+  }, [load]);
 
   return {
     commandsToday: stats.commandsToday,

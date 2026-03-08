@@ -1,9 +1,15 @@
-import { useMemo } from 'react';
-import { useGamificationStore } from '../stores/gamification';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useHideIsland } from '../hooks/useHideIsland';
 import ActivityItem from '../components/activity/ActivityItem';
 import XPProgress from '../components/XPProgress';
-import { Activity, Clock } from 'lucide-react';
+import { Activity, Clock, Flame, Star, Trophy, Loader2 } from 'lucide-react';
+import {
+  fetchHistory,
+  fetchActivityStats,
+  type HistoryEntry,
+  type ActivityStats,
+} from '../services/historyApi';
+import StickyHeader from '@/components/StickyHeader';
 
 function dayLabel(iso: string): string {
   const d = new Date(iso);
@@ -14,12 +20,74 @@ function dayLabel(iso: string): string {
   return d.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
+const PAGE_SIZE = 20;
+
 export default function ActivityPage() {
   useHideIsland();
-  const { history } = useGamificationStore();
 
+  // ── History state (infinite scroll) ──
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  // ── Activity stats ──
+  const [stats, setStats] = useState<ActivityStats | null>(null);
+
+  // ── Sentinel ref for IntersectionObserver ──
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // ── Load history page ──
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const data = await fetchHistory(PAGE_SIZE, offset);
+      setHistory((prev) => {
+        // Deduplicate by _id
+        const ids = new Set(prev.map((e) => e._id));
+        const next = data.items.filter((e) => !ids.has(e._id));
+        return [...prev, ...next];
+      });
+      setOffset(data.nextOffset);
+      setHasMore(data.hasMore);
+    } catch {
+      // Silently fail — user can scroll again to retry
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
+    }
+  }, [offset, hasMore, loading]);
+
+  // ── Initial load ──
+  useEffect(() => {
+    loadMore();
+    fetchActivityStats().then(setStats).catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── IntersectionObserver for infinite scroll ──
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasMore && !loading) {
+          loadMore();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadMore]);
+
+  // ── Group by day ──
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof history>();
+    const map = new Map<string, HistoryEntry[]>();
     for (const e of history) {
       const key = dayLabel(e.date);
       const arr = map.get(key) ?? [];
@@ -31,69 +99,103 @@ export default function ActivityPage() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      
-      {/* ── Header ── */}
-      <div className="px-5 pt-8 pb-5 flex items-center gap-3.5">
-        <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-          <Activity className="w-6 h-6 text-blue-400" />
-        </div>
-        <div>
-          <h1 className="text-[24px] font-extrabold text-tg-text tracking-tight leading-none">Actividad</h1>
-          <p className="text-[13px] font-medium text-tg-hint/80 mt-1">Tu historial de uso reciente</p>
-        </div>
-      </div>
 
+      {/* ── Header ── */}
+      <StickyHeader title="Actividad" subtitle="Tu historial de uso reciente" icon={<div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+        <Activity className="w-6 h-6 text-blue-400" />
+      </div>} />
       {/* ── XP Card ── */}
-      <div className="px-5 mb-5 animate-slide-up">
+      <div className="px-5 mb-5 animate-slide-up m-4">
         <XPProgress compact />
       </div>
 
-      {/* ── Stats Strip (Bento Grid) ── */}
-      <div className="px-5 mb-8 animate-slide-up" style={{ animationDelay: '50ms' }}>
+      {/* ── 📊 Resumen de actividad ── */}
+      <div className="px-5 mb-5 animate-slide-up" style={{ animationDelay: '30ms' }}>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-2.5 px-1">Resumen de actividad</h2>
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-3.5 flex flex-col items-center justify-center shadow-sm">
-            <div className="text-[22px] font-black text-tg-text leading-none">
-              {history.filter((h) => h.type === 'command').length}
+            <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center mb-2">
+              <Flame size={16} className="text-orange-500" />
             </div>
-            <div className="text-[10px] font-bold text-tg-hint uppercase tracking-widest mt-1.5">Comandos</div>
+            <div className="text-[22px] font-black text-tg-text leading-none tabular-nums">
+              {stats ? stats.commandsToday : '—'}
+            </div>
+            <div className="text-[10px] font-bold text-tg-hint uppercase  mt-1.5">Comandos hoy</div>
           </div>
           <div className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-3.5 flex flex-col items-center justify-center shadow-sm">
-            <div className="text-[22px] font-black text-tg-text leading-none">
-              {history.filter((h) => h.type === 'favorite_added').length}
+            <div className="w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center mb-2">
+              <Star size={16} className="text-pink-500" />
             </div>
-            <div className="text-[10px] font-bold text-tg-hint uppercase tracking-widest mt-1.5">Favoritos</div>
+            <div className="text-[22px] font-black text-tg-text leading-none tabular-nums">
+              {stats ? stats.favoritesTotal : '—'}
+            </div>
+            <div className="text-[10px] font-bold text-tg-hint uppercase  mt-1.5">Favoritos</div>
           </div>
           <div className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-3.5 flex flex-col items-center justify-center shadow-sm">
-            <div className="text-[22px] font-black text-tg-text leading-none">
-              {grouped.length}
+            <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center mb-2">
+              <Trophy size={16} className="text-amber-500" />
             </div>
-            <div className="text-[10px] font-bold text-tg-hint uppercase tracking-widest mt-1.5">Días</div>
+            <div className="text-[22px] font-black text-tg-text leading-none tabular-nums">
+              {stats ? stats.achievementsTotal : '—'}
+            </div>
+            <div className="text-[10px] font-bold text-tg-hint uppercase  mt-1.5">Logros</div>
           </div>
         </div>
       </div>
 
       {/* ── Timeline ── */}
       <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
-        {grouped.length > 0 ? (
-          grouped.map(([label, entries]) => (
-            <section key={label} className="mb-6">
-              {/* Etiqueta del Día */}
-              <div className="px-6 mb-2">
-                <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest">{label}</h2>
-              </div>
-              
-              {/* Contenedor de la Lista del Día */}
-              <div className="mx-5 bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
-                <div className="divide-y divide-white/5">
-                  {entries.map((e) => (
-                    <ActivityItem key={e.id} entry={e} />
-                  ))}
+        {initialLoad ? (
+          /* ── Skeleton loaders ── */
+          <div className="px-5 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-4 animate-pulse">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-[12px] bg-white/5" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 bg-white/5 rounded-full w-3/4" />
+                    <div className="h-2.5 bg-white/5 rounded-full w-1/3" />
+                  </div>
                 </div>
               </div>
-            </section>
-          ))
+            ))}
+          </div>
+        ) : grouped.length > 0 ? (
+          <>
+            {grouped.map(([label, entries]) => (
+              <section key={label} className="mb-6">
+                <div className="px-6 mb-2">
+                  <h2 className="text-[12px] font-bold text-tg-hint uppercase ">{label}</h2>
+                </div>
+                <div className="mx-5 bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
+                  <div className="divide-y divide-white/5">
+                    {entries.map((e) => (
+                      <ActivityItem key={e._id} entry={e} />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            ))}
+
+            {/* ── Loading indicator ── */}
+            {loading && (
+              <div className="flex justify-center py-6">
+                <Loader2 size={24} className="text-tg-accent animate-spin" />
+              </div>
+            )}
+
+            {/* ── End of list ── */}
+            {!hasMore && history.length > 0 && (
+              <div className="text-center py-6">
+                <p className="text-[12px] font-medium text-tg-hint/60">No hay más actividad</p>
+              </div>
+            )}
+
+            {/* ── Sentinel for IntersectionObserver ── */}
+            <div ref={sentinelRef} className="h-1" />
+          </>
         ) : (
-          /* ── Estado Vacío ── */
+          /* ── Empty state ── */
           <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
             <div className="w-16 h-16 rounded-full bg-tg-secondary border border-white/5 flex items-center justify-center mb-4 shadow-sm">
               <Clock size={32} className="text-tg-hint/30" />

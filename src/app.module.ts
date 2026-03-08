@@ -12,6 +12,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { HistoryModule } from './modules/history/history.module';
 import { envValidationSchema } from './config/env.validation';
 
 @Global()
@@ -61,6 +62,7 @@ import { envValidationSchema } from './config/env.validation';
     PaymentsModule,
     HealthModule,
     RedisModule,
+    HistoryModule,
   ],
   controllers: [AppController],
   providers: [

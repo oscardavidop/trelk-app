@@ -321,7 +321,7 @@ export default function BotCommandDetailPage() {
                   key={i}
                   src={`https://cdn.trelk.site/assets/img/commands/md5/1.jpg`}
                   alt={`Screenshot ${i + 1}`}
-                  className="w-[280px] h-[500px] rounded-[20px] object-cover border border-tg-border/50 shadow-sm flex-shrink-0"
+                  className="w-[180px] h-[320px] rounded-[20px] object-cover border border-tg-border/50 shadow-sm flex-shrink-0"
                 />
               ))
             ) : (

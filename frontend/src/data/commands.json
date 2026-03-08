@@ -572,6 +572,9 @@
       "hash",
       "md5hash"
     ],
+    "photos": [
+      "1.jpg"
+    ],
     "protected": false,
     "uniqueName": "md5"
   },
