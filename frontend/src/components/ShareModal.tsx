@@ -7,7 +7,6 @@ import {
     Facebook,
     MessageCircle,
     Linkedin,
-    Messenger,
     Mail,
     Send,
     Share2
@@ -121,7 +120,7 @@ export default function ShareModal({
         },
         {
             name: 'Messenger',
-            icon: Messenger,
+            icon: MessageCircle,
             color: 'text-[#0084FF]',
             bg: 'bg-[#0084FF]/15',
             url: `fb-messenger://share?link=${encodedUrl}&app_id=123456789`, // Reemplaza con tu app_id de Facebook
@@ -140,14 +139,6 @@ export default function ShareModal({
             color: 'text-[#0077B5]',
             bg: 'bg-[#0077B5]/15',
             url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-        },
-        {
-            name: 'Enlace',
-            icon: Copy,
-            color: copied ? 'text-emerald-400' : 'text-tg-text',
-            bg: copied ? 'bg-emerald-500/20' : 'bg-white/10',
-            url: '#',
-            onClick: handleCopyLink,
         }, {
             name: 'Compartir',
             icon: Share2,

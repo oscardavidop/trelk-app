@@ -62,7 +62,7 @@ export default function CommandsPage() {
   }
 
   return (
-    <main className="pb-24 animate-fade-in relative" style={{ top: 'var(--tg-top-offset, 0px)' }}>
+    <main className="pb-24 animate-fade-in relative">
       
       {/* ── Intro (Estilo Hero) ── */}
       <div className="relative pt-8 pb-6 px-6 text-center bg-gradient-to-b from-tg-accent/10 to-transparent border-b border-white/5">

@@ -4,48 +4,13 @@ import { useSubscriptionStore } from '../stores/subscription';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
 import type { PlanTier } from '../services/subscriptionApi';
-import LimitBar, { StaticLimit } from '../components/LimitBar';
-import PlanComparison from '../components/PlanComparison';
-import SectionHeader from '../components/SectionHeader';
 import { createPortal } from 'react-dom';
-import {
-    Crown,
-    Zap,
-    Sparkles,
-    Shield,
-    RefreshCw,
-    Clock,
-    AlertTriangle,
-    XCircle,
-    Gauge,
-    Headphones,
-    Terminal,
-    Download,
-    Bell,
-    Globe,
-    QrCode,
-    ArrowBigDown,
-    Folder,
-    Loader,
-    Loader2,
-} from 'lucide-react';
-
-// ── Tier meta ────────────────────────────────────
-const TIER_META: Record<PlanTier, { label: string; color: string; gradient: string; Icon: typeof Crown }> = {
-    free: { label: 'Free', color: '#9ca3af', gradient: 'from-gray-600/40 to-gray-800/20', Icon: Zap },
-    pro: { label: 'Pro', color: '#f5a623', gradient: 'from-amber-500/40 to-orange-600/20', Icon: Crown },
-    ultra: { label: 'Ultra', color: '#a855f7', gradient: 'from-purple-500/40 to-pink-600/20', Icon: Sparkles },
-};
-
-function timeUntil(isoDate?: string): string {
-    if (!isoDate) return 'Sin expiración';
-    const diff = new Date(isoDate).getTime() - Date.now();
-    if (diff <= 0) return 'Expirado';
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    if (days > 0) return `${days}d ${hours}h restantes`;
-    return `${hours}h restantes`;
-}
+import SubscriptionHero, { TIER_META } from '../components/subscription/SubscriptionHero';
+import SubscriptionSettings from '../components/subscription/SubscriptionSettings';
+import SubscriptionUsage from '../components/subscription/SubscriptionUsage';
+import SubscriptionBenefits from '../components/subscription/SubscriptionBenefits';
+import SubscriptionPlans from '../components/subscription/SubscriptionPlans';
+import StickyHeader from '@/components/StickyHeader';
 
 export const showConfirmPopup = (options: {
     title: string,
@@ -247,226 +212,47 @@ export default function SubscriptionPage() {
     if (loading || !features) {
         return (
             <div className="flex items-center justify-center min-h-[70vh]">
-                <Loader2 className="w-12 h-12 text-tg-hint animate-spin" />
+                <div className="w-10 h-10 border-2 border-tg-accent border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
-    const { subscription, limits, performance, support, custom_commands } = features;
+    const { subscription } = features;
     const tier = subscription.tier;
-    const meta = TIER_META[tier];
-    const TierIcon = meta.Icon;
     const pendingPlan = subscription.change?.status === 'pending' ? subscription.change.new_plan : undefined;
 
     return (
-        <div className="tm-main pb-12 animate-fade-in space-y-6">
-            
-            {/* ── Hero Card ── */}
-            <div className="mx-4 mt-4 animate-scale-in">
-                <div className={`relative rounded-[24px] overflow-hidden bg-gradient-to-br ${meta.gradient} p-6 shadow-lg ring-1 ring-white/10`}>
-                    {/* Decorative glow */}
-                    <div
-                        className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none"
-                        style={{ background: meta.color }}
-                    />
-                    
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div
-                                className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner backdrop-blur-sm"
-                                style={{ background: `${meta.color}20`, border: `1px solid ${meta.color}30` }}
-                            >
-                                <TierIcon className="w-7 h-7" style={{ color: meta.color }} />
-                            </div>
-                            <div>
-                                <div className="text-[22px] font-extrabold text-tg-text tracking-tight">
-                                    Plan {meta.label}
-                                </div>
-                                <div className="text-[14px] text-tg-hint/90 flex items-center gap-1.5 mt-0.5 font-medium">
-                                    <Clock className="w-4 h-4" />
-                                    {tier === 'free' ? 'Sin expiración' : timeUntil(subscription.expires_at)}
-                                </div>
-                            </div>
-                        </div>
+        <div className="tm-main pb-12 animate-fade-in space-y-5">
+            <StickyHeader title="Tu Suscripción" subtitle={`Plan actual: ${TIER_META[tier].label}`} />
+            {/* 1. Hero */}
+            <SubscriptionHero features={features} />
 
-                        {/* Quick stats row - Glassmorphism effect */}
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="bg-black/20 backdrop-blur-md rounded-[16px] p-3 text-center border border-white/5">
-                                <div className="text-[12px] text-tg-hint/80 mb-1 font-medium">Prioridad</div>
-                                <div className="text-[14px] font-bold text-white capitalize tracking-wide">
-                                    {performance.queue_priority}
-                                </div>
-                            </div>
-                            <div className="bg-black/20 backdrop-blur-md rounded-[16px] p-3 text-center border border-white/5">
-                                <div className="text-[12px] text-tg-hint/80 mb-1 font-medium">Velocidad</div>
-                                <div className="text-[14px] font-bold text-white tracking-wide">
-                                    {performance.response_speed_multiplier}x
-                                </div>
-                            </div>
-                            <div className="bg-black/20 backdrop-blur-md rounded-[16px] p-3 text-center border border-white/5">
-                                <div className="text-[12px] text-tg-hint/80 mb-1 font-medium">Soporte</div>
-                                <div className="text-[14px] font-bold text-white capitalize tracking-wide">
-                                    {support.priority}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* 2. Settings (auto-renew + pending change) */}
+            <SubscriptionSettings
+                features={features}
+                onAutoRenewToggle={handleAutoRenewToggle}
+                onCancelChange={handleCancelChange}
+                haptic={haptic}
+            />
 
-            {/* ── Pending Change Banner ── */}
-            {subscription.change?.status === 'pending' && (
-                <div className="mx-4 bg-amber-500/10 ring-1 ring-amber-500/20 rounded-[20px] p-4 animate-slide-up">
-                    <div className="flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                            <div className="text-[15px] font-semibold text-amber-400">Cambio pendiente</div>
-                            <div className="text-[14px] text-tg-hint mt-1 leading-snug">
-                                De <span className="text-tg-text font-semibold">{subscription.change.changed_from}</span> a{' '}
-                                <span className="text-tg-text font-semibold">{subscription.change.new_plan}</span>
-                                {subscription.change.change_date && (
-                                    <span className="block mt-0.5 text-[13px] opacity-80">
-                                        Aplicable el {new Date(subscription.change.change_date).toLocaleDateString()}
-                                    </span>
-                                )}
-                            </div>
-                            <button
-                                onClick={handleCancelChange}
-                                className="mt-3 flex items-center gap-1.5 text-[14px] text-red-400 hover:text-red-300 font-semibold transition-colors"
-                            >
-                                <XCircle className="w-4 h-4" />
-                                Cancelar cambio
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* 3. Usage Limits */}
+            <SubscriptionUsage features={features} />
 
-            {/* ── Auto Renew ── */}
-            {tier !== 'free' && (
-                <div>
-                    <SectionHeader title="Renovación" />
-                    <div className="mx-4 bg-tg-secondary rounded-[20px] overflow-hidden">
-                        <div
-                            className="tm-row cursor-pointer p-4 transition-colors hover:bg-white/[0.02]"
-                            onClick={() => {
-                                haptic?.impactOccurred('light');
-                                handleAutoRenewToggle();
-                            }}
-                        >
-                            <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                                    <RefreshCw className="w-5 h-5 text-blue-500" />
-                                </div>
-                                <div>
-                                    <div className="text-[16px] font-medium text-tg-text">Auto-Renew</div>
-                                    <div className="text-[13px] text-tg-hint mt-0.5">
-                                        {subscription.auto_renew
-                                            ? 'Se renovará automáticamente'
-                                            : 'No se renovará al expirar'}
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                className={`tm-toggle ${subscription.auto_renew ? 'on' : ''} ml-4 scale-110 origin-right`}
-                                role="switch"
-                                aria-checked={subscription.auto_renew}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* 4. Benefits Grid */}
+            <SubscriptionBenefits features={features} />
 
-            {/* ── Usage Limits ── */}
-            <div>
-                <SectionHeader title="Uso diario" />
-                <div className="mx-4 bg-tg-secondary rounded-[20px] overflow-hidden divide-y divide-white/[0.04] animate-stagger">
-                    <LimitBar icon={<Download className="w-4 h-4" />} label="Downloads" counter={limits.downloads_per_day} />
-                    <LimitBar icon={<ArrowBigDown className="w-4 h-4" />} label="AI Requests" counter={limits.ai_requests_per_day} />
-                    <LimitBar icon={<Zap className="w-4 h-4" />} label="Premium AI" counter={limits.premium_ai_requests_per_day} />
-                    <LimitBar icon={<Bell className="w-4 h-4" />} label="Alertas diarias" counter={limits.alerts.per_day} />
-                    <LimitBar icon={<Globe className="w-4 h-4" />} label="SSWeb" counter={limits.ssweb.per_day} />
-                    <LimitBar icon={<QrCode className="w-4 h-4" />} label="QR" counter={limits.qr.per_day} />
-                </div>
-            </div>
+            {/* 5. Plan Comparison */}
+            <SubscriptionPlans
+                currentTier={tier}
+                pendingChange={pendingPlan}
+                onSelect={handlePlanSelect}
+            />
 
-            {/* ── Total / Static limits ── */}
-            <div>
-                <SectionHeader title="Límites generales" />
-                <div className="mx-4 bg-tg-secondary rounded-[20px] overflow-hidden divide-y divide-white/[0.04]">
-                    <LimitBar icon={<Bell className="w-4 h-4" />} label="Alertas totales" counter={{ total: limits.alerts.total, used: limits.alerts.used }} />
-                    <StaticLimit icon={<Folder className="w-4 h-4" />} label="Archivo máximo" value={limits.file_upload_size_mb} suffix="MB" />
-                </div>
-            </div>
-
-            {/* ── Unlocked Benefits ── */}
-            <div>
-                <SectionHeader title="Beneficios" />
-                <div className="mx-4 bg-tg-secondary rounded-[20px] overflow-hidden divide-y divide-white/[0.04]">
-                    <div className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                            <Gauge className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="text-[15px] font-medium text-tg-text">Cola de prioridad</div>
-                            <div className="text-[13px] text-tg-hint mt-0.5 capitalize">{performance.queue_priority}</div>
-                        </div>
-                    </div>
-                    
-                    <div className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                            <Zap className="w-5 h-5 text-amber-400" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="text-[15px] font-medium text-tg-text">Multiplicador de velocidad</div>
-                            <div className="text-[13px] text-tg-hint mt-0.5">{performance.response_speed_multiplier}x</div>
-                        </div>
-                    </div>
-                    
-                    <div className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                            <Headphones className="w-5 h-5 text-emerald-400" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="text-[15px] font-medium text-tg-text">Soporte</div>
-                            <div className="text-[13px] text-tg-hint mt-0.5 capitalize">
-                                {support.priority}
-                                {support.live_chat_access && <span className="text-emerald-400/80 font-medium"> • Live Chat</span>}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                            <Terminal className="w-5 h-5 text-purple-400" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="text-[15px] font-medium text-tg-text">Comandos personalizados</div>
-                            <div className="text-[13px] text-tg-hint mt-0.5">
-                                {custom_commands.available
-                                    ? `${custom_commands.used_commands || 0} / ${custom_commands.max_commands} usados`
-                                    : 'No disponible'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Plan Comparison ── */}
-            <div>
-                <SectionHeader title="Planes" />
-                <PlanComparison
-                    currentTier={tier}
-                    pendingChange={pendingPlan}
-                    onSelect={handlePlanSelect}
-                />
-            </div>
-
-            <p className="mx-6 mt-6 mb-4 text-center text-[13px] text-tg-hint leading-relaxed opacity-80">
-                Los cambios de plan se procesan de forma segura. Los upgrades aplican inmediatamente, los downgrades al final del período.
+            <p className="mx-6 mt-4 mb-4 text-center text-[12px] text-tg-hint leading-relaxed opacity-70">
+                Los upgrades aplican inmediatamente. Los downgrades al final del período actual.
             </p>
 
-            {/* ── Confirm Modal ── */}
+            {/* Confirm Modal */}
             {modal && (
                 <ConfirmModal
                     title={modal.title}
