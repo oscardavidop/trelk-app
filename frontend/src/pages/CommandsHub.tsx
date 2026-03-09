@@ -1,9 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
-import { useFavoritesStore } from '../stores/favorites';
 import { useConfigStore } from '../stores/config';
-import { fileUrl } from '../services/favoritesApi';
 import {
   Sparkles,
   Maximize2,
@@ -11,12 +9,12 @@ import {
   Terminal,
   ChevronRight,
   Plus,
-  Heart,
-  ImageIcon,
   Compass,
   Star,
   FlaskConical
 } from 'lucide-react';
+import { TOTAL_BOT_COMMANDS } from '@/data/botCommands';
+
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
 const PREMIUM_COMMANDS = [
@@ -30,12 +28,10 @@ export default function CommandsHub() {
   const navigate = useNavigate();
   const { haptic } = useTelegram();
   const { config, load: loadConfig } = useConfigStore();
-  const { items, load: loadFavs, loading: favsLoading } = useFavoritesStore();
 
   useEffect(() => {
     if (!config) loadConfig();
-    loadFavs();
-  }, [config, loadConfig, loadFavs]);
+  }, [config, loadConfig]);
 
   const go = (path: string) => {
     haptic?.impactOccurred('light');
@@ -43,7 +39,6 @@ export default function CommandsHub() {
   };
 
   const userCommands = config?.commands ? Object.entries(config.commands) : [];
-  const recentFavs = items.slice(0, 9);
 
   return (
     <div className="pb-24 animate-fade-in relative">
@@ -66,7 +61,7 @@ export default function CommandsHub() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-[17px] font-extrabold text-tg-text tracking-tight">Explorar Comandos</h3>
-              <p className="text-[13px] text-tg-hint mt-0.5">Descubre los {18} comandos del bot con búsqueda, categorías y más</p>
+              <p className="text-[13px] text-tg-hint mt-0.5">Descubre los {TOTAL_BOT_COMMANDS} comandos del bot con búsqueda, categorías y más</p>
             </div>
             <ChevronRight size={20} className="text-tg-hint/40 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
           </div>
@@ -186,57 +181,6 @@ export default function CommandsHub() {
         )}
       </section>
 
-      {/* ── Favorites Grid ── */}
-      <section className="mt-8 px-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[16px] font-bold text-tg-text tracking-tight">Favoritos</h2>
-          <button onClick={() => go('/favorites')} className="text-[13px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-            Ver galería
-          </button>
-        </div>
-
-        {favsLoading && recentFavs.length === 0 ? (
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="aspect-square rounded-[16px] bg-tg-secondary border border-tg-border/20 animate-pulse" />
-            ))}
-          </div>
-        ) : recentFavs.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
-            {recentFavs.map((fav) => {
-              const thumb = (fav.data?.media_type === 'photo' && fav.engine_id) ? fileUrl(fav.engine_id) : null;
-              return (
-                <button
-                  key={fav._id}
-                  onClick={() => go('/favorites')}
-                  className="aspect-square relative rounded-[16px] overflow-hidden active:scale-[0.94] transition-all duration-200 group bg-tg-secondary border border-tg-border/20 shadow-sm"
-                >
-                  {thumb ? (
-                    <img src={thumb} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
-                      <ImageIcon size={20} className="text-tg-hint/30 mb-1" />
-                      <span className="text-tg-hint text-[10px] font-medium leading-tight line-clamp-2 px-1">
-                        {fav.data?.caption || fav.context}
-                      </span>
-                    </div>
-                  )}
-                  {/* Gradiente sutil y overlay al presionar */}
-                  {thumb && <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-active:opacity-100 transition-opacity pointer-events-none" />
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="p-6 rounded-[20px] bg-tg-secondary border border-tg-border/30 text-center">
-            <div className="w-12 h-12 mx-auto bg-tg-surface/30 rounded-full flex items-center justify-center mb-3">
-              <Heart size={24} className="text-tg-hint/40" />
-            </div>
-            <div className="text-[14px] font-medium text-tg-hint">Tu galería de favoritos aparecerá aquí</div>
-          </div>
-        )}
-      </section>
 
     </div>
   );

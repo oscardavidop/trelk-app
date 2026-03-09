@@ -18,6 +18,21 @@
 
 <body class="bg-tg-bg text-tg-text font-sans antialiased">
   <div id="root"></div>
+  <script type="text/javascript">
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+      try {
+        const response = await originalFetch(...args);
+        if (response.status === 401) {
+          window.location.href = '/auth';
+        }
+        return response;
+      } catch (error) {
+        throw error;
+      }
+    };
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 
 </body>

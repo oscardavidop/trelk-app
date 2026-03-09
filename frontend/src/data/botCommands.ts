@@ -79,6 +79,7 @@ import commands from "./commands.json";
 
 export const BOT_COMMANDS: BotCommand[]  = commands as BotCommand[];
 
+export const TOTAL_BOT_COMMANDS = BOT_COMMANDS.length;
 // = [
 //   {
 //     name: ['apk', 'apkinfo', 'apk-info', 'appinfo', 'app-info'],

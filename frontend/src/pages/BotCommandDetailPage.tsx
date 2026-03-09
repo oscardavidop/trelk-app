@@ -399,7 +399,7 @@ export default function BotCommandDetailPage() {
             /* ── Estado: Calificado (Éxito) ── */
             <div className="py-2 animate-slide-up relative z-10">
               <div className="w-16 h-16 mx-auto bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-3 shadow-inner">
-                <Star size={32} className="text-amber-500 fill-amber-500 drop-shadow-md animate-bounce-in" />
+                <Star size={32} className="text-amber-500 fill-amber-500 drop-shadow-md text-center center" />
               </div>
               <p className="text-[16px] font-extrabold text-tg-text tracking-tight">¡Gracias por calificar!</p>
               <p className="text-[13px] font-medium text-tg-hint mt-1">

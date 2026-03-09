@@ -77,9 +77,13 @@ export default function DashboardHome() {
         <CommandUsageCounter />
       </div>
 
+      {/* ── Mini Tarjeta XP + Racha ── */}
+      <div className="px-5 mt-6 mb-2">
+        <XPProgress compact />
+      </div>
       {/* ── Grid de Accesos Directos (Bento Grid) ── */}
       <section className="mt-4 px-4">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest px-1 mb-2.5">Panel de Control</h2>
+        <h2 className="text-[14px] font-bold text-tg-hint uppercase  px-1 mb-2.5">Panel de Control</h2>
         <div className="grid grid-cols-2 gap-3">
           
           <button onClick={() => go('/favorites')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
@@ -92,7 +96,7 @@ export default function DashboardHome() {
             </div>
           </button>
           
-          <button onClick={() => go('/commands')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
+          <button onClick={() => go('/premium')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-blue-500 to-tg-accent flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Terminal size={20} className="text-white" />
             </div>
@@ -125,15 +129,11 @@ export default function DashboardHome() {
         </div>
       </section>
 
-      {/* ── Mini Tarjeta XP + Racha ── */}
-      <div className="px-4 mt-6 mb-2">
-        <XPProgress compact />
-      </div>
 
       {/* ── Acciones Rápidas (Shortcuts) ── */}
       <section className="mt-5">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest">Acciones Rápidas</h2>
+          <h2 className="text-[14px] font-bold text-tg-hint uppercase ">Acciones Rápidas</h2>
           <button onClick={() => go('/bot-commands')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
             Ver catálogo
           </button>
@@ -180,7 +180,7 @@ export default function DashboardHome() {
       {/* ── Comandos Usados Recientemente ── */}
       <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest flex items-center gap-1.5">
+          <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-1.5">
             <Clock size={14} className="text-tg-hint" /> Recientes
           </h2>
           <button onClick={() => go('/activity')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
@@ -198,7 +198,7 @@ export default function DashboardHome() {
       {/* ── Favoritos Recientes (Carrusel) ── */}
       <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest flex items-center gap-1.5">
+          <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-1.5">
             <Heart size={14} className="text-tg-hint" /> Tus Favoritos
           </h2>
           <button onClick={() => go('/favorites')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
@@ -265,7 +265,7 @@ export default function DashboardHome() {
 
       {/* ── Tarjeta de Inspiración (Glassmorphism Prominente) ── */}
       <section className="mt-8 px-4 pb-4">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest mb-3">Inspiración del día</h2>
+        <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">Inspiración del día</h2>
         
         <button
           onClick={() => go('/favorites/inspiration')}
@@ -282,7 +282,7 @@ export default function DashboardHome() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={16} className="text-amber-300 fill-amber-300/30" />
-                <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-300">
+                <span className="text-[11px] font-extrabold uppercase  text-amber-300">
                   Prompt Destacado
                 </span>
               </div>

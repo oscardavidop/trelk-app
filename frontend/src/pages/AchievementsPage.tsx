@@ -13,7 +13,7 @@ export default function AchievementsPage() {
   const { achievements, loaded, loading, loadGamification } = useGamificationStore();
   const [filter, setFilter] = useState<Filter>('all');
 
-  useEffect(() => { if (!loaded) loadGamification(); }, [loaded, loadGamification]);
+  useEffect(() => { if (!loaded) loadGamification(); }, [loaded, loadGamification, achievements.length]);
 
   if (loading && !loaded) {
     return (
