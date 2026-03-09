@@ -26,6 +26,7 @@
         const response = await originalFetch(...args);
         if (response.status === 401) {
           window.location.href = '/auth';
+          return null;
         }
         return response;
       } catch (error) {

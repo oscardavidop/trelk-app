@@ -39,6 +39,26 @@ export interface UserConfig {
   commands: Record<string, CommandConfig>;
   premium_commands: Record<string, PremiumCommandConfig>;
   locale: LocaleConfig;
+  await_args: boolean;
+  auto_detect_lang: boolean;
+  emoji_replies: boolean;
+  chat_actions: {
+    typing: boolean;
+    upload_photos: boolean;
+    upload_videos: boolean;
+    upload_documents: boolean;
+  },
+  store_chat_history: boolean;
+  notifications: {
+    new_commands: boolean;
+    feature_announcements: boolean;
+    gamification: boolean;
+    downtime_alerts: boolean;
+    security_alerts: boolean;
+    semanal_stats: boolean;
+  };
+  notify_semanal_stats: boolean,
+  time_format?: '12h' | '24h';
 }
 export interface FullConfigResponse {
   ok: boolean;

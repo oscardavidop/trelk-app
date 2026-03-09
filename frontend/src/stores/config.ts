@@ -34,7 +34,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     try {
       const res = await fetchConfig();
       if (res.ok) {
-        set({ config: res.config, loading: false });
+        set({ config: { ...res.config, ...res.preferences}, loading: false });
       } else {
         set({ error: 'Failed to load config', loading: false });
       }

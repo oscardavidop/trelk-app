@@ -397,7 +397,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Calificar Comando ── */}
       <section className="px-5 mt-6 mb-8">
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-6 text-center shadow-sm relative overflow-hidden">
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-center shadow-sm relative overflow-hidden">
 
           {/* Brillo ambiental sutil de fondo */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-tg-text/[0.02] pointer-events-none" />

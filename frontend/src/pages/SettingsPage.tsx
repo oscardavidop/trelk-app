@@ -13,6 +13,7 @@ import DropdownRow from '../components/DropdownRow';
 import { Globe, Clock, Shield, Bell, Palette, Languages, MapPin } from 'lucide-react';
 import Select from '@/components/Select';
 import StickyHeader from '@/components/StickyHeader';
+import { UserConfig } from '@/services/configApi';
 
 interface SettingsState {
   auto_detect_lang: boolean;
@@ -40,44 +41,64 @@ interface SettingsState {
   compact_mode: boolean;
 }
 
+// 1. COMPONENTE PRINCIPAL (Solo maneja la carga)
 export default function SettingsPage() {
+  const { config, load: loadConfig } = useConfigStore();
+
+  useEffect(() => {
+    if (!config) loadConfig();
+  }, [config, loadConfig]);
+
+  // Si no hay config, mostramos el loading y NO ejecutamos los hooks del formulario
+  if (!config) {
+    return (
+      <div className="tm-main flex-col items-center justify-center h-screen">
+        <div className="loader" />
+        <p className="text-tg-text/80 mt-4">Cargando configuración...</p>
+      </div>
+    );
+  }
+
+  // Una vez que config existe, renderizamos el componente real del formulario
+  return <SettingsForm config={config} />;
+}
+
+
+// 2. COMPONENTE DEL FORMULARIO (Se asegura que `config` nunca sea null aquí)
+function SettingsForm({ config }: { config: UserConfig }) {
+  // console.log('config', config)
   const { userId } = useParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
   const showToast = useToastStore((s) => s.show);
-  const { config, load: loadConfig, saveLocale } = useConfigStore();
+  const { saveLocale } = useConfigStore();
 
-  // Load config for locale section
-  useEffect(() => {
-    if (!config) loadConfig();
-  }, [config, loadConfig]);
+  const locale = config.locale ?? {};
 
-  const locale = config?.locale ?? {};
-
-  // Local state for all settings
+  // Ahora es seguro usar `config` en el estado inicial porque sabemos que no es null
   const [settings, setSettings] = useState<SettingsState>({
-    auto_detect_lang: false,
-    await_args: true,
+    auto_detect_lang: config.auto_detect_lang ?? false,
+    await_args: config.await_args ?? false,
     message_format: true,
-    emoji_replies: true,
+    emoji_replies: config.emoji_replies ?? false,
     chat_actions: {
-      typing: true,
-      upload_photos: true,
-      upload_videos: true,
-      upload_document: true,
+      typing: config.chat_actions?.typing ?? true,
+      upload_photos: config.chat_actions?.upload_photos ?? true,
+      upload_videos: config.chat_actions?.upload_videos ?? true,
+      upload_document: config.chat_actions?.upload_documents ?? true,
     },
-    time_format: '24h',
+    time_format: config.time_format || '24h',
     share_username: true,
-    store_chat_history: true,
+    store_chat_history: config.store_chat_history ?? false,
     allow_data_usage: false,
     notifications: {
-      new_commands: true,
-      downtime_alerts: true,
-      feature_announcements: true,
-      security_alerts: true,
+      new_commands: config.notifications?.new_commands ?? false,
+      downtime_alerts: config.notifications?.downtime_alerts ?? true,
+      feature_announcements: config.notifications?.feature_announcements ?? true,
+      security_alerts: config.notifications?.security_alerts ?? true,
     },
-    notify_semanal_stats: true,
+    notify_semanal_stats: config.notify_semanal_stats ?? false,
     large_text: false,
     compact_mode: false,
   });
@@ -86,6 +107,7 @@ export default function SettingsPage() {
 
   const handleToggle = useCallback(
     async (field: string, value: boolean) => {
+      console.log('Toggling', field, value);
       setSettings((prev) => ({ ...prev, [field]: value }));
       try {
         await changeSettings({ [field]: value ? true : 0 });
@@ -126,11 +148,7 @@ export default function SettingsPage() {
 
       const activeKeys = enable ? Object.keys(newActions) : [];
 
-      if (enable) {
-        setChatActionsOpen(true);
-      } else {
-        setChatActionsOpen(false);
-      }
+      setChatActionsOpen(enable);
 
       try {
         await changeSettings({ chat_actions: activeKeys.length > 0 ? activeKeys : null });
@@ -179,6 +197,7 @@ export default function SettingsPage() {
       top: 'var(--tg-top-offset, 0px)',
     }}>
       <StickyHeader title="Configuración" subtitle="Personaliza tu experiencia" />
+      
       {/* Language Section */}
       <SectionHeader title={t('lang_title')} />
       <div className="mx-4 animate-stagger">
@@ -276,9 +295,9 @@ export default function SettingsPage() {
           ]}
           onChange={handleTimeFormat}
         />
+        
         {/* Date format */}
         <DropdownRow
-
           label="Formato de fecha"
           value={locale.datetime_format?.date || 'DD/MM/YYYY'}
           options={[
