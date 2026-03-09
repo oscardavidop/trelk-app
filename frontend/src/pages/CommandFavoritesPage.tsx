@@ -1,24 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { useToastStore } from '../stores';
 import { BOT_COMMANDS, CATEGORY_META, cmdSlug, findCommand } from '../data/botCommands';
-import { FAVORITE_COMMANDS, COMMAND_FOLDERS } from '../data/commandMocks';
+import { useCommandFavoritesStore } from '../stores/commandFavorites';
+import { fetchCommandFavorites, type CommandFavoriteItem, type TrendingCommand } from '../services/commandFavoritesApi';
 import {
-  Star, Pin, FolderPlus, HeartOff, ArrowUpDown,
-  ChevronRight, Search, Folder, Music, Brain, Wrench
+  Star, Pin, HeartOff, ArrowUpDown,
+  Search, TrendingUp, Flame, Loader2,
 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
-const FOLDER_ICONS: Record<string, typeof Music> = { music: Music, brain: Brain, wrench: Wrench };
-
-type SortKey = 'recent' | 'alpha' | 'popular';
+type SortKey = 'recent' | 'alpha';
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'recent', label: 'Recientes' },
   { key: 'alpha', label: 'A-Z' },
-  { key: 'popular', label: 'Más usados' },
 ];
+
+const PAGE_SIZE = 30;
 
 export default function CommandFavoritesPage() {
   useHideIsland();
@@ -27,41 +27,106 @@ export default function CommandFavoritesPage() {
   const { haptic } = useTelegram();
   const showToast = useToastStore((s) => s.show);
 
+  const { favorites, loaded, loadFavorites, remove, togglePin, trending, loadTrending } = useCommandFavoritesStore();
+
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('recent');
-  const [favs, setFavs] = useState<string[]>(FAVORITE_COMMANDS);
-  const [showFolders, setShowFolders] = useState(true);
+  const [items, setItems] = useState<CommandFavoriteItem[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const offsetRef = useRef(0);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Initial load
+  useEffect(() => {
+    loadFavorites();
+    loadTrending();
+  }, [loadFavorites, loadTrending]);
+
+  // Fetch paginated list when search changes
+  const fetchPage = useCallback(async (reset = false) => {
+    const offset = reset ? 0 : offsetRef.current;
+    if (!reset && !hasMore) return;
+
+    if (reset) setInitialLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      const res = await fetchCommandFavorites(offset, PAGE_SIZE, search || undefined);
+      if (reset) {
+        setItems(res.items);
+        if (res.total !== undefined) setTotal(res.total);
+      } else {
+        setItems((prev) => [...prev, ...res.items]);
+      }
+      setHasMore(res.hasMore);
+      offsetRef.current = res.nextOffset;
+    } catch {
+      // silent
+    } finally {
+      setInitialLoading(false);
+      setLoadingMore(false);
+    }
+  }, [search, hasMore]);
+
+  // Reset on search change
+  useEffect(() => {
+    offsetRef.current = 0;
+    fetchPage(true);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting && hasMore && !loadingMore) fetchPage(); },
+      { rootMargin: '200px' },
+    );
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, [hasMore, loadingMore, fetchPage]);
 
   const go = (slug: string) => {
     haptic?.impactOccurred('light');
     navigate(`/users/ui/${userId}/bot-commands/${slug}`);
   };
 
-  const removeFav = (slug: string) => {
-    setFavs((f) => f.filter((s) => s !== slug));
+  const handleRemove = async (slug: string) => {
     haptic?.notificationOccurred('warning');
+    await remove(slug);
+    setItems((prev) => prev.filter((i) => i.command !== slug));
+    setTotal((t) => Math.max(0, t - 1));
     showToast('Eliminado de favoritos', 'info');
   };
 
-  const filtered = useMemo(() => {
-    let list = favs
-      .map((s) => findCommand(s))
-      .filter(Boolean) as typeof BOT_COMMANDS;
+  const handlePin = async (slug: string) => {
+    haptic?.impactOccurred('light');
+    const pinned = await togglePin(slug);
+    setItems((prev) =>
+      prev.map((i) => (i.command === slug ? { ...i, pinned } : i)),
+    );
+    showToast(pinned ? 'Fijado' : 'Desfijado', 'info');
+  };
 
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter((c) =>
-        c.name.some((n) => n.includes(q)) || c.description.toLowerCase().includes(q),
-      );
+  // Apply client-side sort (server returns by pinned desc, createdAt desc)
+  const sorted = useMemo(() => {
+    const list = [...items];
+    if (sort === 'alpha') {
+      list.sort((a, b) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return a.command.localeCompare(b.command);
+      });
     }
-
-    if (sort === 'alpha') list.sort((a, b) => cmdSlug(a).localeCompare(cmdSlug(b)));
     return list;
-  }, [favs, search, sort]);
+  }, [items, sort]);
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      <StickyHeader title="Favoritos" subtitle={`${favs.length} comandos guardados`} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
+      <StickyHeader title="Favoritos" subtitle={`${total} comandos guardados`} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
+
       {/* ── Buscador + Ordenamiento ── */}
       <div className="px-5 mt-2 flex gap-2.5">
         <div className="flex-1 relative">
@@ -74,7 +139,7 @@ export default function CommandFavoritesPage() {
             className="w-full bg-tg-text/[0.03] border border-tg-border/40 rounded-[16px] py-3.5 pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors shadow-inner"
           />
         </div>
-        
+
         <button
           onClick={() => {
             haptic?.impactOccurred('light');
@@ -87,105 +152,113 @@ export default function CommandFavoritesPage() {
         </button>
       </div>
 
-      {/* ── Carpetas (Carrusel) ── */}
-      {showFolders && (
+      {/* ── Trending Commands ── */}
+      {trending.length > 0 && !search && (
         <section className="mt-6">
-          <div className="flex items-center justify-between px-6 mb-3">
-            <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest">Carpetas</h2>
-            <button onClick={() => setShowFolders(false)} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-              Ocultar
-            </button>
+          <div className="flex items-center gap-2 px-6 mb-3">
+            <TrendingUp size={14} className="text-orange-400" />
+            <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest">Trending esta semana</h2>
           </div>
-          
-          <div className="flex gap-3 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {COMMAND_FOLDERS.map((folder) => {
-              const Icon = FOLDER_ICONS[folder.icon] ?? Folder;
+
+          <div className="flex gap-2.5 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {trending.map((t, i) => {
+              const cmd = findCommand(t.command);
+              const cat = cmd ? CATEGORY_META[cmd.category] : undefined;
               return (
                 <button
-                  key={folder.id}
-                  className="flex-shrink-0 bg-tg-secondary border border-tg-border/50 rounded-[20px] p-4 min-w-[140px] text-left active:scale-[0.96] transition-transform shadow-sm hover:bg-tg-text/[0.02] group"
+                  key={t.command}
+                  onClick={() => go(t.command)}
+                  className="flex-shrink-0 bg-tg-secondary border border-tg-border/50 rounded-[16px] px-4 py-3 min-w-[120px] text-left active:scale-[0.96] transition-transform shadow-sm hover:bg-tg-text/[0.02] group"
                 >
-                  <div
-                    className="w-10 h-10 rounded-[12px] flex items-center justify-center mb-3 shadow-inner transition-transform group-hover:scale-105"
-                    style={{ backgroundColor: `${folder.color}15`, border: `1px solid ${folder.color}20` }}
-                  >
-                    <Icon size={18} style={{ color: folder.color }} />
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-black text-orange-400">#{i + 1}</span>
+                    <Flame size={12} className="text-orange-400/60" />
                   </div>
-                  <div className="text-[14px] font-bold text-tg-text tracking-tight truncate">{folder.name}</div>
-                  <div className="text-[11px] font-medium text-tg-hint mt-0.5">{folder.commands.length} comandos</div>
+                  <div className="text-[14px] font-bold text-tg-text font-mono tracking-tight truncate">/{t.command}</div>
+                  <div className="text-[11px] font-medium text-tg-hint mt-0.5">{t.count} favs</div>
                 </button>
               );
             })}
-            
-            {/* ── Botón Nueva Carpeta ── */}
-            <button className="flex-shrink-0 border-2 border-dashed border-tg-border/40 bg-tg-text/[0.01] hover:bg-tg-text/[0.03] rounded-[20px] p-4 min-w-[110px] flex flex-col items-center justify-center active:scale-95 transition-all group">
-              <div className="w-10 h-10 rounded-full bg-tg-text/[0.04] flex items-center justify-center mb-2 group-hover:bg-tg-accent/10 transition-colors">
-                <FolderPlus size={18} className="text-tg-hint group-hover:text-tg-accent transition-colors" />
-              </div>
-              <span className="text-[12px] font-bold text-tg-hint group-hover:text-tg-text transition-colors">Nueva</span>
-            </button>
           </div>
         </section>
       )}
 
+      {/* ── Loading state ── */}
+      {initialLoading && (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 size={24} className="animate-spin text-tg-accent" />
+        </div>
+      )}
+
       {/* ── Lista de Comandos ── */}
-      <section className="mt-6 px-5">
-        <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest mb-3 px-1">
-          Todos ({filtered.length})
-        </h2>
+      {!initialLoading && (
+        <section className="mt-6 px-5">
+          <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest mb-3 px-1">
+            Todos ({total})
+          </h2>
 
-        {filtered.length > 0 ? (
-          <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
-            <div className="divide-y divide-tg-border/50">
-              {filtered.map((cmd) => {
-                const slug = cmdSlug(cmd);
-                const cat = CATEGORY_META[cmd.category];
-                const CatIcon = cat?.icon;
-                const isComponent = typeof CatIcon !== 'string';
+          {sorted.length > 0 ? (
+            <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
+              <div className="divide-y divide-tg-border/50">
+                {sorted.map((fav) => {
+                  const cmd = findCommand(fav.command);
+                  if (!cmd) return null;
+                  const slug = cmdSlug(cmd);
+                  const cat = CATEGORY_META[cmd.category];
+                  const CatIcon = cat?.icon;
+                  const isComponent = typeof CatIcon !== 'string';
 
-                return (
-                  <div key={slug} className="flex items-center justify-between p-4 transition-colors hover:bg-tg-text/[0.02] group">
-                    
-                    {/* Área clickeable principal */}
-                    <button
-                      onClick={() => go(slug)}
-                      className="flex items-center gap-3.5 flex-1 min-w-0 text-left"
-                    >
-                      <div
-                        className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner transition-transform group-hover:scale-105"
-                        style={{ backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
-                      >
-                        {isComponent && CatIcon ? (
-                          // @ts-ignore
-                          <CatIcon size={18} style={{ color: cat?.color }} />
-                        ) : (
-                          <span className="text-[16px] drop-shadow-sm">{CatIcon}</span>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1 pt-0.5">
-                        <div className="text-[15px] font-bold text-tg-text font-mono tracking-tight truncate">/{slug}</div>
-                        <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5">{cmd.description}</div>
-                      </div>
-                    </button>
+                  return (
+                    <div key={slug} className="flex items-center justify-between p-4 transition-colors hover:bg-tg-text/[0.02] group">
 
-                    {/* Acciones */}
-                    <div className="flex items-center gap-1.5 flex-shrink-0 pl-3">
-                      <button 
-                        className="w-8 h-8 rounded-[10px] bg-tg-text/[0.04] border border-tg-border/30 flex items-center justify-center active:scale-90 transition-all hover:bg-tg-text/[0.08] hover:text-tg-text"
-                        title="Fijar"
-                      >
-                        <Pin size={14} className="text-tg-hint/70 hover:text-tg-text transition-colors" />
-                      </button>
-                      
+                      {/* Área clickeable principal */}
                       <button
-                        onClick={() => removeFav(slug)}
-                        className="w-8 h-8 rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center active:scale-90 transition-all hover:bg-red-500/20"
-                        title="Eliminar de favoritos"
+                        onClick={() => go(slug)}
+                        className="flex items-center gap-3.5 flex-1 min-w-0 text-left"
                       >
-                        <HeartOff size={14} className="text-red-400" />
+                        <div
+                          className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner transition-transform group-hover:scale-105"
+                          style={{ backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
+                        >
+                          {isComponent && CatIcon ? (
+                            // @ts-ignore
+                            <CatIcon size={18} style={{ color: cat?.color }} />
+                          ) : (
+                            <span className="text-[16px] drop-shadow-sm">{CatIcon}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1 pt-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[15px] font-bold text-tg-text font-mono tracking-tight truncate">/{slug}</span>
+                            {fav.pinned && <Pin size={12} className="text-tg-accent flex-shrink-0" />}
+                          </div>
+                          <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5">{cmd.description}</div>
+                        </div>
                       </button>
+
+                      {/* Acciones */}
+                      <div className="flex items-center gap-1.5 flex-shrink-0 pl-3">
+                        <button
+                          onClick={() => handlePin(slug)}
+                          className={`w-8 h-8 rounded-[10px] border flex items-center justify-center active:scale-90 transition-all ${
+                            fav.pinned
+                              ? 'bg-tg-accent/10 border-tg-accent/30'
+                              : 'bg-tg-text/[0.04] border-tg-border/30 hover:bg-tg-text/[0.08]'
+                          }`}
+                          title={fav.pinned ? 'Desfijar' : 'Fijar'}
+                        >
+                          <Pin size={14} className={fav.pinned ? 'text-tg-accent' : 'text-tg-hint/70'} />
+                        </button>
+
+                        <button
+                          onClick={() => handleRemove(slug)}
+                          className="w-8 h-8 rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center active:scale-90 transition-all hover:bg-red-500/20"
+                          title="Eliminar de favoritos"
+                        >
+                          <HeartOff size={14} className="text-red-400" />
+                        </button>
                     </div>
-                    
+
                   </div>
                 );
               })}
@@ -203,8 +276,17 @@ export default function CommandFavoritesPage() {
             </p>
           </div>
         )}
+
+          {/* Infinite scroll sentinel */}
+          <div ref={sentinelRef} className="h-1" />
+          {loadingMore && (
+            <div className="flex justify-center py-4">
+              <Loader2 size={20} className="animate-spin text-tg-accent" />
+            </div>
+          )}
       </section>
-      
+      )}
+
     </div>
   );
 }

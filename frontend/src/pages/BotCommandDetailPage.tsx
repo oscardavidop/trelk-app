@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
 import { useToastStore } from '../stores';
 import { BOT_COMMANDS, findCommand, cmdSlug, CATEGORY_META } from '../data/botCommands';
@@ -22,6 +22,7 @@ import {
 import { StickySectionHeader } from '@/components/StickyHeader';
 import { useScrollCollapse, useScrollHeader } from '@/hooks/useScrollCollapse';
 import CommentsWidget from '@/components/CommentsWidget';
+import { useCommandFavoritesStore } from '../stores/commandFavorites';
 /* ─── Mock screenshots for preview ─── */
 const MOCK_SCREENSHOTS = [
   'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+1',
@@ -39,11 +40,17 @@ export default function BotCommandDetailPage() {
   const [rating, setRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
   const [reported, setReported] = useState(false);
-  const [isFav, setIsFav] = useState(false);
+  const { isFavorite, toggle: toggleFav, loaded: favLoaded, loadFavorites } = useCommandFavoritesStore();
+  const mainSlug = cmd ? cmdSlug(cmd) : '';
+  const isFav = favLoaded && isFavorite(mainSlug);
   const [copied, setCopied] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   // const collapsed = useScrollCollapse(90);
   const collapsed = useScrollHeader(110);
+
+  // Load favorites set if not loaded
+  useEffect(() => { if (!favLoaded) loadFavorites(); }, [favLoaded, loadFavorites]);
+
   /* ─── Navigation helpers ─── */
   const currentIdx = cmd ? BOT_COMMANDS.findIndex((c) => cmdSlug(c) === cmdSlug(cmd)) : -1;
   const prevCmd = currentIdx > 0 ? BOT_COMMANDS[currentIdx - 1] : undefined;
@@ -86,7 +93,6 @@ export default function BotCommandDetailPage() {
   }
 
   const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: '📦' };
-  const mainSlug = cmdSlug(cmd);
   return (
     <div className="pb-24 animate-fade-in relative">
 
@@ -165,9 +171,10 @@ export default function BotCommandDetailPage() {
 
           {/* Fav */}
           <button
-            onClick={() => {
-              setIsFav(!isFav);
+            onClick={async () => {
               haptic?.impactOccurred('light');
+              const added = await toggleFav(mainSlug);
+              showToast(added ? 'Añadido a favoritos' : 'Eliminado de favoritos', 'info');
             }}
             className={`absolute right-5 transition-all duration-300
     ${collapsed ? 'top-2' : 'top-8'}

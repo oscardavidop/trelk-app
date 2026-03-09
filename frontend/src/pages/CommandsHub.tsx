@@ -14,13 +14,17 @@ import {
   FlaskConical
 } from 'lucide-react';
 import { TOTAL_BOT_COMMANDS } from '@/data/botCommands';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserStore } from '@/stores';
 
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
-const PREMIUM_COMMANDS = [
-  { name: '/imagine-pro', desc: 'Generación HD con DALL·E 3', badge: 'PRO', icon: Sparkles, gradient: 'from-purple-500 to-indigo-600' },
-  { name: '/upscale-hd', desc: 'Upscale 4x con Real-ESRGAN', badge: 'PRO', icon: Maximize2, gradient: 'from-blue-400 to-tg-accent' },
-  { name: '/style-transfer', desc: 'Transfiere estilo artístico', badge: 'PRO', icon: Palette, gradient: 'from-amber-400 to-orange-500' },
+const GRADIENTS = [
+  'from-pink-500 to-red-500',
+  'from-green-400 to-teal-500',
+  'from-purple-500 to-indigo-600',
+  'from-yellow-400 to-orange-500',
+  'from-blue-400 to-cyan-500',
 ];
 
 export default function CommandsHub() {
@@ -28,6 +32,16 @@ export default function CommandsHub() {
   const navigate = useNavigate();
   const { haptic } = useTelegram();
   const { config, load: loadConfig } = useConfigStore();
+  const user = useUserStore((s) => s.user);
+
+
+  const PREMIUM_COMMANDS = Object.entries(config?.premium_commands || {}).map(([key, cmd]) => ({
+    name: `/${key}`,
+    desc: (cmd as any).description || 'Comando premium',
+    badge: (cmd as any).badge || 'PRO',
+    icon: Sparkles, // Aquí podrías mapear a diferentes íconos según el comando
+    gradient: GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)], // Gradiente aleatorio
+  }));
 
   useEffect(() => {
     if (!config) loadConfig();
