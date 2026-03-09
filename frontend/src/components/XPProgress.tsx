@@ -1,4 +1,4 @@
-import { useGamificationStore, levelFromXP } from '../stores/gamification';
+import { useGamificationStore } from '../stores/gamification';
 import { Flame } from 'lucide-react';
 
 interface XPProgressProps {
@@ -6,8 +6,7 @@ interface XPProgressProps {
 }
 
 export default function XPProgress({ compact }: XPProgressProps) {
-  const { xp, streak } = useGamificationStore();
-  const { level, currentXP, nextXP, progress } = levelFromXP(xp);
+  const { xp, streak, level, currentLevelXP: currentXP, nextLevelXP: nextXP, levelProgress: progress } = useGamificationStore();
 
   // ── MODO COMPACTO (Para cabeceras o listas) ──
   if (compact) {

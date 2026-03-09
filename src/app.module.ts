@@ -13,6 +13,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { HistoryModule } from './modules/history/history.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
 import { envValidationSchema } from './config/env.validation';
 
 @Global()
@@ -63,6 +64,7 @@ import { envValidationSchema } from './config/env.validation';
     HealthModule,
     RedisModule,
     HistoryModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,5 +1,4 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { useGamificationStore } from '../../stores/gamification';
 import { ChevronRight, Copy, Loader2, Terminal } from 'lucide-react';
 import { fetchHistory, HistoryEntry } from '@/services/historyApi';
 

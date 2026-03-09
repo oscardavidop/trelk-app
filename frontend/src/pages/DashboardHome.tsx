@@ -29,7 +29,7 @@ export default function DashboardHome() {
   const navigate = useNavigate();
   const { user, haptic } = useTelegram();
   const { items, load: loadFavs, loading: favsLoading } = useFavoritesStore();
-  const { xp, streak, xpToast, updateStreak, achievements } = useGamificationStore();
+  const { xp, streak, achievements, loaded, loadGamification } = useGamificationStore();
   const [showGreeting, setShowGreeting] = useState(false);
 
   const firstName = user?.first_name || 'User';
@@ -38,11 +38,10 @@ export default function DashboardHome() {
 
   useEffect(() => {
     loadFavs();
-    updateStreak();
-    // Ligero retraso para la animación de entrada del saludo
+    if (!loaded) loadGamification();
     const timer = setTimeout(() => setShowGreeting(true), 100);
     return () => clearTimeout(timer);
-  }, [loadFavs, updateStreak]);
+  }, [loadFavs, loaded, loadGamification]);
 
   const recentFavs = items.slice(0, 6);
 
@@ -299,16 +298,6 @@ export default function DashboardHome() {
           </div>
         </button>
       </section>
-
-      {/* ── Toast de XP (Notificación flotante) ── */}
-      {xpToast && (
-        <div className="fixed bottom-[100px] left-1/2 -translate-x-1/2 z-[100] animate-bounce-in pointer-events-none">
-          <div className="bg-amber-500 text-white px-4 py-3 rounded-full shadow-[0_8px_30px_rgba(245,158,11,0.4)] flex items-center gap-2.5 border border-white/20 backdrop-blur-md">
-            <span className="text-[16px] font-black drop-shadow-sm">+{xpToast.amount} XP</span>
-            <span className="text-[13px] font-bold opacity-90">{xpToast.label}</span>
-          </div>
-        </div>
-      )}
 
     </div>
   );

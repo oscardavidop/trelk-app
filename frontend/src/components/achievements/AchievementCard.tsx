@@ -1,5 +1,17 @@
 import type { Achievement } from '../../stores/gamification';
-import { Gift, CheckCircle2 } from 'lucide-react';
+import { Gift, CheckCircle2, Trophy, Star, Rocket, Flame, Gem, Sparkles, Globe, Moon, Bot, Zap, Music, Headphones, CalendarCheck, CalendarRange, Languages } from 'lucide-react';
+
+const ICON_MAP: Record<string, React.ComponentType<any>> = {
+  trophy: Trophy, star: Star, rocket: Rocket, flame: Flame, gem: Gem,
+  sparkles: Sparkles, globe: Globe, moon: Moon, bot: Bot, zap: Zap,
+  music: Music, headphones: Headphones, 'calendar-check': CalendarCheck,
+  'calendar-range': CalendarRange, languages: Languages,
+};
+
+function AchievementIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = ICON_MAP[name] || Trophy;
+  return <Icon className={className} size={22} />;
+}
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -27,12 +39,10 @@ export default function AchievementCard({ achievement: a, onTap }: AchievementCa
         
         {/* ── Cabecera: Icono y Estado ── */}
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-11 h-11 rounded-[14px] flex items-center justify-center text-[22px] shadow-inner transition-transform duration-300 group-hover:scale-110 ${
+          <div className={`w-11 h-11 rounded-[14px] flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-110 ${
             a.unlocked ? 'bg-amber-400/20' : 'bg-black/20'
           }`}>
-            <span className={a.unlocked ? 'drop-shadow-md' : 'opacity-40 grayscale'}>
-              {a.icon}
-            </span>
+            <AchievementIcon name={a.icon} className={a.unlocked ? 'text-amber-400 drop-shadow-md' : 'text-tg-hint/40'} />
           </div>
           
           {a.unlocked ? (

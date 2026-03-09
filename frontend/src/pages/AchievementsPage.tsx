@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGamificationStore } from '../stores/gamification';
 import AchievementCard from '../components/achievements/AchievementCard';
 import XPProgress from '../components/XPProgress';
 import { useHideIsland } from '../hooks/useHideIsland';
-import { Trophy, Medal } from 'lucide-react';
+import { Trophy, Medal, Loader2 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
 type Filter = 'all' | 'unlocked' | 'locked';
 
 export default function AchievementsPage() {
   useHideIsland();
-  const { achievements } = useGamificationStore();
+  const { achievements, loaded, loading, loadGamification } = useGamificationStore();
   const [filter, setFilter] = useState<Filter>('all');
+
+  useEffect(() => { if (!loaded) loadGamification(); }, [loaded, loadGamification]);
+
+  if (loading && !loaded) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-tg-hint" />
+      </div>
+    );
+  }
 
   const unlocked = achievements.filter((a) => a.unlocked).length;
   const total = achievements.length;
