@@ -111,7 +111,7 @@ export default function CommandFavoritesPage() {
     showToast(pinned ? 'Fijado' : 'Desfijado', 'info');
   };
 
-  // Apply client-side sort (server returns by pinned desc, createdAt desc)
+  // Apply client-side sort
   const sorted = useMemo(() => {
     const list = [...items];
     if (sort === 'alpha') {
@@ -127,16 +127,17 @@ export default function CommandFavoritesPage() {
     <div className="pb-24 animate-fade-in relative">
       <StickyHeader title="Favoritos" subtitle={`${total} comandos guardados`} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
 
-      {/* ── Buscador + Ordenamiento ── */}
-      <div className="px-5 mt-2 flex gap-2.5">
-        <div className="flex-1 relative">
+      {/* ── Buscador + Ordenamiento (Corregido) ── */}
+      <div className="px-5 mt-2 flex gap-2.5 h-[48px]"> {/* 👈 Altura fija para igualarlos */}
+        
+        <div className="flex-1 relative h-full">
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tg-hint/50" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar favoritos…"
-            className="w-full bg-tg-text/[0.03] border border-tg-border/40 rounded-[16px] py-3.5 pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors shadow-inner"
+            className="w-full h-full bg-tg-text/[0.03] border-2 border-tg-border/40 rounded-[16px] pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors shadow-inner"
           />
         </div>
 
@@ -145,7 +146,7 @@ export default function CommandFavoritesPage() {
             haptic?.impactOccurred('light');
             setSort((s) => SORT_OPTIONS[(SORT_OPTIONS.findIndex((o) => o.key === s) + 1) % SORT_OPTIONS.length].key);
           }}
-          className="h-full px-4 bg-tg-secondary border border-tg-border/50 rounded-[16px] flex items-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-tg-text/[0.02]"
+          className="h-full px-4 bg-tg-secondary border border-tg-border/50 rounded-[16px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-tg-text/[0.02] flex-shrink-0"
         >
           <ArrowUpDown size={15} className="text-tg-accent" />
           <span className="text-[13px] font-bold text-tg-text">{SORT_OPTIONS.find((o) => o.key === sort)?.label}</span>
@@ -163,7 +164,7 @@ export default function CommandFavoritesPage() {
           <div className="flex gap-2.5 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {trending.map((t, i) => {
               const cmd = findCommand(t.command);
-              const cat = cmd ? CATEGORY_META[cmd.category] : undefined;
+              // const cat = cmd ? CATEGORY_META[cmd.category] : undefined; // unused
               return (
                 <button
                   key={t.command}
@@ -257,25 +258,25 @@ export default function CommandFavoritesPage() {
                         >
                           <HeartOff size={14} className="text-red-400" />
                         </button>
-                    </div>
+                      </div>
 
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ) : (
-          /* ── Estado Vacío ── */
-          <div className="text-center py-16 bg-tg-secondary border border-tg-border/50 rounded-[20px] shadow-sm px-5">
-            <div className="w-16 h-16 mx-auto bg-tg-text/[0.03] border border-tg-border/30 rounded-full flex items-center justify-center mb-4 shadow-inner">
-              <Star size={32} className="text-tg-hint/30" />
+          ) : (
+            /* ── Estado Vacío ── */
+            <div className="text-center py-16 bg-tg-secondary border border-tg-border/50 rounded-[20px] shadow-sm px-5">
+              <div className="w-16 h-16 mx-auto bg-tg-text/[0.03] border border-tg-border/30 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                <Star size={32} className="text-tg-hint/30" />
+              </div>
+              <p className="text-[16px] font-extrabold text-tg-text tracking-tight">Sin resultados</p>
+              <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 leading-relaxed max-w-[200px] mx-auto">
+                {search ? 'No encontramos ningún comando que coincida con tu búsqueda.' : 'Aún no tienes comandos guardados en tus favoritos.'}
+              </p>
             </div>
-            <p className="text-[16px] font-extrabold text-tg-text tracking-tight">Sin resultados</p>
-            <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 leading-relaxed max-w-[200px] mx-auto">
-              {search ? 'No encontramos ningún comando que coincida con tu búsqueda.' : 'Aún no tienes comandos guardados en tus favoritos.'}
-            </p>
-          </div>
-        )}
+          )}
 
           {/* Infinite scroll sentinel */}
           <div ref={sentinelRef} className="h-1" />
@@ -284,7 +285,7 @@ export default function CommandFavoritesPage() {
               <Loader2 size={20} className="animate-spin text-tg-accent" />
             </div>
           )}
-      </section>
+        </section>
       )}
 
     </div>

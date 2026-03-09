@@ -63,7 +63,7 @@ export default function CommandPlayground({ commandSlug, usage }: Props) {
         {/* ── Zona de Input ── */}
         {/* Usamos bg-tg-text/[0.02] para oscurecer sutilmente sin romper el tema claro */}
         <div className="p-4 bg-tg-text/[0.02]">
-          <div className="flex items-center gap-2 bg-tg-surface/60 border border-tg-border/40 rounded-[14px] px-3.5 py-3.5 focus-within:border-tg-accent/40 transition-colors shadow-inner">
+          <div className="flex items-center gap-2 bg-tg-surface/60 border border-tg-border/40 rounded-[14px] px-3.5 py-3.5 focus-within:border-2 focus-within:border-tg-accent/40 transition-colors shadow-inner">
             <code className="text-[14px] font-mono font-bold text-tg-accent flex-shrink-0 tracking-tight">
               /{commandSlug}
             </code>
