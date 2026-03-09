@@ -73,6 +73,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
   const { haptic } = useTelegram();
   const showToast = useToastStore((s) => s.show);
   const { saveLocale } = useConfigStore();
+  const patchConfig = useConfigStore((s) => s.patchConfig);
 
   const locale = config.locale ?? {};
 
@@ -111,11 +112,12 @@ function SettingsForm({ config }: { config: UserConfig }) {
       setSettings((prev) => ({ ...prev, [field]: value }));
       try {
         await changeSettings({ [field]: value ? true : 0 });
+        patchConfig({ [field]: value });
       } catch {
         showToast('Error.', 'error');
       }
     },
-    [showToast],
+    [showToast, patchConfig],
   );
 
   const handleChatAction = useCallback(
@@ -129,11 +131,12 @@ function SettingsForm({ config }: { config: UserConfig }) {
 
       try {
         await changeSettings({ chat_actions: activeKeys.length > 0 ? activeKeys : null });
+        patchConfig({ chat_actions: newActions });
       } catch {
         showToast('Error.', 'error');
       }
     },
-    [settings.chat_actions, showToast],
+    [settings.chat_actions, showToast, patchConfig],
   );
 
   const handleToggleChatActions = useCallback(
@@ -152,11 +155,12 @@ function SettingsForm({ config }: { config: UserConfig }) {
 
       try {
         await changeSettings({ chat_actions: activeKeys.length > 0 ? activeKeys : null });
+        patchConfig({ chat_actions: newActions });
       } catch {
         showToast('Error.', 'error');
       }
     },
-    [showToast],
+    [showToast, patchConfig],
   );
 
   const handleNotification = useCallback(
@@ -170,11 +174,12 @@ function SettingsForm({ config }: { config: UserConfig }) {
 
       try {
         await changeSettings({ notifications_settings: activeKeys.length > 0 ? activeKeys : null });
+        patchConfig({ notifications: newNotif });
       } catch {
         showToast('Error.', 'error');
       }
     },
-    [settings.notifications, showToast],
+    [settings.notifications, showToast, patchConfig],
   );
 
   const handleTimeFormat = useCallback(
@@ -182,11 +187,12 @@ function SettingsForm({ config }: { config: UserConfig }) {
       setSettings((prev) => ({ ...prev, time_format: value }));
       try {
         await updateConfig({ time_format: value });
+        patchConfig({ time_format: value });
       } catch {
         showToast('Error.', 'error');
       }
     },
-    [showToast],
+    [showToast, patchConfig],
   );
 
   const chatActionCount = Object.values(settings.chat_actions).filter(Boolean).length;

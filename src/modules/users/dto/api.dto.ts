@@ -8,7 +8,6 @@ import {
   IsObject,
   ValidateNested,
   IsBooleanString,
-  IsTimeZone,
   IsNumber,
   IsInt,
 } from 'class-validator';
@@ -24,7 +23,7 @@ const ALLOWED_SETTINGS = new Set([
 const ALLOWED_METHODS = new Set(['changeSettings', 'updateConfig', 'auth']);
 export class ConfigDto {
   @IsOptional()
-  @IsTimeZone()
+  @IsString()
   tz?: string;
 
   @IsOptional()

@@ -8,7 +8,7 @@ export class History {
   @Prop({ required: true, index: true })
   userId: number;
 
-  @Prop({ required: true, enum: ['command', 'favorite_added', 'favorite_removed', 'achievement', 'inline_query'] })
+  @Prop({ required: true, enum: ['command', 'favorite_added', 'favorite_removed', 'achievement', 'inline_query', 'command_rated', 'command_reported'] })
   type: string;
 
   @Prop()

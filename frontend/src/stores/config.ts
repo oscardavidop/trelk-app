@@ -17,6 +17,7 @@ interface ConfigState {
   error: string | null;
 
   load: () => Promise<void>;
+  patchConfig: (partial: Partial<UserConfig>) => void;
   saveCommand: (key: string, cmd: CommandConfig) => Promise<void>;
   removeCommand: (key: string) => Promise<void>;
   savePremiumCommand: (key: string, alias: string) => Promise<void>;
@@ -41,6 +42,13 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     } catch (e: any) {
       set({ error: e.message, loading: false });
     }
+  },
+
+  patchConfig: (partial) => {
+    set((s) => {
+      if (!s.config) return s;
+      return { config: { ...s.config, ...partial } };
+    });
   },
 
   saveCommand: async (key, cmd) => {

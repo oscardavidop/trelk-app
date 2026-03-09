@@ -3,7 +3,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
 import { useToastStore } from '../stores';
 import { BOT_COMMANDS, findCommand, cmdSlug, CATEGORY_META } from '../data/botCommands';
-import { getStats, getExamples, getChangelog, getComments, getRelated } from '../data/commandMocks';
+import { getExamples, getChangelog, getComments, getRelated } from '../data/commandMocks';
+import { fetchCommandStats, fetchMyRating, submitRating, type CommandStatsData } from '../services/commandStatsApi';
 import CommandStats from '../components/commands/CommandStats';
 import CommandExamples from '../components/commands/CommandExamples';
 import CommandChangelog from '../components/commands/CommandChangelog';
@@ -39,6 +40,9 @@ export default function BotCommandDetailPage() {
   const cmd = slug ? findCommand(slug) : undefined;
   const [rating, setRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [review, setReview] = useState('');
+  const [stats, setStats] = useState<CommandStatsData | null>(null);
   const [reported, setReported] = useState(false);
   const { isFavorite, toggle: toggleFav, loaded: favLoaded, loadFavorites } = useCommandFavoritesStore();
   const mainSlug = cmd ? cmdSlug(cmd) : '';
@@ -50,6 +54,19 @@ export default function BotCommandDetailPage() {
 
   // Load favorites set if not loaded
   useEffect(() => { if (!favLoaded) loadFavorites(); }, [favLoaded, loadFavorites]);
+
+  // Load real stats + user's own rating
+  useEffect(() => {
+    if (!mainSlug) return;
+    fetchCommandStats(mainSlug).then(setStats).catch(() => {});
+    fetchMyRating(mainSlug).then((data) => {
+      if (data.rating != null) {
+        setRating(data.rating);
+        setHasRated(true);
+        if (data.review) setReview(data.review);
+      }
+    }).catch(() => {});
+  }, [mainSlug]);
 
   /* ─── Navigation helpers ─── */
   const currentIdx = cmd ? BOT_COMMANDS.findIndex((c) => cmdSlug(c) === cmdSlug(cmd)) : -1;
@@ -194,7 +211,7 @@ export default function BotCommandDetailPage() {
       </StickySectionHeader>
 
       {/* ── Stats Strip ── */}
-      {getStats(mainSlug) && <div className="mt-5"><CommandStats stats={getStats(mainSlug)!} /></div>}
+      {stats && <div className="mt-5"><CommandStats stats={stats} /></div>}
 
       {/* ── Botón de Acción Rápida (Ejecutar) ── */}
       <section className="px-5 mt-6">
@@ -421,12 +438,23 @@ export default function BotCommandDetailPage() {
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
-                    onClick={() => {
-                      setRating(n);
-                      setHasRated(true);
-                      haptic?.notificationOccurred('success');
+                    disabled={ratingLoading}
+                    onClick={async () => {
+                      setRatingLoading(true);
+                      try {
+                        await submitRating(mainSlug, n);
+                        setRating(n);
+                        setHasRated(true);
+                        haptic?.notificationOccurred('success');
+                        // Refresh stats after rating
+                        fetchCommandStats(mainSlug).then(setStats).catch(() => {});
+                      } catch {
+                        showToast('Error al calificar', 'error');
+                      } finally {
+                        setRatingLoading(false);
+                      }
                     }}
-                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center text-[22px] active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-inner"
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center text-[22px] active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-inner disabled:opacity-50"
                     title={`Calificar con ${n} estrellas`}
                   >
                     <Star

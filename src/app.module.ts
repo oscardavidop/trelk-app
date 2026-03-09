@@ -15,6 +15,7 @@ import { RedisModule } from './modules/redis/redis.module';
 import { HistoryModule } from './modules/history/history.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { CommandFavoritesModule } from './modules/command-favorites/command-favorites.module';
+import { CommandStatsModule } from './modules/command-stats/command-stats.module';
 import { envValidationSchema } from './config/env.validation';
 
 @Global()
@@ -67,6 +68,7 @@ import { envValidationSchema } from './config/env.validation';
     HistoryModule,
     GamificationModule,
     CommandFavoritesModule,
+    CommandStatsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,18 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
 import { Flame, TrendingUp, TrendingDown } from 'lucide-react';
 import { useGlobalStats } from '../../hooks/useGlobalStats';
+import { fetchActivityStats } from '../../services/historyApi';
 
 const fmt = new Intl.NumberFormat('es-CO'); // Asegura formato numérico consistente (ej. 1.234)
 
 export default function CommandUsageCounter() {
-  const { commandsToday, growthToday } = useGlobalStats();
-  const [display, setDisplay] = useState(commandsToday);
-  const prevRef = useRef(commandsToday);
+  const { growthToday } = useGlobalStats();
+  const [myToday, setMyToday] = useState(0);
+  const [display, setDisplay] = useState(0);
+  const prevRef = useRef(0);
+
+  // Cargar estadísticas personales
+  useEffect(() => {
+    let active = true;
+    const load = () => {
+      fetchActivityStats()
+        .then((d) => { if (active) setMyToday(d.commandsToday); })
+        .catch(() => {});
+    };
+    load();
+    const id = setInterval(load, 60_000);
+    return () => { active = false; clearInterval(id); };
+  }, []);
 
   // Animación suave de incremento (Count-up)
   useEffect(() => {
     const from = prevRef.current;
-    const to = commandsToday;
+    const to = myToday;
     if (from === to) return;
 
     const duration = 800; // 800ms para una animación un poco más premium
@@ -33,7 +48,7 @@ export default function CommandUsageCounter() {
 
     requestAnimationFrame(tick);
     prevRef.current = to;
-  }, [commandsToday]);
+  }, [myToday]);
 
   const isPositive = growthToday >= 0;
   const GrowthIcon = isPositive ? TrendingUp : TrendingDown;
@@ -75,7 +90,7 @@ export default function CommandUsageCounter() {
         
         {/* Subtítulo */}
         <div className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest">
-          Comandos hoy
+          Mis comandos hoy
         </div>
 
       </div>

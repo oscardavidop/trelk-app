@@ -1,8 +1,8 @@
 import { Star, Flame, Heart } from 'lucide-react';
-import type { CommandStats as Stats } from '../../data/commandMocks';
+import type { CommandStatsData } from '../../services/commandStatsApi';
 
 interface Props {
-  stats: Stats;
+  stats: CommandStatsData;
 }
 
 export default function CommandStats({ stats }: Props) {

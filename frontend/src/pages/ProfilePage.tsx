@@ -33,7 +33,7 @@ interface ActivityItem {
 export default function ProfilePage() {
     const { userId } = useParams();
     const navigate = useNavigate();
-    const { user: tgUser, haptic } = useTelegram();
+    const { user: tgUser, haptic, webApp } = useTelegram();
     const appUser = useUserStore((s) => s.user);
     const { items, total, load: loadFavs } = useFavoritesStore();
     const [showHeader, setShowHeader] = useState(false);
@@ -227,7 +227,7 @@ export default function ProfilePage() {
                         <button
                             onClick={() => {
                                 haptic?.impactOccurred('light');
-                                window.open('https://t.me/TrelkSupport', '_blank');
+                                webApp?.openTelegramLink('https://t.me/TrelkSupportBot');
                             }}
                             className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors"
                         >

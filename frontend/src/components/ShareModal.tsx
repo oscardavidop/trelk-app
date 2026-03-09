@@ -174,7 +174,7 @@ export default function ShareModal({
 
     return (
         <div
-            className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 mb-[-25px]"
+            className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4"
             onClick={() => onClose()}
         >
             {/* Fondo */}
