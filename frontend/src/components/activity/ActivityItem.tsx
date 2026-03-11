@@ -1,18 +1,19 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { HistoryEntry } from '../../services/historyApi';
 import { useToastStore } from '../../stores';
 import { Terminal, Heart, Trophy, Play, Copy, Check } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 
-function timeAgo(ts: number): string {
+function timeAgo(ts: number, t: (key: string, opts?: any) => string): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'Ahora';
-  if (mins < 60) return `hace ${mins} min`;
+  if (mins < 1) return t('common:now');
+  if (mins < 60) return t('common:ago_mins', { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `hace ${hrs} h`;
+  if (hrs < 24) return t('common:ago_hours', { count: hrs });
   const days = Math.floor(hrs / 24);
-  return `hace ${days} d`;
+  return t('common:ago_days', { count: days });
 }
 
 interface ActivityItemProps {
@@ -21,6 +22,7 @@ interface ActivityItemProps {
 }
 
 export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
+  const { t } = useTranslation('activity');
   const showToast = useToastStore((s) => s.show);
   const { haptic } = useTelegram();
   const [copied, setCopied] = useState(false);
@@ -56,7 +58,7 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
     if (e.type === 'command') {
       return (
         <>
-          <span className="font-mono text-tg-accent font-semibold tracking-tight">/{e.command}</span>
+          <span className="font-mono text-tg-accent font-semibold ">/{e.command}</span>
           {e.args && <span className="text-tg-hint/80 italic"> "{e.args}"</span>}
         </>
       );
@@ -64,18 +66,18 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
     if (e.type === 'favorite_added') {
       return (
         <>
-          Guardó <span className="font-bold text-tg-text">"{e.item}"</span> en favoritos
+          {t('saved')} <span className="font-bold text-tg-text">"{e.item}"</span> {t('in_favorites')}
         </>
       );
     }
     if (e.type === 'achievement') {
       return (
         <>
-          Desbloqueó el logro <span className="font-bold text-amber-400">"{e.achievementName}"</span>
+          {t('unlocked_achievement')} <span className="font-bold text-amber-400">"{e.achievementName}"</span>
         </>
       );
     }
-    return 'Acción desconocida';
+    return t('unknown_action');
   };
 
   const { Icon, bg, border, color } = getConfig();
@@ -99,7 +101,7 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
             {renderText()}
           </p>
           <span className="text-[11px] font-medium text-tg-hint/70 mt-0.5 tracking-wide">
-            {timeAgo(e.timestamp)}
+            {timeAgo(e.timestamp, t)}
           </span>
         </div>
 
@@ -114,7 +116,7 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
                 }`}
             >
               {copied ? <Check size={14} strokeWidth={2.5} /> : <Copy size={14} />}
-              <span>{copied ? 'Copiado' : 'Copiar'}</span>
+              <span>{copied ? t('common:copied') : t('common:copy')}</span>
             </button>
           )}
         </div>

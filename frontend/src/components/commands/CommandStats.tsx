@@ -1,4 +1,5 @@
 import { Star, Flame, Heart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { CommandStatsData } from '../../services/commandStatsApi';
 
 interface Props {
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export default function CommandStats({ stats }: Props) {
+  const { t } = useTranslation('commandDetail');
   return (
     <div className="grid grid-cols-3 gap-3 px-5 animate-slide-up">
       
@@ -14,11 +16,11 @@ export default function CommandStats({ stats }: Props) {
         <div className="w-9 h-9 rounded-[12px] bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mb-2.5 shadow-inner">
           <Star size={16} className="text-yellow-500 fill-yellow-500/30" />
         </div>
-        <div className="text-[20px] font-black text-tg-text leading-none mb-1.5 tracking-tight">
+        <div className="text-[20px] font-black text-tg-text leading-none mb-1.5 ">
           {stats.rating.toFixed(1)}
         </div>
-        <div className="text-[10px] font-extrabold text-tg-hint uppercase tracking-widest">
-          Rating
+        <div className="text-[10px] font-extrabold text-tg-hint uppercase ">
+          {t('rating')}
         </div>
       </div>
 
@@ -27,11 +29,11 @@ export default function CommandStats({ stats }: Props) {
         <div className="w-9 h-9 rounded-[12px] bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-2.5 shadow-inner">
           <Flame size={16} className="text-orange-500 fill-orange-500/30" />
         </div>
-        <div className="text-[20px] font-black text-tg-text leading-none mb-1.5 tracking-tight">
+        <div className="text-[20px] font-black text-tg-text leading-none mb-1.5 ">
           {stats.weeklyUses >= 1000 ? `${(stats.weeklyUses / 1000).toFixed(1)}k` : stats.weeklyUses}
         </div>
-        <div className="text-[10px] font-extrabold text-tg-hint uppercase tracking-widest">
-          Semanal
+        <div className="text-[10px] font-extrabold text-tg-hint uppercase ">
+          {t('weekly')}
         </div>
       </div>
 
@@ -40,11 +42,11 @@ export default function CommandStats({ stats }: Props) {
         <div className="w-9 h-9 rounded-[12px] bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-2.5 shadow-inner">
           <Heart size={16} className="text-pink-500 fill-pink-500/30" />
         </div>
-        <div className="text-[20px] font-black text-tg-text leading-none mb-1.5 tracking-tight">
+        <div className="text-[20px] font-black text-tg-text leading-none mb-1.5 ">
           {stats.favorites >= 1000 ? `${(stats.favorites / 1000).toFixed(1)}k` : stats.favorites}
         </div>
-        <div className="text-[10px] font-extrabold text-tg-hint uppercase tracking-widest">
-          Favoritos
+        <div className="text-[10px] font-extrabold text-tg-hint uppercase ">
+          {t('favorites_label')}
         </div>
       </div>
 

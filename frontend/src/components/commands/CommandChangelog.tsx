@@ -1,4 +1,5 @@
 import { GitBranch, Tag, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ChangelogEntry } from '../../data/commandMocks';
 
 interface Props {
@@ -6,12 +7,13 @@ interface Props {
 }
 
 export default function CommandChangelog({ entries }: Props) {
+  const { t } = useTranslation('commandDetail');
   if (!entries.length) return null;
 
   return (
     <section className="px-5 mt-8 pb-4">
-      <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 flex items-center gap-1.5 px-1">
-        <GitBranch size={14} className="text-tg-accent" /> Historial de cambios
+      <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 flex items-center gap-1.5 px-1">
+        <GitBranch size={14} className="text-tg-accent" /> {t('changelog')}
       </h2>
       
       <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
@@ -25,7 +27,7 @@ export default function CommandChangelog({ entries }: Props) {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1.5 bg-tg-accent/10 border border-tg-accent/20 px-2 py-0.5 rounded-[8px]">
                   <Tag size={12} className="text-tg-accent" />
-                  <span className="text-[12px] font-bold text-tg-accent font-mono tracking-tight">
+                  <span className="text-[12px] font-bold text-tg-accent font-mono ">
                     v{entry.version}
                   </span>
                 </div>

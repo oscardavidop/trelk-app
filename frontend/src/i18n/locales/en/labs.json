@@ -1,0 +1,9 @@
+{
+  "title": "Labs",
+  "subtitle": "Experimental features",
+  "experimental": "Experimental",
+  "in_development": "In development",
+  "try_experiment": "Try experiment",
+  "warning": "These features are experimental and may change",
+  "soon": "Coming soon"
+}

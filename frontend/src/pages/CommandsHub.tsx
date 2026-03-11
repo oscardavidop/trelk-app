@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useConfigStore } from '../stores/config';
 import {
@@ -31,13 +32,14 @@ export default function CommandsHub() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commands');
   const { config, load: loadConfig } = useConfigStore();
   const user = useUserStore((s) => s.user);
 
 
   const PREMIUM_COMMANDS = Object.entries(config?.premium_commands || {}).map(([key, cmd]) => ({
     name: `/${key}`,
-    desc: (cmd as any).description || 'Comando premium',
+    desc: (cmd as any).description || t('premium_command'),
     badge: (cmd as any).badge || 'PRO',
     icon: Sparkles, // Aquí podrías mapear a diferentes íconos según el comando
     gradient: GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)], // Gradiente aleatorio
@@ -59,8 +61,8 @@ export default function CommandsHub() {
 
       {/* ── Header ── */}
       <div className="px-5 pt-8 pb-4">
-        <h1 className="text-[26px] font-extrabold text-tg-text tracking-tight leading-none">Comandos</h1>
-        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">Herramientas y favoritos</p>
+        <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{t('title')}</h1>
+        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('hub_subtitle')}</p>
       </div>
 
       {/* ── Explorar Bot Commands (NEW) ── */}
@@ -74,8 +76,8 @@ export default function CommandsHub() {
               <Compass size={26} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[17px] font-extrabold text-tg-text tracking-tight">Explorar Comandos</h3>
-              <p className="text-[13px] text-tg-hint mt-0.5">Descubre los {TOTAL_BOT_COMMANDS} comandos del bot con búsqueda, categorías y más</p>
+              <h3 className="text-[17px] font-extrabold text-tg-text ">{t('explore_commands')}</h3>
+              <p className="text-[13px] text-tg-hint mt-0.5">{t('explore_desc', { count: TOTAL_BOT_COMMANDS })}</p>
             </div>
             <ChevronRight size={20} className="text-tg-hint/40 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
           </div>
@@ -95,8 +97,8 @@ export default function CommandsHub() {
               <Star size={20} className="fill-amber-500/20 text-white" />
             </div>
             <div className="min-w-0 flex-1 pt-0.5">
-              <div className="text-[15px] font-extrabold text-tg-text tracking-tight truncate">Favoritos</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Mis comandos</div>
+              <div className="text-[15px] font-extrabold text-tg-text  truncate">{t('favorites:title')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('my_commands')}</div>
             </div>
           </button>
 
@@ -109,8 +111,8 @@ export default function CommandsHub() {
               <FlaskConical size={20} className="fill-purple-500/20 text-white" />
             </div>
             <div className="min-w-0 flex-1 pt-0.5">
-              <div className="text-[15px] font-extrabold text-tg-text tracking-tight truncate">Labs</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Experimental</div>
+              <div className="text-[15px] font-extrabold text-tg-text  truncate">{t('labs:title')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('labs:experimental')}</div>
             </div>
           </button>
 
@@ -120,41 +122,56 @@ export default function CommandsHub() {
       {/* ── Premium Commands (Carrusel Horizontal) ── */}
       <section className="mt-5">
         <div className="flex items-center justify-between px-5 mb-3">
-          <h2 className="text-[16px] font-bold text-tg-text tracking-tight">Premium</h2>
-          <button onClick={() => go('/premium')} className="text-[13px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-            Ver todos
-          </button>
+          <h2 className="text-[16px] font-bold text-tg-text ">{t('subscription:premium')}</h2>
+          {
+            PREMIUM_COMMANDS.length === 0 && (
+              <button onClick={() => go('/premium')} className="text-[13px] font-bold text-tg-accent hover:brightness-125 transition-colors">
+                {t('common:view_all')}
+              </button>
+            )
+          }
         </div>
 
         {/* Scroll oculto nativamente */}
         <div className="flex gap-3 overflow-x-auto w-full px-5 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {PREMIUM_COMMANDS.map((cmd) => (
-            <button
-              key={cmd.name}
-              onClick={() => go('/premium')}
-              className="flex-shrink-0 w-[180px] bg-tg-secondary border border-tg-border/30 p-4 rounded-[24px] text-left active:scale-[0.96] transition-all duration-200 shadow-md hover:brightness-110"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-11 h-11 rounded-[14px] bg-gradient-to-br ${cmd.gradient} flex items-center justify-center shadow-inner`}>
-                  <cmd.icon size={20} className="text-white" />
+          {
+            // Si no hay comandos premium, mostramos un placeholder
+            PREMIUM_COMMANDS.length === 0 && (
+              <div className="w-full flex items-center justify-center py-10 bg-tg-secondary rounded-[20px] border border-tg-border/30">
+                <div className="text-center">
+                  <Sparkles size={32} className="mx-auto mb-3 text-tg-accent" />
+                  <div className="text-[15px] font-extrabold text-tg-text ">{t('no_premium')}</div>
+                  <div className="text-[12px] font-medium text-tg-hint mt-1">{t('explore_premium')}</div>
                 </div>
-                <span className="text-[9px] font-extrabold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                  {cmd.badge}
-                </span>
               </div>
-              <div className="text-[15px] font-extrabold text-tg-text tracking-tight">{cmd.name}</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-1 leading-snug line-clamp-2">{cmd.desc}</div>
-            </button>
-          ))}
+            ) || PREMIUM_COMMANDS.map((cmd) => (
+              <button
+                key={cmd.name}
+                onClick={() => go('/premium')}
+                className="flex-shrink-0 w-[180px] bg-tg-secondary border border-tg-border/30 p-4 rounded-[24px] text-left active:scale-[0.96] transition-all duration-200 shadow-md hover:brightness-110"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-11 h-11 rounded-[14px] bg-gradient-to-br ${cmd.gradient} flex items-center justify-center shadow-inner`}>
+                    <cmd.icon size={20} className="text-white" />
+                  </div>
+                  <span className="text-[9px] font-extrabold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    {cmd.badge}
+                  </span>
+                </div>
+                <div className="text-[15px] font-extrabold text-tg-text ">{cmd.name}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-1 leading-snug line-clamp-2">{cmd.desc}</div>
+              </button>
+            ))
+          }
         </div>
       </section>
 
       {/* ── Custom Commands (Lista Estilo iOS) ── */}
       <section className="mt-4 px-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[16px] font-bold text-tg-text tracking-tight">Mis comandos</h2>
+          <h2 className="text-[16px] font-bold text-tg-text ">{t('my_commands')}</h2>
           <button onClick={() => go('/commands')} className="text-[13px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-            Gestionar
+            {t('manage')}
           </button>
         </div>
 
@@ -171,7 +188,7 @@ export default function CommandsHub() {
                     <Terminal size={18} className="text-tg-accent" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-bold text-tg-text tracking-tight truncate">/{key}</div>
+                    <div className="text-[15px] font-bold text-tg-text  truncate">/{key}</div>
                     <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5 uppercase tracking-wide">
                       {(cmd as any)?.engine || 'google'} · {(cmd as any)?.inline?.results_per_page || 5} res
                     </div>
@@ -189,8 +206,8 @@ export default function CommandsHub() {
             <div className="w-12 h-12 rounded-[14px] bg-tg-accent/10 flex items-center justify-center mx-auto mb-3">
               <Plus size={24} className="text-tg-accent" />
             </div>
-            <div className="text-[15px] text-tg-text font-bold tracking-tight">Crear primer comando</div>
-            <div className="text-[13px] font-medium text-tg-hint mt-1">Automatiza tus búsquedas frecuentes</div>
+            <div className="text-[15px] text-tg-text font-bold ">{t('create_first')}</div>
+            <div className="text-[13px] font-medium text-tg-hint mt-1">{t('automate_searches')}</div>
           </button>
         )}
       </section>

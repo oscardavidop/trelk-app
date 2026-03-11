@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 
 export default function ShareModal({
@@ -11,10 +12,11 @@ export default function ShareModal({
 
     const [copied, setCopied] = useState(false);
     const { haptic } = useTelegram();
+    const { t } = useTranslation('common');
 
     const shareData = {
         title: 'Trelk Bot',
-        text: '¡Echa un vistazo a este increíble bot de Telegram!',
+        text: t('share_text'),
         url: 'https://t.me/TrelkBot',
     };
 
@@ -156,7 +158,7 @@ export default function ShareModal({
             url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
         },
         {
-            name: 'Compartir',
+            name: t('share'),
             icon: (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -195,7 +197,7 @@ export default function ShareModal({
                 <div className="px-6 pt-3 pb-4 flex justify-between items-center border-b border-tg-border/20">
 
                     <h2 className="text-[18px] font-extrabold text-tg-text">
-                        Compartir
+                        {t('share')}
                     </h2>
 
                     <button
@@ -252,14 +254,14 @@ export default function ShareModal({
 
                     <div className="flex items-center justify-between mb-2 px-1">
 
-                        <h3 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest">
-                            Enlace
+                        <h3 className="text-[13px] font-bold text-tg-hint uppercase ">
+                            {t('link')}
                         </h3>
 
                         {copied && (
                             <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                Copiado
+                                {t('copied')}
                             </span>
                         )}
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useGamificationStore } from '../stores/gamification';
 import { Flame } from 'lucide-react';
 
@@ -6,6 +7,7 @@ interface XPProgressProps {
 }
 
 export default function XPProgress({ compact }: XPProgressProps) {
+  const { t } = useTranslation('achievements');
   const { xp, streak, level, currentLevelXP: currentXP, nextLevelXP: nextXP, levelProgress: progress } = useGamificationStore();
 
   // ── MODO COMPACTO (Para cabeceras o listas) ──
@@ -18,8 +20,8 @@ export default function XPProgress({ compact }: XPProgressProps) {
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[13px] font-bold text-tg-text tracking-tight">Nivel {level}</span>
-            <span className="text-[10px] font-extrabold text-tg-hint uppercase tracking-widest">{currentXP} / {nextXP} XP</span>
+            <span className="text-[13px] font-bold text-tg-text ">{t('level', { level })}</span>
+            <span className="text-[10px] font-extrabold text-tg-hint uppercase ">{currentXP} / {nextXP} XP</span>
           </div>
           
           <div className="h-1.5 rounded-full bg-black/20 border border-white/5 overflow-hidden">
@@ -62,8 +64,8 @@ export default function XPProgress({ compact }: XPProgressProps) {
         {/* Textos y Barra */}
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="flex items-baseline gap-2.5 mb-2">
-            <span className="text-[18px] font-extrabold text-tg-text tracking-tight">Nivel {level}</span>
-            <span className="text-[12px] font-bold text-tg-hint">{xp} XP Total</span>
+            <span className="text-[18px] font-extrabold text-tg-text ">{t('level', { level })}</span>
+            <span className="text-[12px] font-bold text-tg-hint">{xp} XP {t('total')}</span>
           </div>
           
           {/* Barra de progreso ancha */}
@@ -80,12 +82,12 @@ export default function XPProgress({ compact }: XPProgressProps) {
           {/* Pie del bloque */}
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-tg-hint">
-              Faltan <span className="font-bold text-tg-text">{nextXP - currentXP} XP</span>
+              {t('xp_remaining', { xp: nextXP - currentXP })}
             </span>
             
             {streak > 1 && (
-              <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full shadow-sm">
-                <Flame size={10} className="fill-orange-400/50" /> {streak} días
+              <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase  text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full shadow-sm">
+                <Flame size={10} className="fill-orange-400/50" /> {t('streak_days', { count: streak })}
               </span>
             )}
           </div>

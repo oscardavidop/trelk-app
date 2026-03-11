@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Sparkles, X, ChevronRight } from 'lucide-react';
 import { BOT_COMMANDS, cmdSlug } from '../../data/botCommands';
 
@@ -8,6 +9,7 @@ interface Props {
 
 export default function CommandSuggestions({ onSelect }: Props) {
   const [visible, setVisible] = useState(true);
+  const { t } = useTranslation('commandDetail');
   
   // Mantenemos el estado inicial aleatorio para que no cambie en cada re-render
   const [suggestions] = useState(() => {
@@ -25,8 +27,8 @@ export default function CommandSuggestions({ onSelect }: Props) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-tg-border/50 bg-tg-text/[0.02]">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-amber-500 fill-amber-500/20" />
-          <span className="text-[12px] font-extrabold text-tg-text uppercase tracking-widest">
-            Sugerencias para ti
+          <span className="text-[12px] font-extrabold text-tg-text uppercase ">
+            {t('suggestions_for_you')}
           </span>
         </div>
         
@@ -34,7 +36,7 @@ export default function CommandSuggestions({ onSelect }: Props) {
         <button 
           onClick={() => setVisible(false)} 
           className="w-7 h-7 rounded-full bg-tg-text/[0.05] border border-tg-border/30 flex items-center justify-center hover:bg-tg-text/[0.1] active:scale-90 transition-all text-tg-hint hover:text-tg-text"
-          title="Ocultar sugerencias"
+          title={t('hide_suggestions')}
         >
           <X size={14} strokeWidth={2.5} />
         </button>
@@ -53,7 +55,7 @@ export default function CommandSuggestions({ onSelect }: Props) {
               <div className="flex-1 min-w-0 flex items-center gap-3">
                 
                 {/* Etiqueta del Comando adaptativa */}
-                <span className="text-[13px] font-bold font-mono text-tg-text bg-tg-text/[0.05] border border-tg-border/30 px-2.5 py-1 rounded-[8px] shadow-inner flex-shrink-0 tracking-tight">
+                <span className="text-[13px] font-bold font-mono text-tg-text bg-tg-text/[0.05] border border-tg-border/30 px-2.5 py-1 rounded-[8px] shadow-inner flex-shrink-0 ">
                   /{slug}
                 </span>
                 

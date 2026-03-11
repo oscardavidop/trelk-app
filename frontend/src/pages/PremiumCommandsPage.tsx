@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Star, Plus, Trash2, Search, Zap, Loader2 } from 'lucide-react';
 import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
@@ -19,6 +20,7 @@ const ALLOWED_ALIAS = [
 export default function PremiumCommandsPage() {
   const { userId } = useParams();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('subscription');
   const showToast = useToastStore((s) => s.show);
   const { config, loading, load, savePremiumCommand, removePremiumCommand } = useConfigStore();
   useHideIsland();
@@ -43,23 +45,23 @@ export default function PremiumCommandsPage() {
     if (!key || !alias) return;
     try {
       await savePremiumCommand(key, alias);
-      showToast('Comando premium creado', 'success');
+      showToast(t('premium_created'), 'success');
       setNewKey('');
       setNewAlias('');
       setShowAdd(false);
       haptic?.notificationOccurred('success');
     } catch {
-      showToast('Error al crear', 'error');
+      showToast(t('common:create_error'), 'error');
     }
   };
 
   const handleDelete = async (key: string) => {
     try {
       await removePremiumCommand(key);
-      showToast('Comando eliminado', 'success');
+      showToast(t('common:deleted'), 'success');
       haptic?.notificationOccurred('warning');
     } catch {
-      showToast('Error al eliminar', 'error');
+      showToast(t('common:delete_error'), 'error');
     }
   };
 
@@ -80,9 +82,9 @@ export default function PremiumCommandsPage() {
         <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(245,158,11,0.3)] ring-4 ring-amber-500/20">
           <Star className="w-10 h-10 text-white fill-white/20" strokeWidth={2} />
         </div>
-        <h1 className="text-[24px] font-extrabold text-tg-text tracking-tight">Comandos Premium</h1>
+        <h1 className="text-[24px] font-extrabold text-tg-text ">{t('premium_commands')}</h1>
         <p className="text-tg-hint text-[14px] max-w-[280px] mx-auto mt-2 leading-relaxed">
-          Comandos exclusivos con alias personalizados para funcionalidades avanzadas.
+          {t('premium_desc')}
         </p>
       </div>
 
@@ -93,7 +95,7 @@ export default function PremiumCommandsPage() {
           <input
             type="search"
             className="flex-1 bg-transparent text-[15px] text-tg-text placeholder:text-tg-hint/60 outline-none"
-            placeholder="Buscar comando premium..."
+            placeholder={t('search_premium')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoComplete="off"
@@ -105,8 +107,8 @@ export default function PremiumCommandsPage() {
       <div className="px-4 mt-5">
 
         {/* Título de Sección */}
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest pl-2 mb-2">
-          Gestión ({entries.length})
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-2 mb-2">
+          {t('management', { count: entries.length })}
         </h2>
 
         {/* ── Contenedor Principal Estilo iOS ── */}
@@ -125,7 +127,7 @@ export default function PremiumCommandsPage() {
                   <Plus className={`w-5 h-5 transition-transform duration-300 ${showAdd ? 'rotate-45' : ''}`} />
                 </div>
                 <span className={`text-[15px] font-bold ${showAdd ? 'text-tg-text' : 'text-amber-500'}`}>
-                  Agregar comando
+                  {t('common:add_command', { defaultValue: 'Add command' })}
                 </span>
               </button>
 
@@ -135,12 +137,12 @@ export default function PremiumCommandsPage() {
                   <div className="p-4 space-y-4">
 
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-tg-hint/70 uppercase tracking-widest pl-1">Comando (Trigger)</label>
+                      <label className="text-[11px] font-bold text-tg-hint/70 uppercase  pl-1">{t('trigger')}</label>
                       <div className="flex items-center gap-2 px-3.5 py-3 bg-tg-surface rounded-[14px] border border-tg-border/20 focus-within:border-amber-500/40 transition-colors">
                         <span className="text-tg-hint/50 font-mono font-bold text-[16px]">/</span>
                         <input
                           className="w-full bg-transparent text-[15px] text-tg-text outline-none font-mono placeholder:text-tg-hint/40 placeholder:font-sans"
-                          placeholder="ej: gpt4"
+                          placeholder={t('trigger_placeholder')}
                           value={newKey}
                           onChange={(e) => setNewKey(e.target.value)}
                         />
@@ -148,7 +150,7 @@ export default function PremiumCommandsPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-tg-hint/70 uppercase tracking-widest pl-1">Alias (Modelo IA)</label>
+                      <label className="text-[11px] font-bold text-tg-hint/70 uppercase  pl-1">{t('alias')}</label>
                       <Select
                         options={ALLOWED_ALIAS.map((alias) => ({ label: alias, value: alias }))}
                         onChange={(value) => setNewAlias(value)}
@@ -162,14 +164,14 @@ export default function PremiumCommandsPage() {
                         className="flex-1 py-3 rounded-[14px] text-[14px] font-bold bg-white/[0.08] text-tg-text hover:bg-white/[0.12] active:scale-95 transition-all"
                         onClick={() => setShowAdd(false)}
                       >
-                        Cancelar
+                        {t('common:cancel')}
                       </button>
                       <button
                         className="flex-1 py-3 rounded-[14px] text-[14px] font-bold bg-amber-500 text-white shadow-md hover:bg-amber-600 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
                         onClick={handleAdd}
                         disabled={!newKey.trim() || !newAlias.trim()}
                       >
-                        <Zap size={16} className="fill-white/20" /> Guardar
+                        <Zap size={16} className="fill-white/20" /> {t('common:save')}
                       </button>
                     </div>
                   </div>
@@ -181,8 +183,8 @@ export default function PremiumCommandsPage() {
             {entries.length === 0 && !showAdd && (
               <div className="p-8 text-center flex flex-col items-center justify-center">
                 <Star className="w-10 h-10 text-tg-hint/20 mb-3" />
-                <p className="text-tg-text font-medium text-[14px]">No hay comandos configurados</p>
-                <p className="text-tg-hint text-[12px] mt-1">Toca en "Agregar comando" para empezar.</p>
+                <p className="text-tg-text font-medium text-[14px]">{t('no_premium_configured')}</p>
+                <p className="text-tg-hint text-[12px] mt-1">{t('tap_add_premium')}</p>
               </div>
             )}
 
@@ -193,7 +195,7 @@ export default function PremiumCommandsPage() {
                     <Star className="w-4 h-4 text-amber-500 fill-amber-500/20" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[15px] font-bold text-tg-text font-mono truncate tracking-tight">/{key}</span>
+                    <span className="text-[15px] font-bold text-tg-text font-mono truncate ">/{key}</span>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[12px] font-medium text-tg-hint/90 bg-tg-surface/50 px-2 py-0.5 rounded-md">
                         {cmd.alias}
@@ -226,7 +228,7 @@ export default function PremiumCommandsPage() {
         <div className="mt-6 px-2 text-center flex items-start gap-2 justify-center">
           <Star className="w-4 h-4 text-amber-500/60 shrink-0 mt-0.5" />
           <p className="text-[13px] text-tg-hint leading-relaxed max-w-[280px]">
-            Los comandos premium están disponibles exclusivamente para usuarios con suscripción activa.
+            {t('premium_only_desc')}
           </p>
         </div>
       </div>

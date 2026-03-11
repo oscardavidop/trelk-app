@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Flame, TrendingUp, TrendingDown } from 'lucide-react';
 import { useGlobalStats } from '../../hooks/useGlobalStats';
 import { fetchActivityStats } from '../../services/historyApi';
@@ -6,6 +7,7 @@ import { fetchActivityStats } from '../../services/historyApi';
 const fmt = new Intl.NumberFormat('es-CO'); // Asegura formato numérico consistente (ej. 1.234)
 
 export default function CommandUsageCounter() {
+  const { t } = useTranslation('commands');
   const { growthToday } = useGlobalStats();
   const [myToday, setMyToday] = useState(0);
   const [display, setDisplay] = useState(0);
@@ -69,7 +71,7 @@ export default function CommandUsageCounter() {
         
         <div className="flex items-center gap-2.5 mb-1.5">
           {/* Número (Tabular nums evita que el texto tiemble mientras se anima) */}
-          <div className="text-[26px] font-black text-tg-text tracking-tight leading-none tabular-nums drop-shadow-sm">
+          <div className="text-[26px] font-black text-tg-text  leading-none tabular-nums drop-shadow-sm">
             {fmt.format(display)}
           </div>
           
@@ -89,8 +91,8 @@ export default function CommandUsageCounter() {
         </div>
         
         {/* Subtítulo */}
-        <div className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest">
-          Mis comandos hoy
+        <div className="text-[11px] font-extrabold text-tg-hint uppercase ">
+          {t('my_commands_today')}
         </div>
 
       </div>

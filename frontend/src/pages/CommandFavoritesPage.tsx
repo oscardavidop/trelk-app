@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { useToastStore } from '../stores';
@@ -13,9 +14,9 @@ import {
 import StickyHeader from '@/components/StickyHeader';
 
 type SortKey = 'recent' | 'alpha';
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'recent', label: 'Recientes' },
-  { key: 'alpha', label: 'A-Z' },
+const SORT_OPTIONS: { key: SortKey; labelKey: string }[] = [
+  { key: 'recent', labelKey: 'recent' },
+  { key: 'alpha', labelKey: 'alpha' },
 ];
 
 const PAGE_SIZE = 30;
@@ -25,6 +26,7 @@ export default function CommandFavoritesPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
   const showToast = useToastStore((s) => s.show);
 
   const { favorites, loaded, loadFavorites, remove, togglePin, trending, loadTrending } = useCommandFavoritesStore();
@@ -99,7 +101,7 @@ export default function CommandFavoritesPage() {
     await remove(slug);
     setItems((prev) => prev.filter((i) => i.command !== slug));
     setTotal((t) => Math.max(0, t - 1));
-    showToast('Eliminado de favoritos', 'info');
+    showToast(t('removed_from_favorites'), 'info');
   };
 
   const handlePin = async (slug: string) => {
@@ -108,7 +110,7 @@ export default function CommandFavoritesPage() {
     setItems((prev) =>
       prev.map((i) => (i.command === slug ? { ...i, pinned } : i)),
     );
-    showToast(pinned ? 'Fijado' : 'Desfijado', 'info');
+    showToast(pinned ? t('pinned') : t('unpinned'), 'info');
   };
 
   // Apply client-side sort
@@ -125,7 +127,7 @@ export default function CommandFavoritesPage() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      <StickyHeader title="Favoritos" subtitle={`${total} comandos guardados`} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
+      <StickyHeader title={t('favorites:title')} subtitle={t('commands_saved', { count: total })} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
 
       {/* ── Buscador + Ordenamiento (Corregido) ── */}
       <div className="px-5 mt-2 flex gap-2.5 h-[48px]"> {/* 👈 Altura fija para igualarlos */}
@@ -136,7 +138,7 @@ export default function CommandFavoritesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar favoritos…"
+            placeholder={t('search_favorites')}
             className="w-full h-full bg-tg-text/[0.03] border-2 border-tg-border/40 rounded-[16px] pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors shadow-inner"
           />
         </div>
@@ -149,7 +151,7 @@ export default function CommandFavoritesPage() {
           className="h-full px-4 bg-tg-secondary border border-tg-border/50 rounded-[16px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-tg-text/[0.02] flex-shrink-0"
         >
           <ArrowUpDown size={15} className="text-tg-accent" />
-          <span className="text-[13px] font-bold text-tg-text">{SORT_OPTIONS.find((o) => o.key === sort)?.label}</span>
+          <span className="text-[13px] font-bold text-tg-text">{t(SORT_OPTIONS.find((o) => o.key === sort)?.labelKey ?? 'recent')}</span>
         </button>
       </div>
 
@@ -158,7 +160,7 @@ export default function CommandFavoritesPage() {
         <section className="mt-6">
           <div className="flex items-center gap-2 px-6 mb-3">
             <TrendingUp size={14} className="text-orange-400" />
-            <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest">Trending esta semana</h2>
+            <h2 className="text-[13px] font-bold text-tg-hint uppercase ">{t('trending_week')}</h2>
           </div>
 
           <div className="flex gap-2.5 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -175,7 +177,7 @@ export default function CommandFavoritesPage() {
                     <span className="text-[11px] font-black text-orange-400">#{i + 1}</span>
                     <Flame size={12} className="text-orange-400/60" />
                   </div>
-                  <div className="text-[14px] font-bold text-tg-text font-mono tracking-tight truncate">/{t.command}</div>
+                  <div className="text-[14px] font-bold text-tg-text font-mono  truncate">/{t.command}</div>
                   <div className="text-[11px] font-medium text-tg-hint mt-0.5">{t.count} favs</div>
                 </button>
               );
@@ -194,8 +196,8 @@ export default function CommandFavoritesPage() {
       {/* ── Lista de Comandos ── */}
       {!initialLoading && (
         <section className="mt-6 px-5">
-          <h2 className="text-[13px] font-bold text-tg-hint uppercase tracking-widest mb-3 px-1">
-            Todos ({total})
+          <h2 className="text-[13px] font-bold text-tg-hint uppercase  mb-3 px-1">
+            {t('all')} ({total})
           </h2>
 
           {sorted.length > 0 ? (
@@ -230,7 +232,7 @@ export default function CommandFavoritesPage() {
                         </div>
                         <div className="min-w-0 flex-1 pt-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-bold text-tg-text font-mono tracking-tight truncate">/{slug}</span>
+                            <span className="text-[15px] font-bold text-tg-text font-mono  truncate">/{slug}</span>
                             {fav.pinned && <Pin size={12} className="text-tg-accent flex-shrink-0" />}
                           </div>
                           <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5">{cmd.description}</div>
@@ -246,7 +248,7 @@ export default function CommandFavoritesPage() {
                               ? 'bg-tg-accent/10 border-tg-accent/30'
                               : 'bg-tg-text/[0.04] border-tg-border/30 hover:bg-tg-text/[0.08]'
                           }`}
-                          title={fav.pinned ? 'Desfijar' : 'Fijar'}
+                          title={fav.pinned ? t('unpin') : t('pin')}
                         >
                           <Pin size={14} className={fav.pinned ? 'text-tg-accent' : 'text-tg-hint/70'} />
                         </button>
@@ -254,7 +256,7 @@ export default function CommandFavoritesPage() {
                         <button
                           onClick={() => handleRemove(slug)}
                           className="w-8 h-8 rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center active:scale-90 transition-all hover:bg-red-500/20"
-                          title="Eliminar de favoritos"
+                          title={t('remove_favorite')}
                         >
                           <HeartOff size={14} className="text-red-400" />
                         </button>
@@ -271,9 +273,9 @@ export default function CommandFavoritesPage() {
               <div className="w-16 h-16 mx-auto bg-tg-text/[0.03] border border-tg-border/30 rounded-full flex items-center justify-center mb-4 shadow-inner">
                 <Star size={32} className="text-tg-hint/30" />
               </div>
-              <p className="text-[16px] font-extrabold text-tg-text tracking-tight">Sin resultados</p>
+              <p className="text-[16px] font-extrabold text-tg-text ">{t('no_results')}</p>
               <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 leading-relaxed max-w-[200px] mx-auto">
-                {search ? 'No encontramos ningún comando que coincida con tu búsqueda.' : 'Aún no tienes comandos guardados en tus favoritos.'}
+                {search ? t('no_search_match') : t('no_favorites_yet')}
               </p>
             </div>
           )}

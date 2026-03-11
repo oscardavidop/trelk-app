@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Terminal, Play, RotateCcw, Copy, CheckCircle2, Loader2 } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 
@@ -18,6 +19,7 @@ interface Props {
 
 export default function CommandPlayground({ commandSlug, usage }: Props) {
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
   const [input, setInput] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
@@ -31,7 +33,7 @@ export default function CommandPlayground({ commandSlug, usage }: Props) {
     
     setTimeout(() => {
       haptic?.notificationOccurred('success');
-      setResult(MOCK_RESULTS[commandSlug] ?? `Resultado de /${commandSlug} ${input}\n\nComando ejecutado correctamente.`);
+      setResult(MOCK_RESULTS[commandSlug] ?? `Resultado de /${commandSlug} ${input}\n\n${t('command_executed')}`);
       setRunning(false);
     }, 800);
   };
@@ -54,8 +56,8 @@ export default function CommandPlayground({ commandSlug, usage }: Props) {
   return (
     <section className="px-5 mt-8">
       
-      <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 flex items-center gap-1.5 px-1">
-        <Terminal size={14} className="text-tg-accent" /> Playground Interactivo
+      <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 flex items-center gap-1.5 px-1">
+        <Terminal size={14} className="text-tg-accent" /> {t('playground')}
       </h2>
       
       <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm flex flex-col">
@@ -64,14 +66,14 @@ export default function CommandPlayground({ commandSlug, usage }: Props) {
         {/* Usamos bg-tg-text/[0.02] para oscurecer sutilmente sin romper el tema claro */}
         <div className="p-4 bg-tg-text/[0.02]">
           <div className="flex items-center gap-2 bg-tg-surface/60 border border-tg-border/40 rounded-[14px] px-3.5 py-3.5 focus-within:border-2 focus-within:border-tg-accent/40 transition-colors shadow-inner">
-            <code className="text-[14px] font-mono font-bold text-tg-accent flex-shrink-0 tracking-tight">
+            <code className="text-[14px] font-mono font-bold text-tg-accent flex-shrink-0 ">
               /{commandSlug}
             </code>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="escribe los argumentos..."
+              placeholder={t('type_arguments')}
               className="flex-1 bg-transparent text-[14px] font-mono text-tg-text placeholder-tg-hint/50 outline-none w-full"
               onKeyDown={(e) => e.key === 'Enter' && run()}
             />
@@ -117,13 +119,13 @@ export default function CommandPlayground({ commandSlug, usage }: Props) {
             ) : (
               <Play size={16} className="fill-white/20" />
             )}
-            {running ? 'Procesando...' : 'Ejecutar comando'}
+            {running ? t('processing') : t('run_command')}
           </button>
           
           <button
             onClick={reset}
             className="px-4 py-3.5 rounded-[14px] bg-tg-surface/60 border border-tg-border/40 text-tg-text text-[14px] font-bold flex items-center gap-1.5 active:scale-95 transition-all hover:bg-tg-text/[0.05]"
-            title="Limpiar"
+            title={t('clear')}
           >
             <RotateCcw size={16} className="text-tg-hint" />
           </button>

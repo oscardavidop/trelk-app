@@ -41,7 +41,7 @@ export default function CommandShortcuts({ onRun }: CommandShortcutsProps) {
                 )}
               </div>
             )}
-            <span className="text-[14px] font-extrabold text-tg-text font-mono tracking-tight">
+            <span className="text-[14px] font-extrabold text-tg-text font-mono ">
               /{slug}
             </span>
           </button>

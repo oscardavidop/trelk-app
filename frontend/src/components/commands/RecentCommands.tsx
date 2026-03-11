@@ -1,16 +1,17 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight, Copy, Loader2, Terminal } from 'lucide-react';
 import { fetchHistory, HistoryEntry } from '@/services/historyApi';
 
 // Formateo de tiempo ligeramente más limpio
-function timeAgo(ts: number): string {
+function timeAgo(ts: number, t: (key: string, opts?: any) => string): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'ahora';
-  if (mins < 60) return `${mins} min`;
+  if (mins < 1) return t('common:now');
+  if (mins < 60) return t('common:ago_mins', { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} h`;
-  return `${Math.floor(hrs / 24)} d`;
+  if (hrs < 24) return t('common:ago_hours', { count: hrs });
+  return t('common:ago_days', { count: Math.floor(hrs / 24) });
 }
 
 interface RecentCommandsProps {
@@ -20,6 +21,7 @@ interface RecentCommandsProps {
 const PAGE_SIZE = 5;
 
 export default function RecentCommands({ onTap }: RecentCommandsProps) {
+  const { t } = useTranslation('commandDetail');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
@@ -82,8 +84,8 @@ export default function RecentCommands({ onTap }: RecentCommandsProps) {
               {/* ── Textos apilados (una debajo de otra) ── */}
               <div className="flex flex-col justify-center flex-1 min-w-0">
                 <div className="text-[14px] text-tg-text truncate">
-                  <span className="text-tg-hint/80 font-normal mr-1.5">Usó</span>
-                  <span className="font-bold font-mono tracking-tight">{e.command}</span>
+                  <span className="text-tg-hint/80 font-normal mr-1.5">{t('used')}</span>
+                  <span className="font-bold font-mono ">{e.command}</span>
                   {e.args && (
                     <span className="text-[13px] font-medium text-tg-accent/80 font-sans italic ml-1.5">
                       "{e.args}"
@@ -91,7 +93,7 @@ export default function RecentCommands({ onTap }: RecentCommandsProps) {
                   )}
                 </div>
                 <div className="text-[12px] font-medium text-tg-hint mt-0.5">
-                  hace {timeAgo(e.timestamp)}
+                  {timeAgo(e.timestamp, t)}
                 </div>
               </div>
             </div>

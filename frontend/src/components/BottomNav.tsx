@@ -1,10 +1,11 @@
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
+import { useTranslation } from 'react-i18next';
 
-const tabs = [
+const TAB_KEYS = [
   {
     key: 'home',
-    label: 'Home',
+    labelKey: 'home',
     path: '',
     icon: (active: boolean) => (
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -15,7 +16,7 @@ const tabs = [
   },
   {
     key: 'commands',
-    label: 'Comandos',
+    labelKey: 'commands',
     path: '/hub',
     icon: (active: boolean) => (
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -28,7 +29,7 @@ const tabs = [
   },
   {
     key: 'settings',
-    label: 'Ajustes',
+    labelKey: 'settings',
     path: '/settings-hub',
     icon: (active: boolean) => (
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -39,7 +40,7 @@ const tabs = [
   },
   {
     key: 'profile',
-    label: 'Perfil',
+    labelKey: 'profile',
     path: '/profile-tab',
     icon: (active: boolean) => (
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -55,6 +56,7 @@ export default function BottomNav() {
   const location = useLocation();
   const { userId } = useParams();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('navigation');
 
   const basePath = `/users/ui/${userId}`;
 
@@ -71,7 +73,7 @@ export default function BottomNav() {
 
   return (
     <nav className="btm-nav">
-      {tabs.map((tab) => {
+      {TAB_KEYS.map((tab) => {
         const isActive = activeTab === tab.key;
         return (
           <button
@@ -88,7 +90,7 @@ export default function BottomNav() {
               {tab.icon(isActive)}
             </span>
             <span className={`btm-nav-label ${isActive ? 'text-tg-accent' : 'text-tg-hint'}`}>
-              {tab.label}
+              {t(tab.labelKey)}
             </span>
             {isActive && <span className="btm-nav-dot" />}
           </button>

@@ -39,7 +39,7 @@ function CardInner({ item, index, selectMode, selected, viewMode, onSelect, onCl
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);
 
-  const date = new Date(item.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const date = new Date(item.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
   // ── LIST MODE ──
   if (viewMode === 'list') {
@@ -89,7 +89,7 @@ function CardInner({ item, index, selectMode, selected, viewMode, onSelect, onCl
 
         {/* Información */}
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] text-tg-text font-medium truncate tracking-tight">
+          <p className="text-[15px] text-tg-text font-medium truncate ">
             {item.data?.caption?.split('\n')[0] || `${emoji} ${engine}`}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">

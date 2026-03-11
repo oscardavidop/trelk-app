@@ -1,0 +1,15 @@
+{
+  "title": "Activity",
+  "subtitle": "Your recent activity",
+  "summary": "Summary",
+  "commands_today": "Commands today",
+  "favorites": "Favorites",
+  "achievements": "Achievements",
+  "no_more": "No more activity",
+  "no_activity": "No activity yet",
+  "no_activity_desc": "Your activity will appear here",
+  "saved": "Saved",
+  "in_favorites": "in favorites",
+  "unlocked_achievement": "Unlocked achievement",
+  "unknown_action": "Unknown action"
+}

@@ -1,0 +1,11 @@
+{
+  "auth": "Authentication error",
+  "auth_failed": "Authentication failed",
+  "session_expired": "Session expired",
+  "session_expired_msg": "Your session has expired. Please restart the app.",
+  "network_error": "Network error",
+  "server_error": "Server error",
+  "no_auth_data": "No authentication data",
+  "not_connected": "Not connected",
+  "Close": "Close"
+}

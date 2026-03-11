@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useUserStore } from '../stores';
 import { useThemeStore, type ThemeMode } from '../stores/theme';
@@ -19,6 +20,7 @@ import {
 export default function SettingsHub() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
   const { user: tgUser, haptic } = useTelegram();
   const appUser = useUserStore((s) => s.user);
   const { mode: themeMode, setMode } = useThemeStore();
@@ -32,7 +34,7 @@ export default function SettingsHub() {
     navigate(`/users/ui/${userId}${path}`);
   };
 
-  const themeLabel = themeMode === 'dark' ? 'Oscuro' : themeMode === 'light' ? 'Claro' : 'Sistema';
+  const themeLabel = themeMode === 'dark' ? t('dark') : themeMode === 'light' ? t('light') : t('system');
   
   // Icono dinámico según el tema
   const ThemeIcon = themeMode === 'dark' ? Moon : themeMode === 'light' ? Sun : Monitor;
@@ -48,8 +50,8 @@ export default function SettingsHub() {
       
       {/* ── Header ── */}
       <div className="px-5 pt-8 pb-4">
-        <h1 className="text-[26px] font-extrabold text-tg-text tracking-tight leading-none">Ajustes</h1>
-        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">Personaliza tu experiencia</p>
+        <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{t('title')}</h1>
+        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('subtitle')}</p>
       </div>
 
       {/* ── Account Card ── */}
@@ -66,7 +68,7 @@ export default function SettingsHub() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="text-[16px] font-bold text-tg-text tracking-tight truncate">{displayName}</div>
+            <div className="text-[16px] font-bold text-tg-text  truncate">{displayName}</div>
             <div className="text-[13px] font-mono text-tg-hint/80 truncate mt-0.5">ID: {tgId}</div>
           </div>
           <ChevronRight size={20} className="text-tg-hint/50 flex-shrink-0" />
@@ -75,7 +77,7 @@ export default function SettingsHub() {
 
       {/* ── Preferences ── */}
       <section className="mt-8 px-5">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Preferencias</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('preferences')}</h2>
         
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
           <div className="divide-y divide-tg-border/20">
@@ -86,8 +88,8 @@ export default function SettingsHub() {
                 <Globe size={18} className="text-sky-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">Idioma</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Cambiar idioma del bot</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('language')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('language_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
@@ -98,8 +100,8 @@ export default function SettingsHub() {
                 <Clock size={18} className="text-violet-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">Zona horaria</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Ajustar hora local</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('timezone')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('timezone_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
@@ -110,8 +112,8 @@ export default function SettingsHub() {
                 <MapPin size={18} className="text-rose-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">País</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Seleccionar tu país</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('country')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('country_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
@@ -122,7 +124,7 @@ export default function SettingsHub() {
 
       {/* ── Bot Settings ── */}
       <section className="mt-8 px-5">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Ajustes del Bot</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('bot_settings')}</h2>
         
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
           <div className="divide-y divide-tg-border/20">
@@ -132,8 +134,8 @@ export default function SettingsHub() {
                 <MessageSquare size={18} className="text-tg-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">Preferencias del chat</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Formato, historial, respuestas...</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('chat_preferences')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('chat_preferences_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
@@ -143,8 +145,8 @@ export default function SettingsHub() {
                 <Palette size={18} className="text-pink-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">Apariencia</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Temas y personalización visual</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('appearance')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('appearance_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
@@ -155,7 +157,7 @@ export default function SettingsHub() {
 
       {/* ── Plan & Payments ── */}
       <section className="mt-8 px-5 pb-4">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Plan y Pagos</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('plan_payments')}</h2>
         
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
           <div className="divide-y divide-tg-border/20">
@@ -165,8 +167,8 @@ export default function SettingsHub() {
                 <Crown size={18} className="text-amber-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">Tu plan</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Gestionar suscripción y límites</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('your_plan')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('your_plan_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
@@ -176,8 +178,8 @@ export default function SettingsHub() {
                 <CreditCard size={18} className="text-emerald-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">Pagos</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Historial y transacciones</div>
+                <div className="text-[15px] font-bold text-tg-text ">{t('payments')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('payments_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>

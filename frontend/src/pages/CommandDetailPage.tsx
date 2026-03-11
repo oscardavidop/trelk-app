@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
@@ -10,6 +11,7 @@ export default function CommandDetailPage() {
   const { command, userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commands');
   const showToast = useToastStore((s) => s.show);
   const { config, load, saveCommand, removeCommand } = useConfigStore();
 
@@ -41,10 +43,10 @@ export default function CommandDetailPage() {
         engine,
         inline: engine === 'inline' ? { results_per_page: resultsPerPage, show_url: showUrl } : undefined,
       });
-      showToast('Cambios guardados', 'success');
+      showToast(t('common:changes_saved'), 'success');
       haptic?.notificationOccurred('success');
     } catch {
-      showToast('Error al guardar', 'error');
+      showToast(t('common:save_error'), 'error');
       haptic?.notificationOccurred('error');
     } finally {
       setSaving(false);
@@ -53,14 +55,14 @@ export default function CommandDetailPage() {
 
   const handleDelete = async () => {
     if (!command) return;
-    if (window.confirm(`¿Estás seguro de eliminar el comando /${command}?`)) {
+    if (window.confirm(t('confirm_delete_command', { key: command }))) {
       try {
         await removeCommand(command);
-        showToast('Comando eliminado', 'success');
+        showToast(t('common:deleted'), 'success');
         haptic?.notificationOccurred('success');
         navigate(`/users/ui/${userId}/commands`, { replace: true });
       } catch {
-        showToast('Error al eliminar', 'error');
+        showToast(t('common:delete_error'), 'error');
       }
     }
   };
@@ -81,13 +83,13 @@ export default function CommandDetailPage() {
         <div className="w-16 h-16 rounded-full bg-tg-secondary border border-white/5 flex items-center justify-center mb-4">
           <AlertTriangle size={32} className="text-tg-hint/50" />
         </div>
-        <h1 className="text-[20px] font-bold text-tg-text tracking-tight mb-2">Comando no encontrado</h1>
-        <p className="text-tg-hint text-[14px]">El comando <span className="font-mono text-tg-text">/{command}</span> no existe en tu configuración actual.</p>
+        <h1 className="text-[20px] font-bold text-tg-text  mb-2">{t('command_not_found')}</h1>
+        <p className="text-tg-hint text-[14px]">{t('command_not_in_config', { command })}</p>
         <button
           onClick={() => navigate(`/users/ui/${userId}/commands`, { replace: true })}
           className="mt-6 px-6 py-2.5 bg-tg-secondary rounded-full text-tg-accent font-medium text-[14px] active:scale-95 transition-transform"
         >
-          Volver a Mis Comandos
+          {t('back_to_commands')}
         </button>
       </main>
     );
@@ -101,7 +103,7 @@ export default function CommandDetailPage() {
         <div className="w-20 h-20 rounded-[20px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center mb-4 shadow-inner">
           <Terminal className="w-10 h-10 text-tg-accent" strokeWidth={1.5} />
         </div>
-        <h1 className="text-[26px] font-extrabold text-tg-text font-mono tracking-tight leading-none mb-1">
+        <h1 className="text-[26px] font-extrabold text-tg-text font-mono  leading-none mb-1">
           /{command}
         </h1>
         <p className="text-[13px] text-tg-hint mt-1 font-mono bg-black/20 px-3 py-1 rounded-full border border-white/5">
@@ -111,8 +113,8 @@ export default function CommandDetailPage() {
 
       {/* ── Motor del Comando (Engine) ── */}
       <div className="px-5 mt-2 animate-slide-up">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-2 pl-2 flex items-center gap-1.5">
-          <Cpu size={14} className="text-tg-hint/70" /> Motor de Procesamiento
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-2 pl-2 flex items-center gap-1.5">
+          <Cpu size={14} className="text-tg-hint/70" /> {t('processing_engine')}
         </h2>
         <div className="rounded-[16px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-sm focus-within:border-tg-accent/40 transition-colors relative">
           <select
@@ -131,15 +133,15 @@ export default function CommandDetailPage() {
           </div>
         </div>
         <p className="text-[12px] text-tg-hint/70 px-2 mt-2 leading-relaxed">
-          Define el método interno que se utilizará para procesar las respuestas de este comando.
+          {t('engine_desc')}
         </p>
       </div>
 
       {/* ── Configuración Inline (Si aplica) ── */}
       {engine === 'inline' && (
         <div className="px-5 mt-8 animate-slide-up" style={{ animationDelay: '50ms' }}>
-          <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-2 pl-2 flex items-center gap-1.5">
-            <FileJson size={14} className="text-tg-hint/70" /> Opciones Inline
+          <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-2 pl-2 flex items-center gap-1.5">
+            <FileJson size={14} className="text-tg-hint/70" /> {t('inline_options')}
           </h2>
           <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-sm">
             <div className="divide-y divide-tg-border/20">
@@ -147,7 +149,7 @@ export default function CommandDetailPage() {
               {/* Input Number Row */}
               <div className="flex items-center justify-between px-4 py-3 bg-transparent hover:bg-white/[0.01] transition-colors focus-within:bg-white/[0.02]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-medium text-tg-text/90">Resultados por página</span>
+                  <span className="text-[15px] font-medium text-tg-text/90">{t('results_per_page')}</span>
                 </div>
                 <input
                   type="number"
@@ -162,7 +164,7 @@ export default function CommandDetailPage() {
               {/* Toggle Row Customizado para el estilo actual */}
               <div className="px-1 py-1">
                 <ToggleRow
-                  label="Incluir enlace (URL)"
+                  label={t('include_url')}
                   enabled={showUrl}
                   onChange={setShowUrl}
                 />
@@ -185,7 +187,7 @@ export default function CommandDetailPage() {
           ) : (
             <Save size={18} />
           )}
-          {saving ? 'Guardando...' : 'Guardar Configuración'}
+          {saving ? t('common:saving') : t('save_config')}
         </button>
         
         <button
@@ -193,7 +195,7 @@ export default function CommandDetailPage() {
           onClick={handleDelete}
         >
           <Trash2 size={18} />
-          Eliminar Comando
+          {t('delete_command')}
         </button>
       </div>
 

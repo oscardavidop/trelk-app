@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { BOT_COMMANDS, CATEGORY_META, cmdSlug } from '../data/botCommands';
@@ -16,6 +17,7 @@ export default function DiscoverPage() {
   useHideIsland();
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation('discover');
   const { haptic } = useTelegram();
 
   const go = (slug: string) => {
@@ -28,9 +30,9 @@ export default function DiscoverPage() {
   };
 
   const sections: { title: string; emoji: string; slugs: string[]; accent: string }[] = [
-    { title: 'Trending', emoji: '🔥', slugs: TRENDING_SLUGS, accent: 'from-orange-500 to-red-500' },
-    { title: 'Populares esta semana', emoji: '⭐', slugs: POPULAR_SLUGS, accent: 'from-amber-400 to-yellow-500' },
-    { title: 'Nuevos comandos', emoji: '✨', slugs: NEW_SLUGS, accent: 'from-violet-500 to-purple-600' },
+    { title: t('trending'), emoji: '🔥', slugs: TRENDING_SLUGS, accent: 'from-orange-500 to-red-500' },
+    { title: t('popular_week'), emoji: '⭐', slugs: POPULAR_SLUGS, accent: 'from-amber-400 to-yellow-500' },
+    { title: t('new_commands'), emoji: '✨', slugs: NEW_SLUGS, accent: 'from-violet-500 to-purple-600' },
   ];
 
   return (
@@ -38,8 +40,8 @@ export default function DiscoverPage() {
       
       {/* ── Header ── */}
       <div className="px-5 pt-8 pb-3">
-        <h1 className="text-[26px] font-extrabold text-tg-text tracking-tight leading-none">Descubrir</h1>
-        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">Encuentra nuevas herramientas para explorar</p>
+        <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{t('title')}</h1>
+        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('subtitle')}</p>
       </div>
 
       {/* ── Search Banner (Glass Style) ── */}
@@ -49,7 +51,7 @@ export default function DiscoverPage() {
           className="w-full flex items-center gap-3 bg-black/20 rounded-[16px] border border-white/5 px-4 py-3.5 active:scale-[0.98] transition-colors shadow-inner hover:bg-white/[0.02]"
         >
           <Search size={18} className="text-tg-hint/50" />
-          <span className="text-[14px] font-medium text-tg-hint/80">Buscar todos los comandos…</span>
+          <span className="text-[14px] font-medium text-tg-hint/80">{t('search_all')}</span>
         </button>
       </div>
 
@@ -59,11 +61,11 @@ export default function DiscoverPage() {
         return (
           <section key={title} className="mt-6">
             <div className="flex items-center justify-between px-5 mb-3">
-              <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest flex items-center gap-2">
+              <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-2">
                 <span className="text-[16px]">{emoji}</span> {title}
               </h2>
               <button onClick={goList} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-all">
-                Ver más
+                {t('see_more')}
               </button>
             </div>
 
@@ -95,13 +97,13 @@ export default function DiscoverPage() {
                     </div>
                     
                     <div className="flex-1">
-                      <div className="text-[15px] font-extrabold text-tg-text font-mono tracking-tight truncate mb-0.5">/{slug}</div>
+                      <div className="text-[15px] font-extrabold text-tg-text font-mono  truncate mb-0.5">/{slug}</div>
                       <div className="text-[12px] font-medium text-tg-hint leading-snug line-clamp-2">{cmd.description}</div>
                     </div>
                     
                     <div className="mt-3.5 flex items-center gap-1">
                       <span
-                        className="text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm"
+                        className="text-[9px] font-extrabold uppercase  px-2.5 py-1 rounded-full shadow-sm"
                         style={{ color: cat?.color, backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
                       >
                         {cat?.label}
@@ -117,7 +119,7 @@ export default function DiscoverPage() {
 
       {/* ── Categories Grid ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase tracking-widest mb-3">Categorías</h2>
+        <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">{t('categories')}</h2>
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(CATEGORY_META).map(([key, meta]) => {
             const count = BOT_COMMANDS.filter((c) => c.category === key).length;
@@ -145,8 +147,8 @@ export default function DiscoverPage() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold text-tg-text tracking-tight truncate">{meta.label}</div>
-                  <div className="text-[11px] font-medium text-tg-hint mt-0.5">{count} comandos</div>
+                  <div className="text-[14px] font-bold text-tg-text  truncate">{meta.label}</div>
+                  <div className="text-[11px] font-medium text-tg-hint mt-0.5">{t('common:commands_count', { count })}</div>
                 </div>
               </button>
             );
@@ -160,7 +162,7 @@ export default function DiscoverPage() {
           onClick={goList}
           className="w-full py-4 rounded-[16px] bg-tg-accent/10 border border-tg-accent/20 text-tg-accent text-[15px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] hover:bg-tg-accent/15 transition-all shadow-sm"
         >
-          Explorar todos los comandos
+          {t('explore_all')}
           <ChevronRight size={18} strokeWidth={2.5} />
         </button>
       </div>

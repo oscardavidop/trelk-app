@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { BOT_COMMANDS, POPULAR_SLUGS, cmdSlug, CATEGORY_META, getCategories, findCommand } from '../data/botCommands';
 import CommandCard from '../components/commands/CommandCard';
@@ -12,6 +13,7 @@ export default function BotCommandsPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
 
   const go = (slug: string) => {
     haptic?.impactOccurred('light');
@@ -24,13 +26,13 @@ export default function BotCommandsPage() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      <StickyHeader title="Comandos del Bot" subtitle={`${BOT_COMMANDS.length} comandos disponibles`} />
+      <StickyHeader title={t('bot_commands')} subtitle={t('commands_available', { count: BOT_COMMANDS.length })} />
 
       {/* ── Trending (Carrusel) ── */}
       <section className="px-5 mt-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest pl-1 flex items-center gap-1.5">
-            <Flame size={14} className="text-orange-500" /> Trending
+          <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5">
+            <Flame size={14} className="text-orange-500" /> {t('trending')}
           </h2>
         </div>
         
@@ -53,7 +55,7 @@ export default function BotCommandsPage() {
                     {typeof cat.icon === 'string' ? cat.icon : <cat.icon className="w-5 h-5" style={{ color: cat.color }} />}
                   </span>
                 </div>
-                <div className="text-[15px] font-extrabold text-tg-text font-mono tracking-tight leading-none mb-1.5 truncate">
+                <div className="text-[15px] font-extrabold text-tg-text font-mono  leading-none mb-1.5 truncate">
                   /{slug}
                 </div>
                 <div className="text-[11px] text-tg-hint/80 line-clamp-2 leading-tight">
@@ -68,8 +70,8 @@ export default function BotCommandsPage() {
       {/* ── Popular Commands ── */}
       <section className="px-5 mt-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest pl-1 flex items-center gap-1.5">
-            <Star size={14} className="text-amber-400 fill-amber-400/20" /> Comandos populares
+          <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5">
+            <Star size={14} className="text-amber-400 fill-amber-400/20" /> {t('popular_commands')}
           </h2>
         </div>
         
@@ -84,8 +86,8 @@ export default function BotCommandsPage() {
 
       {/* ── Categories (Grid) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest pl-1 flex items-center gap-1.5 mb-3">
-          <Folder size={14} className="text-sky-400 fill-sky-400/20" /> Categorías
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5 mb-3">
+          <Folder size={14} className="text-sky-400 fill-sky-400/20" /> {t('categories')}
         </h2>
         
         <div className="grid grid-cols-2 gap-3">
@@ -110,11 +112,11 @@ export default function BotCommandsPage() {
                     {typeof meta.icon === 'string' ? meta.icon : <meta.icon className="w-5 h-5" style={{ color: meta.color }} />}
                   </span>
                 </div>
-                <div className="text-[15px] font-bold text-tg-text tracking-tight truncate">
+                <div className="text-[15px] font-bold text-tg-text  truncate">
                   {meta.label}
                 </div>
                 <div className="text-[12px] font-medium text-tg-hint mt-0.5">
-                  {count} comandos
+                  {count} {t('commands:title').toLowerCase()}
                 </div>
               </button>
             );
@@ -131,7 +133,7 @@ export default function BotCommandsPage() {
           }}
           className="w-full py-4 rounded-[16px] bg-tg-accent/10 border border-tg-accent/20 text-tg-accent text-[15px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] hover:bg-tg-accent/15 transition-all shadow-sm"
         >
-          Explorar todos los comandos
+          {t('explore_all')}
           <ArrowRight size={18} strokeWidth={2.5} />
         </button>
       </section>

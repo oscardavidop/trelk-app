@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGamificationStore } from '../stores/gamification';
 import AchievementCard from '../components/achievements/AchievementCard';
 import XPProgress from '../components/XPProgress';
@@ -10,6 +11,7 @@ type Filter = 'all' | 'unlocked' | 'locked';
 
 export default function AchievementsPage() {
   useHideIsland();
+  const { t } = useTranslation('achievements');
   const { achievements, loaded, loading, loadGamification } = useGamificationStore();
   const [filter, setFilter] = useState<Filter>('all');
 
@@ -34,14 +36,14 @@ export default function AchievementsPage() {
   });
 
   const filters: { key: Filter; label: string }[] = [
-    { key: 'all', label: `Todos (${total})` },
-    { key: 'unlocked', label: `Desbloqueados (${unlocked})` },
-    { key: 'locked', label: `Pendientes (${total - unlocked})` },
+    { key: 'all', label: t('all', { count: total }) },
+    { key: 'unlocked', label: t('unlocked', { count: unlocked }) },
+    { key: 'locked', label: t('locked', { count: total - unlocked }) },
   ];
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      <StickyHeader title="Logros" subtitle="Completa retos para ganar recompensas" 
+      <StickyHeader title={t('title')} subtitle={t('subtitle')} 
       icon={<div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
         <Trophy className="w-6 h-6 text-amber-500" />
       </div>} />
@@ -56,15 +58,15 @@ export default function AchievementsPage() {
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-3.5 flex flex-col items-center justify-center shadow-sm">
             <div className="text-[22px] font-black text-tg-text leading-none">{unlocked}</div>
-            <div className="text-[10px] font-bold text-tg-hint uppercase tracking-widest mt-1.5">Logrados</div>
+            <div className="text-[10px] font-bold text-tg-hint uppercase  mt-1.5">{t('achieved')}</div>
           </div>
           <div className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-3.5 flex flex-col items-center justify-center shadow-sm">
             <div className="text-[22px] font-black text-tg-text leading-none">{total - unlocked}</div>
-            <div className="text-[10px] font-bold text-tg-hint uppercase tracking-widest mt-1.5">Faltan</div>
+            <div className="text-[10px] font-bold text-tg-hint uppercase  mt-1.5">{t('remaining')}</div>
           </div>
           <div className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-3.5 flex flex-col items-center justify-center shadow-sm">
             <div className="text-[22px] font-black text-amber-400 leading-none">{percentage}%</div>
-            <div className="text-[10px] font-bold text-tg-hint uppercase tracking-widest mt-1.5">Progreso</div>
+            <div className="text-[10px] font-bold text-tg-hint uppercase  mt-1.5">{t('progress')}</div>
           </div>
         </div>
       </div>
@@ -101,9 +103,9 @@ export default function AchievementsPage() {
             <div className="w-16 h-16 rounded-full bg-tg-secondary border border-white/5 flex items-center justify-center mb-4 shadow-sm">
               <Medal size={32} className="text-tg-hint/30" />
             </div>
-            <p className="text-[16px] font-bold text-tg-text tracking-tight">No hay logros aquí</p>
+            <p className="text-[16px] font-bold text-tg-text ">{t('no_achievements')}</p>
             <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 max-w-[200px] mx-auto leading-relaxed">
-              Sigue completando tareas para verlos aparecer.
+              {t('no_achievements_desc')}
             </p>
           </div>
         )}

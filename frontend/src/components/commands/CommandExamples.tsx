@@ -1,5 +1,6 @@
 import { Play, Copy, ChevronDown, ChevronUp, Code, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CommandExample } from '../../data/commandMocks';
 import { useTelegram } from '../../hooks/useTelegram';
 
@@ -9,6 +10,7 @@ interface Props {
 
 export default function CommandExamples({ examples }: Props) {
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
   const [expanded, setExpanded] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
@@ -30,8 +32,8 @@ export default function CommandExamples({ examples }: Props) {
 
   return (
     <section className="px-5 mt-8 pb-4">
-      <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 flex items-center gap-1.5 px-1">
-        <Code size={14} className="text-tg-accent" /> Ejemplos de uso
+      <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 flex items-center gap-1.5 px-1">
+        <Code size={14} className="text-tg-accent" /> {t('usage_examples')}
       </h2>
       
       <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
@@ -83,12 +85,12 @@ export default function CommandExamples({ examples }: Props) {
           {expanded ? (
             <>
               <ChevronUp size={16} strokeWidth={2.5} /> 
-              Ocultar ejemplos
+              {t('hide_examples')}
             </>
           ) : (
             <>
               <ChevronDown size={16} strokeWidth={2.5} /> 
-              Ver {examples.length - 3} más
+              {t('show_more', { count: examples.length - 3 })}
             </>
           )}
         </button>

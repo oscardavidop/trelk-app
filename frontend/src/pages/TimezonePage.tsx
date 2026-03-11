@@ -73,15 +73,15 @@ export default function TimezonePage() {
     setSelected(key);
     try {
       await updateConfig({ tz: key });
-      showToast('Changes saved', 'success');
+      showToast(t('common:changes_saved'), 'success');
     } catch {
-      showToast('Error.', 'error');
+      showToast(t('common:error'), 'error');
     }
   };
 
   return (
     <div className="tm-main pb-8 animate-fade-in">
-      <StickyHeader title="Zona horaria" subtitle="Selecciona tu zona horaria preferida" />
+      <StickyHeader title={t('settings:timezone')} subtitle={t('settings:timezone_desc')} />
 
       {/* Search */}
       <div className="mx-4 mt-3">

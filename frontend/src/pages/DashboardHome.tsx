@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useFavoritesStore } from '../stores/favorites';
 import { useGamificationStore } from '../stores/gamification';
@@ -27,6 +28,7 @@ import {
 export default function DashboardHome() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation('home');
   const { user, haptic } = useTelegram();
   const { items, load: loadFavs, loading: favsLoading } = useFavoritesStore();
   const { xp, streak, achievements, loaded, loadGamification } = useGamificationStore();
@@ -57,17 +59,17 @@ export default function DashboardHome() {
       <div className={`px-4 pt-8 pb-3 transition-all duration-700 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <div className="flex items-center gap-3.5 mb-2">
           {photoUrl ? (
-            <img src={photoUrl} alt="Perfil" className="w-[52px] h-[52px] rounded-full ring-[3px] ring-tg-accent/20 object-cover shadow-sm" />
+            <img src={photoUrl} alt="" className="w-[52px] h-[52px] rounded-full ring-[3px] ring-tg-accent/20 object-cover shadow-sm" />
           ) : (
             <div className="w-[52px] h-[52px] rounded-full bg-gradient-to-br from-tg-accent to-blue-600 flex items-center justify-center text-white text-[22px] font-black ring-[3px] ring-tg-accent/20 shadow-sm">
               {firstName.charAt(0)}
             </div>
           )}
           <div>
-            <h1 className="text-[26px] font-extrabold text-tg-text tracking-tight leading-none mb-1">
-              Hola, {firstName}
+            <h1 className="text-[26px] font-extrabold text-tg-text  leading-none mb-1">
+              {t('greeting', { name: firstName })}
             </h1>
-            <p className="text-[14px] font-medium text-tg-hint/80 tracking-wide">Bienvenido de vuelta</p>
+            <p className="text-[14px] font-medium text-tg-hint/80 tracking-wide">{t('welcome_back')}</p>
           </div>
         </div>
       </div>
@@ -83,7 +85,7 @@ export default function DashboardHome() {
       </div>
       {/* ── Grid de Accesos Directos (Bento Grid) ── */}
       <section className="mt-4 px-4">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase  px-1 mb-2.5">Panel de Control</h2>
+        <h2 className="text-[14px] font-bold text-tg-hint uppercase  px-1 mb-2.5">{t('control_panel')}</h2>
         <div className="grid grid-cols-2 gap-3">
           
           <button onClick={() => go('/favorites')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
@@ -91,8 +93,8 @@ export default function DashboardHome() {
               <Heart size={20} className="text-white fill-white/20" />
             </div>
             <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text tracking-tight truncate">Favoritos</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Tu galería</div>
+              <div className="text-[15px] font-bold text-tg-text  truncate">{t('favorites')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('your_gallery')}</div>
             </div>
           </button>
           
@@ -101,8 +103,8 @@ export default function DashboardHome() {
               <Terminal size={20} className="text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text tracking-tight truncate">Comandos</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Personalizados</div>
+              <div className="text-[15px] font-bold text-tg-text  truncate">{t('commands')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('custom')}</div>
             </div>
           </button>
           
@@ -111,8 +113,8 @@ export default function DashboardHome() {
               <Crown size={20} className="text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text tracking-tight truncate">Suscripción</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Gestionar plan</div>
+              <div className="text-[15px] font-bold text-tg-text  truncate">{t('subscription')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('manage_plan')}</div>
             </div>
           </button>
           
@@ -121,8 +123,8 @@ export default function DashboardHome() {
               <Receipt size={20} className="text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text tracking-tight truncate">Pagos</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">Ver historial</div>
+              <div className="text-[15px] font-bold text-tg-text  truncate">{t('payments')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('view_history')}</div>
             </div>
           </button>
           
@@ -133,9 +135,9 @@ export default function DashboardHome() {
       {/* ── Acciones Rápidas (Shortcuts) ── */}
       <section className="mt-5">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase ">Acciones Rápidas</h2>
+          <h2 className="text-[14px] font-bold text-tg-hint uppercase ">{t('quick_actions')}</h2>
           <button onClick={() => go('/bot-commands')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-            Ver catálogo
+            {t('view_catalog')}
           </button>
         </div>
         {/* Este componente ya lo estilizamos antes con scroll nativo oculto */}
@@ -155,8 +157,8 @@ export default function DashboardHome() {
               <Trophy size={18} className="text-white drop-shadow-sm" />
             </div>
             <div className="min-w-0 flex-1 relative z-10">
-              <div className="text-[15px] font-extrabold text-tg-text tracking-tight truncate">{unlockedCount} Logros</div>
-              <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">{achievements.length - unlockedCount} faltan</div>
+              <div className="text-[15px] font-extrabold text-tg-text  truncate">{t('achievements_count', { count: unlockedCount })}</div>
+              <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">{t('remaining_count', { count: achievements.length - unlockedCount })}</div>
             </div>
           </button>
 
@@ -169,8 +171,8 @@ export default function DashboardHome() {
               <Compass size={18} className="text-white drop-shadow-sm" />
             </div>
             <div className="min-w-0 flex-1 relative z-10">
-              <div className="text-[15px] font-extrabold text-tg-text tracking-tight truncate">Descubrir</div>
-              <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">Explora más</div>
+              <div className="text-[15px] font-extrabold text-tg-text  truncate">{t('discover')}</div>
+              <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">{t('explore_more')}</div>
             </div>
           </button>
           
@@ -181,10 +183,10 @@ export default function DashboardHome() {
       <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
           <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-1.5">
-            <Clock size={14} className="text-tg-hint" /> Recientes
+            <Clock size={14} className="text-tg-hint" /> {t('recent')}
           </h2>
           <button onClick={() => go('/activity')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-            Ver historial
+            {t('view_history')}
           </button>
         </div>
         <div className="px-4">
@@ -199,10 +201,10 @@ export default function DashboardHome() {
       <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
           <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-1.5">
-            <Heart size={14} className="text-tg-hint" /> Tus Favoritos
+            <Heart size={14} className="text-tg-hint" /> {t('your_favorites')}
           </h2>
           <button onClick={() => go('/favorites')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
-            Ver galería
+            {t('common:view_gallery')}
           </button>
         </div>
         
@@ -228,7 +230,7 @@ export default function DashboardHome() {
                   {thumb ? (
                     <img
                       src={thumb}
-                      alt="Favorito"
+                      alt=""
                       loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
@@ -237,7 +239,7 @@ export default function DashboardHome() {
                     <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-black/10">
                       <ImageIcon size={22} className="text-tg-hint/30 mb-2" />
                       <span className="text-[10px] font-medium text-tg-hint leading-snug line-clamp-2 w-full break-words">
-                        {fav.data?.caption || fav.context || "Sin título"}
+                        {fav.data?.caption || fav.context || t('no_title')}
                       </span>
                     </div>
                   )}
@@ -254,9 +256,9 @@ export default function DashboardHome() {
               <Sparkles size={24} className="text-tg-hint/40" />
             </div>
             <div className="text-[14px] font-medium text-tg-hint leading-relaxed">
-              Aún no tienes favoritos.<br />
+              {t('no_favorites_yet')}<br />
               <button onClick={() => go('/favorites')} className="text-tg-accent font-bold mt-1.5 active:scale-95 transition-transform hover:brightness-110">
-                Comenzar a explorar
+                {t('start_exploring')}
               </button>
             </div>
           </div>
@@ -265,7 +267,7 @@ export default function DashboardHome() {
 
       {/* ── Tarjeta de Inspiración (Glassmorphism Prominente) ── */}
       <section className="mt-8 px-4 pb-4">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">Inspiración del día</h2>
+        <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">{t('inspiration_day')}</h2>
         
         <button
           onClick={() => go('/favorites/inspiration')}
@@ -283,7 +285,7 @@ export default function DashboardHome() {
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={16} className="text-amber-300 fill-amber-300/30" />
                 <span className="text-[11px] font-extrabold uppercase  text-amber-300">
-                  Prompt Destacado
+                  {t('featured_prompt')}
                 </span>
               </div>
               <p className="text-[16px] text-white leading-snug font-semibold drop-shadow-sm">
@@ -292,7 +294,7 @@ export default function DashboardHome() {
             </div>
             
             <div className="mt-6 flex items-center gap-1.5 text-white font-extrabold text-[12px] uppercase tracking-wider bg-white/10 border border-white/10 w-max px-4 py-2.5 rounded-full backdrop-blur-md group-hover:bg-white/20 transition-colors">
-              <span>Explorar galería</span>
+              <span>{t('explore_gallery')}</span>
               <ChevronRight size={14} strokeWidth={3} />
             </div>
           </div>

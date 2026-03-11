@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSubscriptionStore } from '../stores/subscription';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
@@ -28,7 +29,7 @@ export const showConfirmPopup = (options: {
         message: options.message,
         buttons: [
             { id: 'confirm', type: 'default', text: options.confirmLabel },
-            { id: 'cancel', type: 'cancel', text: 'Cancelar' },
+            { id: 'cancel', type: 'cancel', text: 'Cancel' },
         ],
     }, (buttonId: string) => {
         if (buttonId === 'confirm') {
@@ -55,6 +56,7 @@ export function ConfirmModal({
     onConfirm: () => void;
     onCancel: () => void;
 }) {
+    const { t } = useTranslation();
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -83,7 +85,7 @@ export function ConfirmModal({
                 ref={modalRef}
                 className="bg-tg-secondary border border-tg-border/20 rounded-[24px] p-6 max-w-sm w-full shadow-2xl animate-scale-in flex flex-col max-h-[80vh]"
             >
-                <h3 className="text-[19px] font-bold text-tg-text mb-3 flex-shrink-0 tracking-tight">
+                <h3 className="text-[19px] font-bold text-tg-text mb-3 flex-shrink-0 ">
                     {title}
                 </h3>
 
@@ -98,7 +100,7 @@ export function ConfirmModal({
                         onClick={onCancel}
                         className="flex-1 py-3 rounded-xl bg-tg-surface text-tg-text text-[15px] font-medium transition-colors hover:bg-tg-surface/80 active:bg-tg-surface/60"
                     >
-                        Cancelar
+                        {t('common:cancel')}
                     </button>
                     <button
                         onClick={onConfirm}
@@ -119,6 +121,7 @@ export function ConfirmModal({
 export default function SubscriptionPage() {
     const { userId } = useParams();
     const { haptic } = useTelegram();
+    const { t } = useTranslation('subscription');
     const showToast = useToastStore((s) => s.show);
 
     const { features, loading, load, changePlan, cancelChange, toggleAutoRenew } =
@@ -145,16 +148,16 @@ export default function SubscriptionPage() {
             const isUpgrade = tiers.indexOf(tier) > tiers.indexOf(current);
 
             setModal({
-                title: isUpgrade ? `Upgrade a ${TIER_META[tier].label}` : `Cambiar a ${TIER_META[tier].label}`,
+                title: isUpgrade ? t('upgrade_to', { plan: TIER_META[tier].label }) : t('change_to', { plan: TIER_META[tier].label }),
                 message: isUpgrade
-                    ? `Obtendrás acceso inmediato a todas las funciones ${TIER_META[tier].label}. Se aplicará al instante.`
-                    : `Tu plan actual continuará hasta que expire. Luego cambiará a ${TIER_META[tier].label}.`,
-                confirmLabel: isUpgrade ? 'Confirmar Upgrade' : 'Confirmar cambio',
+                    ? t('upgrade_message', { plan: TIER_META[tier].label })
+                    : t('downgrade_message', { plan: TIER_META[tier].label }),
+                confirmLabel: isUpgrade ? t('confirm_upgrade') : t('confirm_change'),
                 confirmColor: TIER_META[tier].color,
                 action: async () => {
                     try {
                         await changePlan(tier);
-                        showToast(isUpgrade ? '¡Upgrade exitoso!' : 'Cambio programado', 'success');
+                        showToast(isUpgrade ? t('upgrade_success') : t('change_scheduled'), 'success');
                         haptic?.notificationOccurred('success');
                     } catch (e: any) {
                         showToast(e.message || 'Error', 'error');
@@ -167,14 +170,14 @@ export default function SubscriptionPage() {
 
     const handleCancelChange = useCallback(() => {
         setModal({
-            title: 'Cancelar cambio',
-            message: '¿Estás seguro de cancelar el cambio de plan programado?',
-            confirmLabel: 'Sí, cancelar',
+            title: t('cancel_change'),
+            message: t('cancel_change_confirm'),
+            confirmLabel: t('yes_cancel'),
             confirmColor: '#ef4444', // red-500
             action: async () => {
                 try {
                     await cancelChange();
-                    showToast('Cambio cancelado', 'success');
+                    showToast(t('change_cancelled'), 'success');
                 } catch (e: any) {
                     showToast(e.message || 'Error', 'error');
                 }
@@ -188,14 +191,14 @@ export default function SubscriptionPage() {
 
         if (!newVal) {
             setModal({
-                title: 'Desactivar Auto-Renew',
-                message: 'Si desactivas la renovación automática, tu plan expirará al final del período actual y perderás los beneficios premium.',
-                confirmLabel: 'Desactivar',
+                title: t('disable_autorenew'),
+                message: t('disable_autorenew_message'),
+                confirmLabel: t('disable'),
                 confirmColor: '#ef4444',
                 action: async () => {
                     try {
                         await toggleAutoRenew(false);
-                        showToast('Auto-renew desactivado', 'info');
+                        showToast(t('autorenew_disabled'), 'info');
                     } catch (e: any) {
                         showToast(e.message || 'Error', 'error');
                     }
@@ -203,7 +206,7 @@ export default function SubscriptionPage() {
             });
         } else {
             toggleAutoRenew(true)
-                .then(() => showToast('Auto-renew activado', 'success'))
+                .then(() => showToast(t('autorenew_enabled'), 'success'))
                 .catch((e) => showToast(e.message || 'Error', 'error'));
         }
     }, [features, toggleAutoRenew, showToast]);
@@ -223,7 +226,7 @@ export default function SubscriptionPage() {
 
     return (
         <div className="tm-main pb-12 animate-fade-in space-y-5">
-            <StickyHeader title="Tu Suscripción" subtitle={`Plan actual: ${TIER_META[tier].label}`} />
+            <StickyHeader title={t('your_subscription')} subtitle={t('current_plan', { plan: TIER_META[tier].label })} />
             {/* 1. Hero */}
             <SubscriptionHero features={features} />
 
@@ -249,7 +252,7 @@ export default function SubscriptionPage() {
             />
 
             <p className="mx-6 mt-4 mb-4 text-center text-[12px] text-tg-hint leading-relaxed opacity-70">
-                Los upgrades aplican inmediatamente. Los downgrades al final del período actual.
+                {t('upgrade_note')}
             </p>
 
             {/* Confirm Modal */}

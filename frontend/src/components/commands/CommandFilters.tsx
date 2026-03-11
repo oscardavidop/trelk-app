@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CATEGORY_META, getCategories } from '../../data/botCommands';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export default function CommandFilters({
   total,
 }: Props) {
   const cats = getCategories();
+  const { t } = useTranslation('commandDetail');
   
   // Estado local para abrir/cerrar el panel de filtros
   const [showFilters, setShowFilters] = useState(false);
@@ -40,7 +42,7 @@ export default function CommandFilters({
           <input
             type="search"
             className="flex-1 bg-transparent text-[15px] text-tg-text placeholder:text-tg-hint/50 outline-none w-full"
-            placeholder="Buscar comandos..."
+            placeholder={t('search_commands')}
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             autoComplete="off"
@@ -64,7 +66,7 @@ export default function CommandFilters({
               ? 'bg-tg-accent/10 border-tg-accent/30 text-tg-accent'
               : 'bg-tg-secondary border-tg-border/50 text-tg-text hover:bg-tg-text/[0.03]'
           }`}
-          title="Filtros y orden"
+          title={t('filters_and_sort')}
         >
           <SlidersHorizontal size={20} className={hasActiveFilters && !showFilters ? 'animate-pulse' : ''} />
         </button>
@@ -82,8 +84,8 @@ export default function CommandFilters({
             
             {/* ── Píldoras de Categoría ── */}
             <div>
-              <h3 className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest px-1 mb-2.5">
-                Filtrar por categoría
+              <h3 className="text-[11px] font-extrabold text-tg-hint uppercase  px-1 mb-2.5">
+                {t('filter_by_category')}
               </h3>
               <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 
@@ -95,7 +97,7 @@ export default function CommandFilters({
                       : 'bg-tg-secondary border-tg-border/50 text-tg-hint hover:bg-tg-text/[0.03]'
                   }`}
                 >
-                  Todos ({total})
+                  {t('all_count', { count: total })}
                 </button>
                 
                 {cats.map((c) => {
@@ -138,11 +140,11 @@ export default function CommandFilters({
 
             {/* ── Segmented Control de Ordenamiento ── */}
             <div>
-              <h3 className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest px-1 mb-2.5">
-                Ordenar lista
+              <h3 className="text-[11px] font-extrabold text-tg-hint uppercase  px-1 mb-2.5">
+                {t('sort_list')}
               </h3>
               <div className="flex bg-tg-text/[0.03] p-1.5 rounded-[14px] border border-tg-border/30 shadow-inner">
-                {([['alpha', 'Alfabético (A-Z)'], ['category', 'Por Categoría']] as const).map(([key, label]) => (
+                {([['alpha', t('sort_alpha')], ['category', t('sort_category')]] as const).map(([key, label]) => (
                   <button
                     key={key}
                     onClick={() => onSortChange(key)}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ProFeatures } from '../../services/subscriptionApi';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function SubscriptionSettings({ features, onAutoRenewToggle, onCancelChange, haptic }: Props) {
+  const { t } = useTranslation('subscription');
   const { subscription } = features;
   const tier = subscription.tier;
   const hasPendingChange = subscription.change?.status === 'pending';
@@ -16,7 +18,7 @@ export default function SubscriptionSettings({ features, onAutoRenewToggle, onCa
 
   return (
     <section className="px-4">
-      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">Suscripción</h2>
+      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">{t('subscription')}</h2>
       <div className="bg-tg-secondary rounded-[20px] overflow-hidden divide-y divide-tg-border/20">
         {/* Auto Renew */}
         {tier !== 'free' && (
@@ -36,7 +38,7 @@ export default function SubscriptionSettings({ features, onAutoRenewToggle, onCa
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-medium text-tg-text">Auto-Renew</div>
               <div className="text-[12px] text-tg-hint mt-0.5">
-                {subscription.auto_renew ? 'Se renovará automáticamente' : 'No se renovará al expirar'}
+                {subscription.auto_renew ? t('will_auto_renew') : t('will_not_renew')}
               </div>
             </div>
             <div
@@ -57,7 +59,7 @@ export default function SubscriptionSettings({ features, onAutoRenewToggle, onCa
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold text-amber-400">Cambio pendiente</div>
+                <div className="text-[14px] font-semibold text-amber-400">{t('pending_change')}</div>
                 <div className="text-[13px] text-tg-hint mt-1 leading-snug">
                   <span className="text-tg-text font-medium">{subscription.change!.changed_from}</span>
                   {' → '}
@@ -73,7 +75,7 @@ export default function SubscriptionSettings({ features, onAutoRenewToggle, onCa
                   className="mt-2.5 flex items-center gap-1.5 text-[13px] text-red-400 font-semibold active:opacity-70 transition-opacity"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
-                  Cancelar cambio
+                  {t('cancel_change')}
                 </button>
               </div>
             </div>

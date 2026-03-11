@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Search } from 'lucide-react'; // Asumo que usas lucide-react basado en tu código anterior
+import { useTranslation } from 'react-i18next';
+import { Search } from 'lucide-react';
 
 export default function Select<T extends string>({
     options,
     value,
     onChange,
     searchable = false,
-    placeholder = 'Seleccionar...',
-    searchPlaceholder = 'Buscar...',
+    placeholder,
+    searchPlaceholder,
 }: {
     options: { label: string; value: T }[];
     value: T;
@@ -16,10 +17,13 @@ export default function Select<T extends string>({
     placeholder?: string;
     searchPlaceholder?: string;
 }) {
+    const { t } = useTranslation('ui');
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const resolvedPlaceholder = placeholder ?? t('select');
+    const resolvedSearchPlaceholder = searchPlaceholder ?? t('search');
 
     // Efecto para cerrar el select si el usuario hace clic fuera de él
     useEffect(() => {
@@ -66,7 +70,7 @@ export default function Select<T extends string>({
                 } ${!selectedOption ? 'text-tg-hint' : 'text-tg-text'}`}
             >
                 <span className="truncate pr-2">
-                    {selectedOption ? selectedOption.label : placeholder}
+                    {selectedOption ? selectedOption.label : resolvedPlaceholder}
                 </span>
 
                 {/* Ícono de flecha (Chevron) */}
@@ -95,7 +99,7 @@ export default function Select<T extends string>({
                                     ref={inputRef}
                                     type="text"
                                     className="w-full pl-8 pr-3 py-1.5 bg-tg-bg text-tg-text text-[14px] outline-none transition-colors"
-                                    placeholder={searchPlaceholder}
+                                    placeholder={resolvedSearchPlaceholder}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onClick={(e) => e.stopPropagation()} // Prevenir que el clic cierre el select

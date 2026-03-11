@@ -1,0 +1,16 @@
+{
+  "title": "Favoritos",
+  "search_placeholder": "Buscar favoritos...",
+  "new": "Nuevo",
+  "no_favorites": "Aún no tienes favoritos",
+  "no_favorites_desc": "Los comandos que guardes aparecerán aquí",
+  "new_collection": "Nueva colección",
+  "collection_placeholder": "Nombre de la colección...",
+  "remove_from_collection": "Eliminar de la colección",
+  "selected": "{{count}} seleccionados",
+  "move": "Mover",
+  "confirm_delete_tap": "Toca de nuevo para confirmar",
+  "delete_favorite": "Eliminar favorito",
+  "go_back": "Volver",
+  "no_inspiration": "Sin inspiración disponible"
+}

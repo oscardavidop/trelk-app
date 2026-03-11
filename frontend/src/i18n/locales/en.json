@@ -57,5 +57,9 @@
   "nl": "Dutch",
   "search_timezone": "Find the time zone",
   "detected_timezone": "Detected time zone",
-  "choose_timezone": "Choose a time zone"
+  "choose_timezone": "Choose a time zone",
+  "choose_country": "Choose a country",
+  "country_saved": "Country saved",
+  "detected_country": "Detected country",
+  "search_country": "Search country"
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     Search, LayoutGrid, List, Grid3X3, Sparkles, FolderPlus, Trash2, FolderInput, X, ChevronDown, CheckCircle2,
     Filter,
@@ -18,11 +19,11 @@ function groupLabel(date: Date): string {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / 86400000);
-    if (days === 0) return 'Hoy';
-    if (days === 1) return 'Ayer';
-    if (days < 7) return 'Esta semana';
-    if (days < 30) return 'Este mes';
-    return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    if (days === 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 7) return 'this_week';
+    if (days < 30) return 'this_month';
+    return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 }
 
 function groupByDate(items: FavoriteItem[]): { label: string; items: FavoriteItem[] }[] {
@@ -57,6 +58,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
 
 export default function FavoritesPage() {
     const navigate = useNavigate();
+    const { t } = useTranslation('favorites');
     const { haptic } = useTelegram();
     const store = useFavoritesStore();
     const {
@@ -133,8 +135,21 @@ export default function FavoritesPage() {
         haptic?.notificationOccurred('success');
     }, [store, haptic]);
 
-    // Group items by date
-    const groups = useMemo(() => groupByDate(items), [items]);
+    // Group items by date - uses t() for translating date group labels
+    const translateGroupLabel = useCallback((label: string) => {
+        const map: Record<string, string> = {
+            today: t('common:today'),
+            yesterday: t('common:yesterday'),
+            this_week: t('common:this_week', { defaultValue: 'This week' }),
+            this_month: t('common:this_month', { defaultValue: 'This month' }),
+        };
+        return map[label] ?? label;
+    }, [t]);
+
+    const groups = useMemo(() => {
+        const raw = groupByDate(items);
+        return raw.map(g => ({ ...g, label: translateGroupLabel(g.label) }));
+    }, [items, translateGroupLabel]);
 
     const gridClass = viewMode === 'gallery'
         ? 'grid grid-cols-3 gap-[2px]'
@@ -162,7 +177,7 @@ export default function FavoritesPage() {
                 {/* Title + view toggle row */}
                 <div className="flex items-center justify-between px-4 pt-3 pb-2">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-[22px] font-bold text-tg-text tracking-tight">Favoritos</h1>
+                        <h1 className="text-[22px] font-bold text-tg-text ">{t('title')}</h1>
                         <span className="text-[13px] font-medium text-tg-text bg-tg-secondary px-2.5 py-0.5 rounded-full">{total}</span>
                     </div>
 
@@ -210,7 +225,7 @@ export default function FavoritesPage() {
                                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-tg-hint" />
                                 <input
                                     type="text"
-                                    placeholder="Buscar..."
+                                    placeholder={t('search_placeholder')}
                                     value={searchInput}
                                     onChange={(e) => setSearchInput(e.target.value)}
                                     className="w-full pl-9 pr-9 py-2 rounded-[12px] bg-tg-secondary text-[15px] text-tg-text placeholder:text-tg-hint outline-none focus:ring-1 focus:ring-tg-accent/50 transition-all"
@@ -232,7 +247,7 @@ export default function FavoritesPage() {
                 {
                     showFilters && (
                         <div className="flex gap-2 px-4 pb-3 overflow-x-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] animate-fade-in">
-                            <Chip label="Todos" active={!activeCollectionId} onClick={() => { haptic?.selectionChanged(); store.setCollectionId(''); }} />
+                            <Chip label={t('common:all')} active={!activeCollectionId} onClick={() => { haptic?.selectionChanged(); store.setCollectionId(''); }} />
                             {collections.map((c) => (
                                 <Chip key={c._id} label={`${c.name} (${c.count})`} active={activeCollectionId === c._id} onClick={() => { haptic?.selectionChanged(); store.setCollectionId(c._id); }} />
                             ))}
@@ -240,7 +255,7 @@ export default function FavoritesPage() {
                                 onClick={() => { haptic?.impactOccurred('light'); setShowNewCol(true); }}
                                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-tg-secondary/40 text-tg-accent border border-tg-accent text-[13px] font-medium whitespace-nowrap active:scale-95 transition-all"
                             >
-                                <FolderPlus size={14} /> Nueva
+                                <FolderPlus size={14} /> {t('new')}
                             </button>
 
                             {(contexts.length > 0 || engines.length > 0) && <div className="w-px bg-tg-border/50 mx-1 self-stretch rounded-full" />}
@@ -267,8 +282,8 @@ export default function FavoritesPage() {
                     <div className="w-20 h-20 rounded-full bg-tg-secondary flex items-center justify-center mb-5">
                         <Sparkles size={36} className="text-tg-hint/40" />
                     </div>
-                    <p className="text-tg-text font-bold text-[18px]">Sin favoritos</p>
-                    <p className="text-tg-hint text-[14px] mt-2 max-w-[250px] leading-relaxed">Usa el bot para guardar fotos, música y mucho más.</p>
+                    <p className="text-tg-text font-bold text-[18px]">{t('no_favorites')}</p>
+                    <p className="text-tg-hint text-[14px] mt-2 max-w-[250px] leading-relaxed">{t('no_favorites_desc')}</p>
                 </div>
             ) : (
                 <div className="px-0.5 sm:px-2 mt-1">
@@ -305,7 +320,7 @@ export default function FavoritesPage() {
                 <div className="flex justify-center py-6">
                     <div className="flex items-center gap-2 bg-tg-secondary px-4 py-2 rounded-full">
                         <div className="w-4 h-4 border-2 border-tg-accent border-t-transparent rounded-full animate-spin" />
-                        <span className="text-[13px] font-medium text-tg-text">Cargando...</span>
+                        <span className="text-[13px] font-medium text-tg-text">{t('common:loading')}</span>
                     </div>
                 </div>
             )}
@@ -317,7 +332,7 @@ export default function FavoritesPage() {
                         <div className="w-7 h-7 rounded-full bg-tg-accent flex items-center justify-center">
                             <span className="text-[13px] font-bold text-white">{selectedIds.size}</span>
                         </div>
-                        <span className="text-[14px] font-semibold text-tg-text">Seleccionados</span>
+                        <span className="text-[14px] font-semibold text-tg-text">{t('selected')}</span>
                     </div>
 
                     <div className="flex gap-2">
@@ -328,7 +343,7 @@ export default function FavoritesPage() {
                                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-semibold active:scale-95 transition-all ${showMoveMenu ? 'bg-tg-accent text-white' : 'bg-tg-secondary text-tg-text hover:brightness-110'
                                         }`}
                                 >
-                                    <FolderInput size={15} /> Mover
+                                    <FolderInput size={15} /> {t('move')}
                                 </button>
 
                                 {showMoveMenu && (
@@ -337,7 +352,7 @@ export default function FavoritesPage() {
                                             onClick={() => handleMoveSelected(null)}
                                             className="w-full text-left px-3 py-2.5 rounded-lg text-[14px] font-medium text-tg-text hover:bg-tg-secondary transition-colors mb-1"
                                         >
-                                            Quitar de colección
+                                            {t('remove_from_collection')}
                                         </button>
                                         <div className="h-px bg-tg-border/50 mx-2 my-1" />
                                         {collections.map((c) => (
@@ -387,12 +402,12 @@ export default function FavoritesPage() {
                         className="w-full max-w-sm bg-tg-secondary border border-tg-border rounded-[20px] p-5 shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 className="text-[18px] font-bold text-tg-text mb-4 tracking-tight">Nueva colección</h3>
+                        <h3 className="text-[18px] font-bold text-tg-text mb-4 ">{t('new_collection')}</h3>
 
                         <input
                             autoFocus
                             type="text"
-                            placeholder="Ej. Fotos de gatitos"
+                            placeholder={t('collection_placeholder')}
                             value={newColName}
                             onChange={(e) => setNewColName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleCreateCol(); }}
@@ -405,14 +420,14 @@ export default function FavoritesPage() {
                                 onClick={() => setShowNewCol(false)}
                                 className="flex-1 py-2.5 rounded-xl bg-tg-surface text-tg-text text-[14px] font-medium transition-colors hover:brightness-110 active:scale-95"
                             >
-                                Cancelar
+                                {t('common:cancel')}
                             </button>
                             <button
                                 onClick={handleCreateCol}
                                 disabled={!newColName.trim()}
                                 className="flex-1 py-2.5 rounded-xl text-[14px] font-semibold bg-tg-accent text-white disabled:opacity-50 disabled:active:scale-100 active:scale-95 transition-all shadow-md"
                             >
-                                Crear
+                                {t('common:create')}
                             </button>
                         </div>
                     </div>

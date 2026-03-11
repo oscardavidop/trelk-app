@@ -1,0 +1,18 @@
+{
+  "title": "Logros",
+  "subtitle": "Tu progreso y logros desbloqueados",
+  "achieved": "Logrado",
+  "remaining": "Restantes",
+  "progress": "Progreso",
+  "all": "Todos",
+  "unlocked": "Desbloqueados",
+  "locked": "Bloqueados",
+  "no_achievements": "Sin logros aún",
+  "no_achievements_desc": "Completa tareas para desbloquear logros",
+  "done": "Hecho",
+  "total": "Total",
+  "level": "Nivel {{level}}",
+  "xp_remaining": "{{xp}} XP restante",
+  "streak_days": "Racha de {{count}} días",
+  "achievements_count": "{{count}} logros"
+}

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { X, Trash2, Copy, ChevronLeft, ChevronRight, Calendar, Cpu, Tag, Maximize2, Share2, ExternalLink } from 'lucide-react';
 import { fileUrl, getFullSize, formatFileSize, type FavoriteItem } from '../services/favoritesApi';
 import { useTelegram } from '../hooks/useTelegram';
 
 const ENGINES: Record<string, string> = { sp: 'Spotify', youtube: 'YouTube', local: 'Local', telegram: 'Telegram', dog: 'Dog', cat: 'Cat' };
-const CONTEXTS: Record<string, string> = { playlist: 'Playlist', track: 'Track', album: 'Album', artist: 'Artista', animal: 'Animal' };
+const CONTEXT_KEYS: Record<string, string> = { playlist: 'playlist', track: 'track', album: 'album', artist: 'artist', animal: 'animal' };
 
 interface Props {
   item: FavoriteItem;
@@ -17,6 +18,7 @@ interface Props {
 
 export default function FavoriteModal({ item, items, onClose, onDelete, onNavigate }: Props) {
   const { haptic } = useTelegram();
+  const { t } = useTranslation('favorites');
   const [imgLoaded, setImgLoaded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -82,7 +84,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
     window.open(url, '_blank');
   }, [item]);
 
-  const date = new Date(item.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  const date = new Date(item.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
   return createPortal(
     <div 
@@ -97,7 +99,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
       >
         {/* ── Header Flotante (Siempre Visible) ── */}
         <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-          <span className="text-[13px] font-bold tracking-widest text-white/70 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md pointer-events-auto">
+          <span className="text-[13px] font-bold  text-white/70 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md pointer-events-auto">
             {idx + 1} / {items.length}
           </span>
           <button 
@@ -165,7 +167,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
             {/* Metadata Chips */}
             <div className="flex flex-wrap gap-2.5">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
-                <Tag size={13} className="text-white/50" /> {CONTEXTS[item.context] || item.context}
+                <Tag size={13} className="text-white/50" /> {CONTEXT_KEYS[item.context] ? t(CONTEXT_KEYS[item.context]) : item.context}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
                 <Cpu size={13} className="text-white/50" /> {ENGINES[item.engine] || item.engine}
@@ -193,7 +195,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
                   className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.1] text-white text-[14px] font-bold hover:bg-white/[0.15] active:scale-[0.98] transition-all"
                 >
                   <Copy size={18} className={copied ? "text-emerald-400" : "text-white/70"} /> 
-                  {copied ? '¡Copiado!' : 'Copiar Texto'}
+                  {copied ? t('common:copied') : t('common:copy_text')}
                 </button>
               )}
               
@@ -201,7 +203,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
                 onClick={handleShare}
                 className="col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.1] text-white text-[14px] font-bold hover:bg-white/[0.15] active:scale-[0.98] transition-all"
               >
-                <Share2 size={18} className="text-white/70" /> Compartir
+                <Share2 size={18} className="text-white/70" /> {t('common:share')}
               </button>
 
               {item.engine_id && (
@@ -209,7 +211,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
                   onClick={() => { navigator.clipboard.writeText(item.engine_id); haptic?.notificationOccurred('success'); }}
                   className="col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.1] text-white text-[14px] font-bold hover:bg-white/[0.15] active:scale-[0.98] transition-all"
                 >
-                  <ExternalLink size={18} className="text-white/70" /> Copiar ID
+                  <ExternalLink size={18} className="text-white/70" /> {t('common:copy_id')}
                 </button>
               )}
               
@@ -221,7 +223,7 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
                     : 'bg-white/[0.05] text-red-400 hover:bg-red-500/10'
                 }`}
               >
-                <Trash2 size={18} /> {confirmDelete ? 'Toca de nuevo para confirmar' : 'Eliminar Favorito'}
+                <Trash2 size={18} /> {confirmDelete ? t('confirm_delete_tap') : t('delete_favorite')}
               </button>
             </div>
             

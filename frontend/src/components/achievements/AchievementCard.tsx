@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Achievement } from '../../stores/gamification';
 import { Gift, CheckCircle2, Trophy, Star, Rocket, Flame, Gem, Sparkles, Globe, Moon, Bot, Zap, Music, Headphones, CalendarCheck, CalendarRange, Languages } from 'lucide-react';
 
@@ -19,6 +20,7 @@ interface AchievementCardProps {
 }
 
 export default function AchievementCard({ achievement: a, onTap }: AchievementCardProps) {
+  const { t } = useTranslation('achievements');
   const pct = a.goal > 0 ? Math.min(a.progress / a.goal, 1) : 0;
 
   return (
@@ -47,7 +49,7 @@ export default function AchievementCard({ achievement: a, onTap }: AchievementCa
           
           {a.unlocked ? (
             <span className="flex items-center gap-1 text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-              <CheckCircle2 size={10} strokeWidth={3} /> Listo
+              <CheckCircle2 size={10} strokeWidth={3} /> {t('done')}
             </span>
           ) : (
             <span className="text-[10px] font-bold text-tg-hint font-mono bg-black/20 border border-white/5 px-2 py-0.5 rounded-full tracking-wider">
@@ -58,7 +60,7 @@ export default function AchievementCard({ achievement: a, onTap }: AchievementCa
 
         {/* ── Información (Título y Descripción) ── */}
         <div className="flex-1">
-          <h3 className={`text-[14px] font-bold tracking-tight leading-tight ${a.unlocked ? 'text-tg-text' : 'text-tg-text/80'}`}>
+          <h3 className={`text-[14px] font-bold  leading-tight ${a.unlocked ? 'text-tg-text' : 'text-tg-text/80'}`}>
             {a.name}
           </h3>
           <p className="text-[11px] font-medium text-tg-hint mt-1.5 leading-snug line-clamp-2">

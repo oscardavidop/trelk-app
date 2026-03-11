@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BOT_COMMANDS, CATEGORY_META, cmdSlug } from '../../data/botCommands';
 import type { BotCommand } from '../../data/botCommands';
 
@@ -16,7 +17,8 @@ interface CommandAutocompleteProps {
   placeholder?: string;
 }
 
-export default function CommandAutocomplete({ onSelect, placeholder = 'Escribe un comando…' }: CommandAutocompleteProps) {
+export default function CommandAutocomplete({ onSelect, placeholder }: CommandAutocompleteProps) {
+  const { t } = useTranslation('commandDetail');
   const [value, setValue] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -52,7 +54,7 @@ export default function CommandAutocomplete({ onSelect, placeholder = 'Escribe u
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('type_a_command')}
           className="w-full bg-tg-secondary border border-tg-border/20 rounded-[14px] py-3 pl-11 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors"
         />
         {value && (
@@ -70,7 +72,7 @@ export default function CommandAutocomplete({ onSelect, placeholder = 'Escribe u
       {open && suggestions.length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-tg-secondary rounded-[16px] border border-tg-border/20 shadow-xl shadow-black/20 overflow-hidden max-h-[280px] overflow-y-auto">
           <div className="px-3.5 py-2">
-            <span className="text-[10px] font-bold text-tg-hint uppercase tracking-widest">Sugerencias</span>
+            <span className="text-[10px] font-bold text-tg-hint uppercase ">{t('suggestions')}</span>
           </div>
           {suggestions.map((cmd, i) => {
             const slug = cmdSlug(cmd);

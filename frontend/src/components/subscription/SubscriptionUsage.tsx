@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ProFeatures } from '../../services/subscriptionApi';
 import LimitBar, { StaticLimit } from '../LimitBar';
 
@@ -6,11 +7,12 @@ interface Props {
 }
 
 export default function SubscriptionUsage({ features }: Props) {
+  const { t } = useTranslation('subscription');
   const { limits } = features;
 
   return (
     <section className="px-4">
-      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">Uso</h2>
+      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">{t('usage')}</h2>
       <div className="bg-tg-secondary rounded-[20px] overflow-hidden divide-y divide-tg-border/20">
         <LimitBar
           icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-tg-hint"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>}
@@ -29,7 +31,7 @@ export default function SubscriptionUsage({ features }: Props) {
         />
         <LimitBar
           icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-tg-hint"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>}
-          label="Alertas diarias"
+          label={t('daily_alerts')}
           counter={limits.alerts.per_day}
         />
         <LimitBar

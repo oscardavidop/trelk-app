@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ProFeatures } from '../../services/subscriptionApi';
 
 interface BenefitItem {
@@ -12,29 +13,30 @@ interface Props {
 }
 
 export default function SubscriptionBenefits({ features }: Props) {
+  const { t } = useTranslation('subscription');
   const { performance, support, custom_commands } = features;
 
   const benefits: BenefitItem[] = [
     {
-      label: 'Cola de prioridad',
+      label: t('queue_priority'),
       value: performance.queue_priority,
       color: '#3b82f6',
       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>,
     },
     {
-      label: 'Velocidad',
+      label: t('speed'),
       value: `${performance.response_speed_multiplier}x`,
       color: '#f59e0b',
       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
     },
     {
-      label: 'Soporte',
-      value: support.priority + (support.live_chat_access ? ' + Chat' : ''),
+      label: t('support'),
+      value: support.priority + (support.live_chat_access ? ` + ${t('chat')}` : ''),
       color: '#10b981',
       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z" /><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z" /></svg>,
     },
     {
-      label: 'Comandos',
+      label: t('commands:title'),
       value: custom_commands.available
         ? `${custom_commands.used_commands || 0}/${custom_commands.max_commands}`
         : 'N/A',
@@ -45,7 +47,7 @@ export default function SubscriptionBenefits({ features }: Props) {
 
   return (
     <section className="px-4">
-      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">Beneficios</h2>
+      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">{t('benefits')}</h2>
       <div className="grid grid-cols-2 gap-2.5">
         {benefits.map((b) => (
           <div

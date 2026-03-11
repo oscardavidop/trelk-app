@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePaymentsStore } from '../stores/payments';
 import SubscriptionCard from '../components/payments/SubscriptionCard';
 import PaymentsTable from '../components/payments/PaymentsTable';
@@ -26,13 +27,14 @@ const TAB_ICONS = {
 } as const;
 
 const TABS = [
-  { key: 'overview' as const, label: 'Resumen' },
-  { key: 'history' as const, label: 'Historial' },
-  { key: 'subscriptions' as const, label: 'Suscripción' },
+  { key: 'overview' as const, labelKey: 'overview' },
+  { key: 'history' as const, labelKey: 'history' },
+  { key: 'subscriptions' as const, labelKey: 'subscription' },
 ] as const;
 
 export default function PaymentsPage() {
   const store = usePaymentsStore();
+  const { t } = useTranslation('payments');
 
 
 
@@ -48,14 +50,14 @@ export default function PaymentsPage() {
   }, []);
 
   const handleCancel = useCallback((subId: string) => {
-    if (confirm('¿Estás seguro de cancelar tu suscripción?')) {
+    if (confirm(t('cancel_confirm'))) {
       store.cancel(subId);
     }
   }, []);
 
   return (
     <div className="min-h-screen pb-6">
-      <StickyHeader title="Pagos" subtitle="Gestiona tu suscripción y revisa tu historial">
+      <StickyHeader title={t('title')} subtitle={t('subtitle')}>
 
         {/* Tabs */}
         <div className="px-4 relative z-20 max-w-md mx-auto mt-4">
@@ -73,7 +75,7 @@ export default function PaymentsPage() {
                 >
                   {/* icon */}
                   {TAB_ICONS[tab.key]}
-                  <span className="tracking-wide">{tab.label}</span>
+                  <span className="tracking-wide">{t(tab.labelKey)}</span>
                 </button>
               );
             })}
@@ -104,7 +106,7 @@ export default function PaymentsPage() {
 
                 {/* Payment method */}
                 <div className="rounded-2xl bg-tg-section p-4">
-                  <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">Método de pago</h3>
+                  <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">{t('payment_method')}</h3>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#003087]/15 flex items-center justify-center">
                       <svg className="w-6 h-3.5" viewBox="0 0 101 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -118,7 +120,7 @@ export default function PaymentsPage() {
                     <div>
                       <p className="text-sm font-medium text-tg-text">PayPal</p>
                       <p className="text-[11px] text-tg-hint">
-                        {store.activeSubscription?.paypal_payerId || 'Sin método vinculado'}
+                        {store.activeSubscription?.paypal_payerId || t('no_method')}
                       </p>
                     </div>
                   </div>
@@ -127,22 +129,22 @@ export default function PaymentsPage() {
                 {/* Quick stats */}
                 {store.totalSpent.length > 0 && (
                   <div className="rounded-2xl bg-tg-section p-4">
-                    <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">Resumen financiero</h3>
+                    <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">{t('financial_summary')}</h3>
                     <div className="grid grid-cols-2 gap-3">
                       {store.totalSpent.map((s) => (
                         <div key={s.currency} className="bg-tg-surface/50 rounded-xl p-3">
-                          <p className="text-[10px] text-tg-hint mb-1">Total pagado ({s.currency})</p>
+                          <p className="text-[10px] text-tg-hint mb-1">{t('total_paid', { currency: s.currency })}</p>
                           <p className="text-xl font-bold text-tg-text">${s.total.toFixed(2)}</p>
-                          <p className="text-[10px] text-tg-hint mt-0.5">{s.count} transacciones</p>
+                          <p className="text-[10px] text-tg-hint mt-0.5">{t('transactions_count', { count: s.count })}</p>
                         </div>
                       ))}
                       {store.activeSubscription && (
                         <div className="bg-tg-surface/50 rounded-xl p-3">
-                          <p className="text-[10px] text-tg-hint mb-1">Gasto mensual</p>
+                          <p className="text-[10px] text-tg-hint mb-1">{t('monthly_spend')}</p>
                           <p className="text-xl font-bold text-tg-accent">
                             ${store.activeSubscription.amount}
                           </p>
-                          <p className="text-[10px] text-tg-hint mt-0.5">{store.activeSubscription.currency}/mes</p>
+                          <p className="text-[10px] text-tg-hint mt-0.5">{t('per_month', { currency: store.activeSubscription.currency })}</p>
                         </div>
                       )}
                     </div>
@@ -186,8 +188,8 @@ export default function PaymentsPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
                     </svg>
                   </div>
-                  <p className="text-sm font-medium text-tg-hint">No hay suscripciones</p>
-                  <p className="text-[11px] text-tg-hint/50 mt-1">Las suscripciones apareceran aqui</p>
+                  <p className="text-sm font-medium text-tg-hint">{t('no_subscriptions')}</p>
+                  <p className="text-[11px] text-tg-hint/50 mt-1">{t('subscriptions_appear')}</p>
                 </div>
               )}
 
@@ -208,7 +210,7 @@ export default function PaymentsPage() {
               {/* Events timeline for selected subscription */}
               {store.selectedSubId && (
                 <div className="rounded-2xl bg-tg-section p-4">
-                  <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">Timeline de eventos</h3>
+                  <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3">{t('events_timeline')}</h3>
                   <EventsTimeline
                     events={store.events}
                     loading={store.eventsLoading}
@@ -225,7 +227,7 @@ export default function PaymentsPage() {
                   disabled={store.loadingMore}
                   className="w-full py-3 rounded-xl bg-tg-surface/50 text-sm text-tg-hint font-medium transition-colors active:bg-tg-surface disabled:opacity-50"
                 >
-                  {store.loadingMore ? 'Cargando...' : 'Cargar más suscripciones'}
+                  {store.loadingMore ? t('common:loading') : t('load_more')}
                 </button>
               )}
             </div>

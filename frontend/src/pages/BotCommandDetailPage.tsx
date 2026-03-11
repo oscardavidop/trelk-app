@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useToastStore } from '../stores';
 import { BOT_COMMANDS, findCommand, cmdSlug, CATEGORY_META } from '../data/botCommands';
@@ -35,6 +36,7 @@ export default function BotCommandDetailPage() {
   const { command: slug, userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
   const showToast = useToastStore((s) => s.show);
 
   const cmd = slug ? findCommand(slug) : undefined;
@@ -82,7 +84,7 @@ export default function BotCommandDetailPage() {
     try {
       await navigator.clipboard.writeText(text);
       haptic?.notificationOccurred('success');
-      showToast('Copiado al portapapeles', 'success');
+      showToast(t('copied_clipboard'), 'success');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -97,13 +99,13 @@ export default function BotCommandDetailPage() {
         <div className="w-20 h-20 rounded-full bg-tg-secondary border border-white/5 flex items-center justify-center mb-5 shadow-sm">
           <AlertTriangle size={36} className="text-tg-hint/40" />
         </div>
-        <h1 className="text-[22px] font-bold text-tg-text tracking-tight mb-2">Comando no encontrado</h1>
-        <p className="text-tg-hint text-[14px]">El comando <span className="font-mono text-tg-text">/{slug}</span> no está registrado en el bot.</p>
+        <h1 className="text-[22px] font-bold text-tg-text  mb-2">{t('command_not_found')}</h1>
+        <p className="text-tg-hint text-[14px]">{t('command_not_registered', { slug })}</p>
         <button
           onClick={() => navigate(`/users/ui/${userId}/bot-commands`, { replace: true })}
           className="mt-8 px-6 py-3 rounded-[16px] bg-tg-secondary border border-tg-border/50 text-tg-text font-bold text-[14px] active:scale-95 transition-all shadow-sm"
         >
-          Volver al Directorio
+          {t('back_to_directory')}
         </button>
       </div>
     );
@@ -140,7 +142,7 @@ export default function BotCommandDetailPage() {
             <div className="flex-1 pr-8 min-w-0">
 
               <h1
-                className={`font-extrabold font-mono tracking-tight truncate transition-all duration-300
+                className={`font-extrabold font-mono  truncate transition-all duration-300
         ${collapsed ? 'text-[16px]' : 'text-[26px]'}`}
               >
                 /{mainSlug}
@@ -191,7 +193,7 @@ export default function BotCommandDetailPage() {
             onClick={async () => {
               haptic?.impactOccurred('light');
               const added = await toggleFav(mainSlug);
-              showToast(added ? 'Añadido a favoritos' : 'Eliminado de favoritos', 'info');
+              showToast(added ? t('added_to_favorites') : t('removed_from_favorites'), 'info');
             }}
             className={`absolute right-5 transition-all duration-300
     ${collapsed ? 'top-2' : 'top-8'}
@@ -223,23 +225,23 @@ export default function BotCommandDetailPage() {
           className="w-full py-4 rounded-[20px] bg-tg-accent text-white text-[16px] font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(var(--tg-accent-rgb),0.35)] hover:brightness-110"
         >
           <Send size={20} className="fill-white/20" />
-          Ejecutar en Telegram
+          {t('run_in_telegram')}
         </button>
       </section>
 
       {/* ── Bloque de Uso (Usage) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">Uso del Comando</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">{t('command_usage')}</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
           <div className="flex items-center justify-between px-4 py-4">
-            <code className="text-[15px] font-mono font-bold text-tg-text tracking-tight truncate">{cmd.usage}</code>
+            <code className="text-[15px] font-mono font-bold text-tg-text  truncate">{cmd.usage}</code>
             <button
               onClick={() => copyText(cmd.usage)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[12px] font-bold transition-all active:scale-95 flex-shrink-0 ml-3 ${copied ? 'bg-emerald-500/15 text-emerald-400' : 'bg-tg-accent/10 text-tg-accent hover:bg-tg-accent/20'
                 }`}
             >
               {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-              {copied ? 'Copiado' : 'Copiar'}
+              {copied ? t('copied') : t('copy')}
             </button>
           </div>
         </div>
@@ -251,7 +253,7 @@ export default function BotCommandDetailPage() {
       {/* ── Aliases ── */}
       <section className="px-5 mt-8">
         <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-1 mb-3 flex items-center gap-1.5">
-          <Hash size={14} className="text-tg-accent" /> Aliases Permitidos
+          <Hash size={14} className="text-tg-accent" /> {t('allowed_aliases')}
         </h2>
 
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 shadow-sm animate-slide-up">
@@ -272,7 +274,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Parámetros (Ajustes Estilo iOS) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">Detalles Técnicos</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">{t('technical_details')}</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
           <div className="divide-y divide-white/5">
 
@@ -282,11 +284,11 @@ export default function BotCommandDetailPage() {
                 <Hash size={18} className={cmd.requireArgs ? 'text-amber-500' : 'text-emerald-500'} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text tracking-tight">
-                  {cmd.requireArgs ? 'Argumentos Requeridos' : 'Sin Argumentos'}
+                <div className="text-[15px] font-bold text-tg-text ">
+                  {cmd.requireArgs ? t('args_required') : t('no_args')}
                 </div>
                 <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">
-                  {cmd.requireArgs ? 'Necesitas escribir texto después del comando.' : 'Funciona enviando solo el comando.'}
+                  {cmd.requireArgs ? t('args_required_desc') : t('no_args_desc')}
                 </div>
               </div>
             </div>
@@ -298,8 +300,8 @@ export default function BotCommandDetailPage() {
                   <MessageSquare size={18} className="text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text tracking-tight">Soporta Modo Inline</div>
-                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">Escribe <span className="font-mono text-tg-text/80">@TrelkBot {mainSlug}</span> en cualquier chat.</div>
+                  <div className="text-[15px] font-bold text-tg-text ">{t('supports_inline')}</div>
+                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('inline_desc', { slug: mainSlug })}</div>
                 </div>
               </div>
             )}
@@ -311,8 +313,8 @@ export default function BotCommandDetailPage() {
                   <Lock size={18} className="text-red-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text tracking-tight">Chat Privado Únicamente</div>
-                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">Este comando no se puede usar dentro de grupos.</div>
+                  <div className="text-[15px] font-bold text-tg-text ">{t('private_only')}</div>
+                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('private_only_desc')}</div>
                 </div>
               </div>
             )}
@@ -324,8 +326,8 @@ export default function BotCommandDetailPage() {
                   <Settings2 size={18} className="text-purple-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text tracking-tight">Límite de {cmd.maxLengthArgs} caracteres</div>
-                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">Restricción de longitud para los argumentos enviados.</div>
+                  <div className="text-[15px] font-bold text-tg-text ">{t('char_limit', { count: cmd.maxLengthArgs })}</div>
+                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('char_limit_desc')}</div>
                 </div>
               </div>
             )}
@@ -336,7 +338,7 @@ export default function BotCommandDetailPage() {
 
       {/* ── Screenshots ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-3">Vista previa</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-3">{t('preview')}</h2>
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {
             cmd.photos && cmd.photos.length > 0 ? (
@@ -361,13 +363,13 @@ export default function BotCommandDetailPage() {
 
       {/* ── Cómo funciona ── */}
       <section className="px-5 mt-4">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">Cómo funciona</h2>
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">{t('how_it_works')}</h2>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-5 shadow-sm">
           <div className="space-y-5">
             {[
-              { step: '1', text: `Envía ${cmd.usage.split(' ')[0]} seguido de los argumentos necesarios.` },
-              { step: '2', text: 'El bot procesa tu solicitud instantáneamente.' },
-              { step: '3', text: 'Recibes la respuesta estructurada en el chat.' },
+              { step: '1', text: t('step_1', { cmd: cmd.usage.split(' ')[0] }) },
+              { step: '2', text: t('step_2') },
+              { step: '3', text: t('step_3') },
             ].map(({ step, text }, i, arr) => (
               <div key={step} className="flex items-start gap-3.5 relative">
                 {/* Línea conectora */}
@@ -388,14 +390,14 @@ export default function BotCommandDetailPage() {
         {/* Compartir */}
         <button
           onClick={() => {
-            const text = encodeURIComponent(`¡Prueba el comando /${mainSlug} en @TrelkBot!`);
+            const text = encodeURIComponent(t('share_command_text', { slug: mainSlug }));
             window.open(`https://t.me/share/url?url=https://t.me/TrelkBot&text=${text}`, '_blank');
             haptic?.impactOccurred('light');
           }}
           className="w-full py-3.5 rounded-[16px] bg-tg-secondary border border-tg-border/50 text-tg-text text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-white/[0.02]"
         >
           <Share size={18} className="text-tg-hint" />
-          Compartir
+          {t('common:share')}
         </button>
 
         {/* Reportar */}
@@ -408,7 +410,7 @@ export default function BotCommandDetailPage() {
             }`}
         >
           {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint" />}
-          {reported ? 'Reportado' : 'Reportar Error'}
+          {reported ? t('reported') : t('report_error')}
         </button>
       </section>
 
@@ -425,15 +427,15 @@ export default function BotCommandDetailPage() {
               <div className="w-16 h-16 mx-auto bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-3 shadow-inner">
                 <Star size={32} className="text-amber-500 fill-amber-500 drop-shadow-md text-center center" />
               </div>
-              <p className="text-[16px] font-extrabold text-tg-text tracking-tight">¡Gracias por calificar!</p>
+              <p className="text-[16px] font-extrabold text-tg-text ">{t('thanks_rating')}</p>
               <p className="text-[13px] font-medium text-tg-hint mt-1">
-                Le diste <span className="text-amber-500 font-bold">{rating} estrella{rating > 1 ? 's' : ''}</span>
+                {t('you_rated', { count: rating })}
               </p>
             </div>
           ) : (
             /* ── Estado: Sin Calificar ── */
             <div className="relative z-10">
-              <p className="text-[14px] font-bold text-tg-text mb-4 tracking-tight">¿Qué te parece este comando?</p>
+              <p className="text-[14px] font-bold text-tg-text mb-4 ">{t('rate_question')}</p>
               <div className="flex justify-center gap-2.5">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
@@ -449,13 +451,13 @@ export default function BotCommandDetailPage() {
                         // Refresh stats after rating
                         fetchCommandStats(mainSlug).then(setStats).catch(() => {});
                       } catch {
-                        showToast('Error al calificar', 'error');
+                        showToast(t('common:error'), 'error');
                       } finally {
                         setRatingLoading(false);
                       }
                     }}
                     className="w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center text-[22px] active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-inner disabled:opacity-50"
-                    title={`Calificar con ${n} estrellas`}
+                    title={t('rate_stars', { count: n })}
                   >
                     <Star
                       size={24}
@@ -492,7 +494,7 @@ export default function BotCommandDetailPage() {
       <section className="px-5 mt-8">
         <div className="flex items-center gap-2 px-2 mb-3">
           <MessageSquare size={14} className="text-tg-accent" />
-          <span className="text-[12px] font-bold text-tg-hint uppercase">Comentarios</span>
+          <span className="text-[12px] font-bold text-tg-hint uppercase">  {t('comments')}</span>
         </div>
         <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 shadow-sm mb-8">
           <CommentsWidget />
@@ -509,7 +511,7 @@ export default function BotCommandDetailPage() {
               className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-left active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm group"
             >
               <div className="flex items-center gap-1 text-[10px] font-bold text-tg-hint uppercase  mb-1.5">
-                <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> Anterior
+                <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> {t('previous')}
               </div>
               <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(prevCmd)}</div>
             </button>
@@ -521,7 +523,7 @@ export default function BotCommandDetailPage() {
               className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-right active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm group"
             >
               <div className="flex items-center justify-end gap-1 text-[10px] font-bold text-tg-hint uppercase  mb-1.5">
-                Siguiente <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                {t('next')} <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
               </div>
               <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(nextCmd)}</div>
             </button>
@@ -537,7 +539,7 @@ export default function BotCommandDetailPage() {
         onSubmit={() => {
           setReported(true);
           haptic?.notificationOccurred('success');
-          showToast('Reporte envkiado', 'success');
+          showToast(t('report_sent'), 'success');
         }}
       />
 

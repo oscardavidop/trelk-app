@@ -8,6 +8,7 @@ import {
   PlayCircle,
   FileText
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { PaymentEventItem } from '../../services/paymentsApi';
 
 // ── Mapeo de Iconos por Tipo de Evento ──
@@ -24,26 +25,26 @@ function EventIcon({ type, className = 'w-4 h-4' }: { type: string; className?: 
 }
 
 // ── Meta-datos de Eventos ──
-const EVENT_META: Record<string, { label: string; color: string }> = {
-  'BILLING.SUBSCRIPTION.CREATED': { label: 'Suscripción Creada', color: 'text-blue-400' },
-  'BILLING.SUBSCRIPTION.ACTIVATED': { label: 'Suscripción Activada', color: 'text-emerald-400' },
-  'BILLING.SUBSCRIPTION.CANCELLED': { label: 'Suscripción Cancelada', color: 'text-red-400' },
-  'BILLING.SUBSCRIPTION.SUSPENDED': { label: 'Suscripción Suspendida', color: 'text-amber-500' },
-  'BILLING.SUBSCRIPTION.RE-ACTIVATED': { label: 'Suscripción Reactivada', color: 'text-emerald-400' },
-  'BILLING.SUBSCRIPTION.EXPIRED': { label: 'Suscripción Expirada', color: 'text-zinc-400' },
-  'PAYMENT.SALE.COMPLETED': { label: 'Pago Completado', color: 'text-emerald-400' },
-  'PAYMENT.SALE.DENIED': { label: 'Pago Denegado', color: 'text-red-400' },
-  'PAYMENT.SALE.REFUNDED': { label: 'Reembolso', color: 'text-amber-500' },
-  'PAYMENT.SALE.REVERSED': { label: 'Reversión', color: 'text-amber-500' },
+const EVENT_META_KEYS: Record<string, { labelKey: string; color: string }> = {
+  'BILLING.SUBSCRIPTION.CREATED': { labelKey: 'evt_sub_created', color: 'text-blue-400' },
+  'BILLING.SUBSCRIPTION.ACTIVATED': { labelKey: 'evt_sub_activated', color: 'text-emerald-400' },
+  'BILLING.SUBSCRIPTION.CANCELLED': { labelKey: 'evt_sub_cancelled', color: 'text-red-400' },
+  'BILLING.SUBSCRIPTION.SUSPENDED': { labelKey: 'evt_sub_suspended', color: 'text-amber-500' },
+  'BILLING.SUBSCRIPTION.RE-ACTIVATED': { labelKey: 'evt_sub_reactivated', color: 'text-emerald-400' },
+  'BILLING.SUBSCRIPTION.EXPIRED': { labelKey: 'evt_sub_expired', color: 'text-zinc-400' },
+  'PAYMENT.SALE.COMPLETED': { labelKey: 'evt_payment_completed', color: 'text-emerald-400' },
+  'PAYMENT.SALE.DENIED': { labelKey: 'evt_payment_denied', color: 'text-red-400' },
+  'PAYMENT.SALE.REFUNDED': { labelKey: 'evt_refund', color: 'text-amber-500' },
+  'PAYMENT.SALE.REVERSED': { labelKey: 'evt_reversal', color: 'text-amber-500' },
 };
 
-const FILTER_OPTIONS = [
-  { value: '', label: 'Todos' },
-  { value: 'BILLING.SUBSCRIPTION.CREATED', label: 'Creadas' },
-  { value: 'BILLING.SUBSCRIPTION.ACTIVATED', label: 'Activadas' },
-  { value: 'PAYMENT.SALE.COMPLETED', label: 'Pagos' },
-  { value: 'BILLING.SUBSCRIPTION.CANCELLED', label: 'Canceladas' },
-  { value: 'PAYMENT.SALE.DENIED', label: 'Denegados' },
+const FILTER_OPTION_KEYS = [
+  { value: '', labelKey: 'filter_all' },
+  { value: 'BILLING.SUBSCRIPTION.CREATED', labelKey: 'filter_created' },
+  { value: 'BILLING.SUBSCRIPTION.ACTIVATED', labelKey: 'filter_activated' },
+  { value: 'PAYMENT.SALE.COMPLETED', labelKey: 'filter_payments' },
+  { value: 'BILLING.SUBSCRIPTION.CANCELLED', labelKey: 'filter_cancelled' },
+  { value: 'PAYMENT.SALE.DENIED', labelKey: 'filter_denied' },
 ];
 
 interface PaymentsTableProps {
@@ -60,12 +61,13 @@ interface PaymentsTableProps {
 export default function PaymentsTable({
   events, loading, hasMore, loadingMore, onLoadMore, onEventClick, filter, onFilterChange,
 }: PaymentsTableProps) {
+  const { t } = useTranslation('payments');
   return (
     <div className="space-y-4">
       
       {/* ── Filter chips ── */}
       <div className="flex gap-2 overflow-x-auto w-full pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {FILTER_OPTIONS.map((opt) => {
+        {FILTER_OPTION_KEYS.map((opt) => {
           const isActive = filter === opt.value;
           return (
             <button
@@ -77,7 +79,7 @@ export default function PaymentsTable({
                   : 'bg-tg-secondary text-tg-text border-white/[0.04] hover:brightness-110'
               }`}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           );
         })}
@@ -107,11 +109,11 @@ export default function PaymentsTable({
           <div className="w-16 h-16 rounded-full bg-tg-secondary flex items-center justify-center mb-4 border border-white/[0.05]">
             <Clock size={28} className="text-tg-hint/40" />
           </div>
-          <p className="text-[16px] font-bold text-tg-text">No hay eventos</p>
+          <p className="text-[16px] font-bold text-tg-text">{t('no_events')}</p>
           <p className="text-[13px] text-tg-hint mt-2 leading-relaxed">
             {filter === '' 
-              ? 'Los eventos y transacciones aparecerán aquí' 
-              : 'No hay eventos que coincidan con este filtro'}
+              ? t('events_will_appear') 
+              : t('no_events_match_filter')}
           </p>
         </div>
       )}
@@ -121,12 +123,12 @@ export default function PaymentsTable({
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-lg animate-fade-in">
           <div className="divide-y divide-tg-border/20">
             {events.map((event) => {
-              const meta = EVENT_META[event.eventType] || { label: event.eventType, color: 'text-tg-text' };
+              const meta = EVENT_META_KEYS[event.eventType] || { labelKey: event.eventType, color: 'text-tg-text' };
               const amount = event.resource?.amount?.total;
               const currency = event.resource?.amount?.currency;
               const date = new Date(event.create_time || event.createdAt);
-              const dateStr = date.toLocaleDateString('es', { day: '2-digit', month: 'short' });
-              const timeStr = date.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+              const dateStr = date.toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
+              const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
               return (
                 <div
@@ -141,8 +143,8 @@ export default function PaymentsTable({
 
                   {/* Textos centrales */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-[14px] font-bold tracking-tight truncate ${meta.color}`}>
-                      {meta.label}
+                    <p className={`text-[14px] font-bold  truncate ${meta.color}`}>
+                      {t(meta.labelKey)}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-[12px] font-medium text-tg-hint/80">{dateStr} · {timeStr}</span>
@@ -161,7 +163,7 @@ export default function PaymentsTable({
                   <div className="flex flex-col items-end shrink-0">
                     {amount ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[15px] font-bold text-tg-text tabular-nums tracking-tight">${amount}</span>
+                        <span className="text-[15px] font-bold text-tg-text tabular-nums ">${amount}</span>
                         <span className="text-[11px] font-semibold text-tg-hint/80">{currency}</span>
                       </div>
                     ) : (
@@ -192,10 +194,10 @@ export default function PaymentsTable({
           {loadingMore ? (
             <span className="flex items-center justify-center gap-2">
               <RefreshCw size={16} className="animate-spin text-tg-hint" />
-              <span className="text-tg-hint">Cargando eventos...</span>
+              <span className="text-tg-hint">{t('loading_events')}</span>
             </span>
           ) : (
-            'Cargar más historial'
+            t('load_more')
           )}
         </button>
       )}

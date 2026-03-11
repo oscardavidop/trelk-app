@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useAuth } from '../hooks/useAuth';
 
 export default function AuthExpiredPage() {
+  const { t } = useTranslation('errors');
   const { webApp } = useTelegram();
   const { authError } = useAuth();
 
@@ -15,16 +17,16 @@ export default function AuthExpiredPage() {
   const getErrorMessage = () => {
     switch (authError) {
       case 'no-init-data':
-        return 'No Telegram authentication data found. Please open the app from Telegram.';
+        return t('no_auth_data');
       case 'auth-failed':
-        return 'Authentication failed. Please try again.';
+        return t('auth_failed');
       case 'network-error':
-        return 'Network error. Please check your connection.';
+        return t('network_error');
       default:
         if (authError?.startsWith('HTTP')) {
-          return `Server error: ${authError}. Please try again later.`;
+          return t('server_error', { error: authError });
         }
-        return 'Your session has expired. Please reopen the app from Telegram.';
+        return t('session_expired_msg');
     }
   };
 
@@ -32,7 +34,7 @@ export default function AuthExpiredPage() {
     <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
       <div className="text-6xl mb-6">🔒</div>
       <h1 className="text-xl font-semibold mb-3 text-tg-text">
-        {authError === 'no-init-data' ? 'Not Connected' : 'Session Expired'}
+        {authError === 'no-init-data' ? t('not_connected') : t('session_expired')}
       </h1>
       <p className="text-tg-hint text-[15px] mb-8">
         {getErrorMessage()}
@@ -41,11 +43,11 @@ export default function AuthExpiredPage() {
         onClick={handleClose}
         className="px-8 py-3 bg-tg-accent text-white rounded-xl text-[15px] font-medium active:opacity-80 transition-opacity"
       >
-        Close
+        {t('common:close')}
       </button>
       {authError && (
         <p className="text-tg-hint text-[11px] mt-4 opacity-50">
-          Debug: {authError}
+          {t('common:debug', { error: authError })}
         </p>
       )}
     </div>

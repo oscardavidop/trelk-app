@@ -1,4 +1,5 @@
 import { MessageCircle, ThumbsUp, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { CommandComment } from '../../data/commandMocks';
 
 interface Props {
@@ -6,12 +7,13 @@ interface Props {
 }
 
 export default function CommandComments({ comments }: Props) {
+  const { t } = useTranslation('commandDetail');
   if (!comments.length) return null;
 
   return (
     <section className="px-5 mt-5">
-      <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-        <MessageCircle size={13} /> Comentarios ({comments.length})
+      <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-2.5 flex items-center gap-1.5">
+        <MessageCircle size={13} /> {t('comments_count', { count: comments.length })}
       </h2>
       <div className="bg-tg-secondary rounded-[16px] border border-tg-border/20 overflow-hidden divide-y divide-tg-border/10">
         {comments.map((c) => (

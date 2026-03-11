@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Inbox, AlertTriangle } from 'lucide-react';
 import type { PaymentEventItem } from '../../services/paymentsApi';
 
@@ -14,17 +15,17 @@ const TIMELINE_COLORS: Record<string, string> = {
   'PAYMENT.SALE.REVERSED': 'bg-amber-500',
 };
 
-const TIMELINE_LABELS: Record<string, string> = {
-  'BILLING.SUBSCRIPTION.CREATED': 'Creada',
-  'BILLING.SUBSCRIPTION.ACTIVATED': 'Activada',
-  'BILLING.SUBSCRIPTION.CANCELLED': 'Cancelada',
-  'BILLING.SUBSCRIPTION.SUSPENDED': 'Suspendida',
-  'BILLING.SUBSCRIPTION.RE-ACTIVATED': 'Reactivada',
-  'BILLING.SUBSCRIPTION.EXPIRED': 'Expirada',
-  'PAYMENT.SALE.COMPLETED': 'Pago completado',
-  'PAYMENT.SALE.DENIED': 'Pago denegado',
-  'PAYMENT.SALE.REFUNDED': 'Reembolso',
-  'PAYMENT.SALE.REVERSED': 'Reversión',
+const TIMELINE_LABEL_KEYS: Record<string, string> = {
+  'BILLING.SUBSCRIPTION.CREATED': 'tl_created',
+  'BILLING.SUBSCRIPTION.ACTIVATED': 'tl_activated',
+  'BILLING.SUBSCRIPTION.CANCELLED': 'tl_cancelled',
+  'BILLING.SUBSCRIPTION.SUSPENDED': 'tl_suspended',
+  'BILLING.SUBSCRIPTION.RE-ACTIVATED': 'tl_reactivated',
+  'BILLING.SUBSCRIPTION.EXPIRED': 'tl_expired',
+  'PAYMENT.SALE.COMPLETED': 'tl_payment_completed',
+  'PAYMENT.SALE.DENIED': 'tl_payment_denied',
+  'PAYMENT.SALE.REFUNDED': 'tl_refund',
+  'PAYMENT.SALE.REVERSED': 'tl_reversal',
 };
 
 interface EventsTimelineProps {
@@ -35,6 +36,7 @@ interface EventsTimelineProps {
 }
 
 export default function EventsTimeline({ events, loading, subscriptionId, onEventClick }: EventsTimelineProps) {
+  const { t } = useTranslation('payments');
   
   // ── ESTADO: CARGANDO ──
   if (loading) {
@@ -63,8 +65,8 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
         <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
           <Inbox size={24} className="text-tg-hint/40" />
         </div>
-        <p className="text-[15px] font-bold text-tg-text">Sin eventos</p>
-        <p className="text-[13px] text-tg-hint mt-1 leading-relaxed">No hay actividad para esta suscripción.</p>
+        <p className="text-[15px] font-bold text-tg-text">{t('no_events')}</p>
+        <p className="text-[13px] text-tg-hint mt-1 leading-relaxed">{t('no_activity_sub')}</p>
         <p className="text-[11px] text-tg-hint/60 mt-3 font-mono bg-black/20 px-2 py-1 rounded-md">{subscriptionId}</p>
       </div>
     );
@@ -79,7 +81,7 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
           {subscriptionId}
         </span>
         <span className="text-[12px] font-semibold text-tg-hint bg-white/[0.04] px-2.5 py-1 rounded-full">
-          {events.length} eventos
+          {t('events_count', { count: events.length })}
         </span>
       </div>
 
@@ -87,11 +89,11 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
         {events.map((event, i) => {
           const isLast = i === events.length - 1;
           const dotColor = TIMELINE_COLORS[event.eventType] || 'bg-zinc-400';
-          const label = TIMELINE_LABELS[event.eventType] || event.eventType.split('.').pop();
+          const label = TIMELINE_LABEL_KEYS[event.eventType] ? t(TIMELINE_LABEL_KEYS[event.eventType]) : event.eventType.split('.').pop();
           
           const date = new Date(event.create_time || event.createdAt);
-          const dateStr = date.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
-          const timeStr = date.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+          const dateStr = date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+          const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
           
           const amount = event.resource?.amount?.total;
           const fee = event.resource?.transaction_fee?.value;
@@ -114,7 +116,7 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
                   
                   {/* Lado izquierdo (Info principal) */}
                   <div className="min-w-0">
-                    <p className="text-[14px] font-bold text-tg-text group-active:text-tg-accent transition-colors tracking-tight truncate">
+                    <p className="text-[14px] font-bold text-tg-text group-active:text-tg-accent transition-colors  truncate">
                       {label}
                     </p>
                     <p className="text-[12px] font-medium text-tg-hint mt-0.5">
@@ -130,7 +132,7 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
                   {/* Lado derecho (Montos y Alertas) */}
                   <div className="flex flex-col items-end shrink-0 text-right">
                     {amount && (
-                      <p className="text-[15px] font-extrabold text-tg-text tabular-nums tracking-tight">
+                      <p className="text-[15px] font-extrabold text-tg-text tabular-nums ">
                         ${amount}
                       </p>
                     )}
@@ -142,7 +144,7 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
                     {event.invalid_signature && (
                       <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-[6px] bg-amber-500/10 border border-amber-500/20">
                         <AlertTriangle size={10} className="text-amber-500" />
-                        <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest">Firma</span>
+                        <span className="text-[9px] font-bold text-amber-500 uppercase ">Firma</span>
                       </div>
                     )}
                   </div>
@@ -153,16 +155,16 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
                   <div className="mt-3 rounded-[12px] bg-black/20 border border-white/5 px-3.5 py-2.5 flex flex-wrap gap-4 items-center">
                     {event.billing_info.last_payment && (
                       <div>
-                        <p className="text-[10px] font-bold text-tg-hint/70 uppercase tracking-widest mb-0.5">Último Pago</p>
+                        <p className="text-[10px] font-bold text-tg-hint/70 uppercase  mb-0.5">{t('last_payment')}</p>
                         <p className="text-[13px] font-semibold text-tg-text tabular-nums">
                           ${event.billing_info.last_payment.amount.value} <span className="text-[11px] text-tg-hint">{event.billing_info.last_payment.amount.currency_code}</span>
                         </p>
                       </div>
                     )}
                     <div>
-                      <p className="text-[10px] font-bold text-tg-hint/70 uppercase tracking-widest mb-0.5">Próximo Cobro</p>
+                      <p className="text-[10px] font-bold text-tg-hint/70 uppercase  mb-0.5">{t('next_billing')}</p>
                       <p className="text-[13px] font-bold text-tg-accent tabular-nums">
-                        {new Date(event.billing_info.next_billing_time).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {new Date(event.billing_info.next_billing_time).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                   </div>

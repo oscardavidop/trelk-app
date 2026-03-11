@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { Check, AlertCircle, Loader2 } from 'lucide-react';
 import { updateProfile } from '../services/api';
@@ -7,6 +8,7 @@ import StickyHeader from '@/components/StickyHeader';
 
 export default function AccountPage() {
   const { userId } = useParams();
+  const { t } = useTranslation('profile');
   const { user, haptic } = useTelegram();
 
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || '';
@@ -52,7 +54,7 @@ export default function AccountPage() {
       
       setTimeout(() => setSaved(false), 2500);
     } catch (e: any) {
-      setError(e.message || 'Error al guardar el perfil');
+      setError(e.message || t('error_saving_profile'));
       haptic?.notificationOccurred('error');
     } finally {
       setSaving(false);
@@ -61,56 +63,56 @@ export default function AccountPage() {
 
   return (
     <div className="pb-24 animate-fade-in">
-      <StickyHeader title="Mi Cuenta" subtitle="Gestiona tu información personal" />
+      <StickyHeader title={t('my_account')} subtitle={t('manage_info')} />
       {/* ── Datos de Telegram (Solo Lectura) ── */}
       <div className="mt-4 px-4">
         <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2 px-1">
-          Datos de Telegram
+          {t('telegram_data')}
         </h2>
         <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up">
-          <ReadonlyRow label="Nombre visible" value={displayName} />
-          <ReadonlyRow label="Username" value={user?.username ? `@${user.username}` : '—'} />
-          <ReadonlyRow label="ID de Usuario" value={String(user?.id || '—')} mono />
-          <ReadonlyRow label="Idioma App" value={user?.language_code?.toUpperCase() || '—'} />
+          <ReadonlyRow label={t('display_name')} value={displayName} />
+          <ReadonlyRow label={t('username')} value={user?.username ? `@${user.username}` : '—'} />
+          <ReadonlyRow label={t('user_id')} value={String(user?.id || '—')} mono />
+          <ReadonlyRow label={t('app_language')} value={user?.language_code?.toUpperCase() || '—'} />
         </div>
       </div>
 
       {/* ── Perfil de Trelk (Editable) ── */}
       <div className="mt-6 px-4">
         <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2 px-1">
-          Perfil en Trelk
+          {t('trelk_profile')}
         </h2>
         <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up" style={{ animationDelay: '50ms' }}>
           <EditableRow 
-            label="Nombre" 
+            label={t('first_name')} 
             value={form.firstName} 
             onChange={v => handleChange('firstName', v)} 
-            placeholder="Tu nombre" 
+            placeholder={t('first_name_placeholder')} 
           />
           <EditableRow 
-            label="Apellido" 
+            label={t('last_name')} 
             value={form.lastName} 
             onChange={v => handleChange('lastName', v)} 
-            placeholder="Tu apellido" 
+            placeholder={t('last_name_placeholder')} 
           />
           <EditableRow 
-            label="Ciudad" 
+            label={t('city')} 
             value={form.city} 
             onChange={v => handleChange('city', v)} 
-            placeholder="Ej. Madrid" 
+            placeholder={t('city_placeholder')} 
           />
           <EditableRow 
-            label="Teléfono" 
+            label={t('phone')} 
             value={form.phone} 
             onChange={v => handleChange('phone', v)} 
-            placeholder="+34 600 000 000" 
+            placeholder={t('phone_placeholder')} 
             type="tel" 
           />
           <EditableRow 
-            label="Email" 
+            label={t('email')} 
             value={form.email} 
             onChange={v => handleChange('email', v)} 
-            placeholder="correo@ejemplo.com" 
+            placeholder={t('email_placeholder')} 
             type="email" 
           />
         </div>
@@ -140,15 +142,15 @@ export default function AccountPage() {
           {saving ? (
             <>
               <Loader2 size={18} className="animate-spin text-tg-hint" />
-              <span>Guardando...</span>
+              <span>{t('common:saving')}</span>
             </>
           ) : saved ? (
             <>
               <Check size={18} strokeWidth={2.5} className="text-emerald-500" />
-              <span>Guardado</span>
+              <span>{t('common:saved')}</span>
             </>
           ) : (
-            'Guardar cambios'
+            t('common:save_changes')
           )}
         </button>
       </div>

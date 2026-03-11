@@ -1,0 +1,16 @@
+{
+  "title": "Favorites",
+  "search_placeholder": "Search favorites...",
+  "new": "New",
+  "no_favorites": "No favorites yet",
+  "no_favorites_desc": "Commands you save will appear here",
+  "new_collection": "New collection",
+  "collection_placeholder": "Collection name...",
+  "remove_from_collection": "Remove from collection",
+  "selected": "{{count}} selected",
+  "move": "Move",
+  "confirm_delete_tap": "Tap again to confirm",
+  "delete_favorite": "Delete favorite",
+  "go_back": "Go back",
+  "no_inspiration": "No inspiration available"
+}

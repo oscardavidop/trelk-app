@@ -5,7 +5,7 @@ const FALLBACK: GlobalStats = { commandsToday: 0, commandsYesterday: 0 };
 
 export function useGlobalStats() {
   const [stats, setStats] = useState<GlobalStats>(FALLBACK);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const load = useCallback(async () => {
     try {

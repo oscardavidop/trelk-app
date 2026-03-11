@@ -1,0 +1,15 @@
+{
+  "title": "Actividad",
+  "subtitle": "Tu actividad reciente",
+  "summary": "Resumen",
+  "commands_today": "Comandos hoy",
+  "favorites": "Favoritos",
+  "achievements": "Logros",
+  "no_more": "No hay más actividad",
+  "no_activity": "Sin actividad aún",
+  "no_activity_desc": "Tu actividad aparecerá aquí",
+  "saved": "Guardó",
+  "in_favorites": "en favoritos",
+  "unlocked_achievement": "Desbloqueó logro",
+  "unknown_action": "Acción desconocida"
+}

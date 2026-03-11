@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { PlanTier } from '../services/subscriptionApi';
 import { Crown, Zap, Sparkles, Check, X } from 'lucide-react';
 
@@ -8,8 +9,8 @@ interface Plan {
   icon: typeof Crown;
   color: string;
   gradient: string;
-  features: { label: string; included: boolean }[];
-  highlights: string[];
+  features: { labelKey: string; included: boolean }[];
+  highlightKeys: string[];
 }
 
 // ── Datos actualizados para coincidir con TIER_META ──
@@ -21,16 +22,16 @@ const PLANS: Plan[] = [
     icon: Zap,
     color: '#9ca3af',
     gradient: 'from-gray-600/30 to-gray-800/10',
-    highlights: ['10 downloads/día', '15 AI requests/día', '10MB archivos'],
+    highlightKeys: ['plan_free_hl_downloads', 'plan_free_hl_ai', 'plan_free_hl_files'],
     features: [
-      { label: 'Downloads diarios', included: true },
-      { label: 'AI Requests básicas', included: true },
-      { label: 'Generación QR', included: true },
-      { label: 'Premium AI Requests', included: false },
-      { label: 'Comandos personalizados', included: false },
-      { label: 'Prioridad alta', included: false },
-      { label: 'Soporte prioritario', included: false },
-      { label: 'Live Chat', included: false },
+      { labelKey: 'feat_daily_downloads', included: true },
+      { labelKey: 'feat_basic_ai', included: true },
+      { labelKey: 'feat_qr', included: true },
+      { labelKey: 'feat_premium_ai', included: false },
+      { labelKey: 'feat_custom_commands', included: false },
+      { labelKey: 'feat_high_priority', included: false },
+      { labelKey: 'feat_priority_support', included: false },
+      { labelKey: 'feat_live_chat', included: false },
     ],
   },
   {
@@ -40,16 +41,16 @@ const PLANS: Plan[] = [
     icon: Crown,
     color: '#f5a623',
     gradient: 'from-amber-500/30 to-orange-600/10',
-    highlights: ['100 downloads/día', '200 AI requests/día', '50MB archivos', '2x velocidad'],
+    highlightKeys: ['plan_pro_hl_downloads', 'plan_pro_hl_ai', 'plan_pro_hl_files', 'plan_pro_hl_speed'],
     features: [
-      { label: 'Downloads diarios (100)', included: true },
-      { label: 'AI Requests (200/día)', included: true },
-      { label: 'Premium AI (50/día)', included: true },
-      { label: 'Generación QR (100/día)', included: true },
-      { label: 'Hasta 25 comandos custom', included: true },
-      { label: 'Prioridad normal en cola', included: true },
-      { label: 'Soporte Pro', included: true },
-      { label: 'Live Chat', included: true },
+      { labelKey: 'feat_pro_downloads', included: true },
+      { labelKey: 'feat_pro_ai', included: true },
+      { labelKey: 'feat_pro_premium_ai', included: true },
+      { labelKey: 'feat_pro_qr', included: true },
+      { labelKey: 'feat_pro_commands', included: true },
+      { labelKey: 'feat_pro_queue', included: true },
+      { labelKey: 'feat_pro_support', included: true },
+      { labelKey: 'feat_live_chat', included: true },
     ],
   },
   {
@@ -59,16 +60,16 @@ const PLANS: Plan[] = [
     icon: Sparkles,
     color: '#a855f7',
     gradient: 'from-purple-500/30 to-pink-600/10',
-    highlights: ['1000 downloads/día', '2000 AI requests/día', '200MB archivos', '5x velocidad'],
+    highlightKeys: ['plan_ultra_hl_downloads', 'plan_ultra_hl_ai', 'plan_ultra_hl_files', 'plan_ultra_hl_speed'],
     features: [
-      { label: 'Downloads diarios (1000)', included: true },
-      { label: 'AI Requests (2000/día)', included: true },
-      { label: 'Premium AI (500/día)', included: true },
-      { label: 'Generación QR (1000/día)', included: true },
-      { label: 'Hasta 100 comandos custom', included: true },
-      { label: 'Prioridad alta en cola', included: true },
-      { label: 'Soporte VIP dedicado', included: true },
-      { label: 'Live Chat + Canal privado', included: true },
+      { labelKey: 'feat_ultra_downloads', included: true },
+      { labelKey: 'feat_ultra_ai', included: true },
+      { labelKey: 'feat_ultra_premium_ai', included: true },
+      { labelKey: 'feat_ultra_qr', included: true },
+      { labelKey: 'feat_ultra_commands', included: true },
+      { labelKey: 'feat_ultra_queue', included: true },
+      { labelKey: 'feat_ultra_support', included: true },
+      { labelKey: 'feat_ultra_chat', included: true },
     ],
   },
 ];
@@ -80,6 +81,7 @@ interface PlanComparisonProps {
 }
 
 export default function PlanComparison({ currentTier, pendingChange, onSelect }: PlanComparisonProps) {
+  const { t } = useTranslation('subscription');
   return (
     <div className="space-y-4 mx-4">
       {PLANS.map((plan) => {
@@ -114,23 +116,23 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
                   </div>
                   <div>
                     <div className="flex items-center gap-2.5 mb-0.5">
-                      <span className="text-[18px] font-bold text-tg-text tracking-tight">{plan.name}</span>
+                      <span className="text-[18px] font-bold text-tg-text ">{plan.name}</span>
                       
                       {/* Badges estilo Premium */}
                       {isCurrent && (
                         <span className="text-[9px] bg-tg-accent/10 text-tg-accent border border-tg-accent/20 px-2 py-0.5 rounded-full font-bold uppercase ">
-                          Actual
+                          {t('plan_current')}
                         </span>
                       )}
                       {isPending && (
                         <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold uppercase ">
-                          Pendiente
+                          {t('plan_pending')}
                         </span>
                       )}
                     </div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-[15px] font-semibold text-tg-text">{plan.price}</span>
-                      <span className="text-[13px] text-tg-hint font-medium">/mes</span>
+                      <span className="text-[13px] text-tg-hint font-medium">/{t('per_month')}</span>
                     </div>
                   </div>
                 </div>
@@ -138,12 +140,12 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
 
               {/* Píldoras de características destacadas */}
               <div className="relative z-10 flex flex-wrap gap-2 mt-4">
-                {plan.highlights.map((h) => (
+                {plan.highlightKeys.map((h) => (
                   <span
                     key={h}
                     className="text-[11px] font-medium bg-tg-surface/60 border border-tg-border/20 text-tg-text/85 px-2.5 py-1 rounded-lg backdrop-blur-md"
                   >
-                    {h}
+                    {t(h)}
                   </span>
                 ))}
               </div>
@@ -152,7 +154,7 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
             {/* Lista de Características */}
             <div className="p-5 space-y-3.5">
               {plan.features.map((f) => (
-                <div key={f.label} className="flex items-center gap-3">
+                <div key={f.labelKey} className="flex items-center gap-3">
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${f.included ? 'bg-emerald-500/10' : ''}`}>
                     {f.included ? (
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -165,7 +167,7 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
                       f.included ? 'text-tg-text font-medium' : 'text-tg-hint/40'
                     }`}
                   >
-                    {f.label}
+                    {t(f.labelKey)}
                   </span>
                 </div>
               ))}
@@ -185,10 +187,10 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
                   }}
                 >
                   {isPending
-                    ? 'Cambio en proceso...'
+                    ? t('plan_change_in_progress')
                     : currentTier === 'free' || PLANS.findIndex(p => p.tier === plan.tier) > PLANS.findIndex(p => p.tier === currentTier)
-                      ? `Upgrade a ${plan.name}`
-                      : `Cambiar a ${plan.name}`}
+                      ? t('plan_upgrade_to', { name: plan.name })
+                      : t('plan_change_to', { name: plan.name })}
                 </button>
               </div>
             )}

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { BOT_COMMANDS, cmdSlug } from '../data/botCommands';
 import CommandCard from '../components/commands/CommandCard';
@@ -14,6 +15,7 @@ export default function CommandListPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
   const [searchParams] = useSearchParams();
 
   const [search, setSearch] = useState('');
@@ -58,7 +60,7 @@ export default function CommandListPage() {
     <div className="pb-24 animate-fade-in relative">
       
       {/* ── Cabecera Pegajosa y Filtros ── */}
-      <StickyHeader title="Todos los Comandos" subtitle={`${BOT_COMMANDS.length} comandos disponibles`}>
+      <StickyHeader title={t('all_commands')} subtitle={t('commands_available', { count: BOT_COMMANDS.length })}>
         <div className="px-5 mt-3">
           <CommandFilters
             search={search}
@@ -81,9 +83,9 @@ export default function CommandListPage() {
             <div className="w-16 h-16 rounded-full bg-tg-secondary border border-white/5 flex items-center justify-center mb-4 shadow-sm">
               <Search size={32} className="text-tg-hint/30" />
             </div>
-            <p className="text-[16px] font-bold text-tg-text tracking-tight">No se encontraron comandos</p>
+            <p className="text-[16px] font-bold text-tg-text ">{t('no_commands_found')}</p>
             <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 leading-relaxed max-w-[250px]">
-              Intenta con otra palabra clave o cambia la categoría en los filtros.
+              {t('try_other_keyword')}
             </p>
           </div>
           

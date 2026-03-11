@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { PlanTier } from '../../services/subscriptionApi';
 import type { ProFeatures } from '../../services/subscriptionApi';
 
@@ -16,14 +17,14 @@ const TIER_META: Record<PlanTier, { label: string; color: string; gradient: stri
   },
 };
 
-function timeUntil(isoDate?: string): string {
-  if (!isoDate) return 'Sin expiración';
+function timeUntil(isoDate: string | undefined, t: (key: string, opts?: any) => string): string {
+  if (!isoDate) return t('subscription:no_expiry');
   const diff = new Date(isoDate).getTime() - Date.now();
-  if (diff <= 0) return 'Expirado';
+  if (diff <= 0) return t('subscription:expired');
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
-  if (days > 0) return `${days}d ${hours}h restantes`;
-  return `${hours}h restantes`;
+  if (days > 0) return t('subscription:time_remaining_days', { days, hours });
+  return t('subscription:time_remaining_hours', { hours });
 }
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export default function SubscriptionHero({ features }: Props) {
+  const { t } = useTranslation('subscription');
   const { subscription, performance, support } = features;
   const tier = subscription.tier;
   const meta = TIER_META[tier];
@@ -54,10 +56,10 @@ export default function SubscriptionHero({ features }: Props) {
               {meta.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-bold text-tg-text tracking-tight">Plan {meta.label}</div>
+              <div className="text-[20px] font-bold text-tg-text ">{t('plan_label', { plan: meta.label })}</div>
               <div className="text-[13px] text-tg-hint flex items-center gap-1.5 mt-0.5">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                {tier === 'free' ? 'Sin expiración' : timeUntil(subscription.expires_at)}
+                {tier === 'free' ? t('no_expiry') : timeUntil(subscription.expires_at, t)}
               </div>
             </div>
           </div>
@@ -65,9 +67,9 @@ export default function SubscriptionHero({ features }: Props) {
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: 'Prioridad', value: performance.queue_priority },
-              { label: 'Velocidad', value: `${performance.response_speed_multiplier}x` },
-              { label: 'Soporte', value: support.priority },
+              { label: t('priority'), value: performance.queue_priority },
+              { label: t('speed'), value: `${performance.response_speed_multiplier}x` },
+              { label: t('support'), value: support.priority },
             ].map((s) => (
               <div key={s.label} className="bg-tg-surface/50 backdrop-blur-sm rounded-2xl py-2.5 px-2 text-center border border-tg-border/10">
                 <div className="text-[11px] text-tg-hint font-medium mb-0.5">{s.label}</div>

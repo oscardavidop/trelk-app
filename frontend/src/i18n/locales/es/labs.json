@@ -1,0 +1,9 @@
+{
+  "title": "Labs",
+  "subtitle": "Funciones experimentales",
+  "experimental": "Experimental",
+  "in_development": "En desarrollo",
+  "try_experiment": "Probar experimento",
+  "warning": "Estas funciones son experimentales y pueden cambiar",
+  "soon": "Próximamente"
+}

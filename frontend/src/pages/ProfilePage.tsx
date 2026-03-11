@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useUserStore } from '../stores';
 import { useFavoritesStore } from '../stores/favorites';
@@ -33,6 +34,7 @@ interface ActivityItem {
 export default function ProfilePage() {
     const { userId } = useParams();
     const navigate = useNavigate();
+    const { t } = useTranslation('profile');
     const { user: tgUser, haptic, webApp } = useTelegram();
     const appUser = useUserStore((s) => s.user);
     const { items, total, load: loadFavs } = useFavoritesStore();
@@ -48,9 +50,8 @@ export default function ProfilePage() {
     const isPremium = (tgUser as any)?.is_premium;
 
     useEffect(() => {
-        loadFavs();
         requestAnimationFrame(() => setShowHeader(true));
-    }, [loadFavs]);
+    }, []);
 
     const go = (path: string) => {
         haptic?.impactOccurred('light');
@@ -59,17 +60,17 @@ export default function ProfilePage() {
 
     const stats: StatItem[] = [
         {
-            label: 'Favoritos',
+            label: t('favorites'),
             value: String(total || items.length || 0),
             icon: <Heart size={16} className="text-pink-500 fill-pink-500/20" />,
         },
         {
-            label: 'Comandos',
+            label: t('commands'),
             value: String((appUser?.authUser?.config as any)?.commands ? Object.keys((appUser?.authUser?.config as any).commands).length : 0),
             icon: <Terminal size={16} className="text-sky-400" />,
         },
         {
-            label: 'Imágenes',
+            label: t('images'),
             value: '—',
             icon: <ImageIcon size={16} className="text-purple-400" />,
         },
@@ -77,19 +78,19 @@ export default function ProfilePage() {
 
     const activity: ActivityItem[] = [
         {
-            label: 'Última generación',
-            time: 'Recientemente',
+            label: t('last_generation'),
+            time: t('recently'),
             icon: <Sparkles size={18} className="text-purple-400" />,
         },
         {
-            label: 'Último favorito',
+            label: t('last_favorite'),
             time: items[0]?.createdAt
-                ? new Date(items[0].createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                ? new Date(items[0].createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
                 : '—',
             icon: <Heart size={18} className="text-pink-500" />,
         },
         {
-            label: 'Miembro desde',
+            label: t('member_since'),
             time: '—',
             icon: <Calendar size={18} className="text-emerald-500" />,
         },
@@ -120,7 +121,7 @@ export default function ProfilePage() {
                     )}
                 </div>
 
-                <h1 className="text-[24px] font-extrabold text-tg-text mt-4 tracking-tight">{displayName}</h1>
+                <h1 className="text-[24px] font-extrabold text-tg-text mt-4 ">{displayName}</h1>
                 {username && <p className="text-[14px] font-medium text-tg-hint/80 mt-0.5">{username}</p>}
 
                 <div className="flex items-center gap-2 mt-3">
@@ -143,7 +144,7 @@ export default function ProfilePage() {
                             <div className="w-8 h-8 rounded-full bg-tg-surface/30 flex items-center justify-center mb-2">
                                 {s.icon}
                             </div>
-                            <div className="text-[20px] font-extrabold text-tg-text tracking-tight leading-none">{s.value}</div>
+                            <div className="text-[20px] font-extrabold text-tg-text  leading-none">{s.value}</div>
                             <div className="text-[11px] font-medium text-tg-hint/80 mt-1.5 uppercase tracking-wide">{s.label}</div>
                         </div>
                     ))}
@@ -152,7 +153,7 @@ export default function ProfilePage() {
 
             {/* ── Activity Timeline ── */}
             <section className="mt-8 px-5">
-                <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Actividad</h2>
+                <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('activity')}</h2>
                 <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
                     <div className="divide-y divide-tg-border/20">
                         {activity.map((a) => (
@@ -161,7 +162,7 @@ export default function ProfilePage() {
                                     {a.icon}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-[15px] font-bold text-tg-text tracking-tight">{a.label}</div>
+                                    <div className="text-[15px] font-bold text-tg-text ">{a.label}</div>
                                 </div>
                                 <span className="text-[13px] font-medium text-tg-hint">{a.time}</span>
                             </div>
@@ -172,7 +173,7 @@ export default function ProfilePage() {
 
             {/* ── Actions ── */}
             <section className="mt-8 px-5 pb-4">
-                <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 pl-2">Acciones</h2>
+                <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('actions')}</h2>
                 <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
                     <div className="divide-y divide-tg-border/20">
 
@@ -181,8 +182,8 @@ export default function ProfilePage() {
                                 <User size={18} className="text-tg-accent" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="text-[15px] font-bold text-tg-text tracking-tight">Editar perfil</div>
-                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Nombre, email, teléfono</div>
+                                <div className="text-[15px] font-bold text-tg-text ">{t('edit_profile')}</div>
+                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('edit_profile_desc')}</div>
                             </div>
                             <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
                         </button>
@@ -192,8 +193,8 @@ export default function ProfilePage() {
                                 <DownloadCloud size={18} className="text-pink-400" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="text-[15px] font-bold text-tg-text tracking-tight">Exportar favoritos</div>
-                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Descargar tu galería</div>
+                                <div className="text-[15px] font-bold text-tg-text ">{t('export_favorites')}</div>
+                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('export_desc')}</div>
                             </div>
                             <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
                         </button>
@@ -203,7 +204,7 @@ export default function ProfilePage() {
                                 haptic?.impactOccurred('light');
                                 const shareData = {
                                     title: 'Trelk Bot',
-                                    text: '¡Echa un vistazo a este increíble bot de Telegram!',
+                                    text: t('share_text'),
                                     url: 'https://t.me/TrelkBot',
                                 };
                                 try {
@@ -218,8 +219,8 @@ export default function ProfilePage() {
                                 <Share2 size={18} className="text-sky-400" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="text-[15px] font-bold text-tg-text tracking-tight">Compartir bot</div>
-                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Invita a tus amigos</div>
+                                <div className="text-[15px] font-bold text-tg-text ">{t('share_bot')}</div>
+                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('share_bot_desc')}</div>
                             </div>
                             <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
                         </button>
@@ -235,8 +236,8 @@ export default function ProfilePage() {
                                 <LifeBuoy size={18} className="text-emerald-500" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="text-[15px] font-bold text-tg-text tracking-tight">Soporte</div>
-                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">Contactar asistencia</div>
+                                <div className="text-[15px] font-bold text-tg-text ">{t('support')}</div>
+                                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('support_desc')}</div>
                             </div>
                             <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
                         </button>

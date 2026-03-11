@@ -45,15 +45,15 @@ export default function LangPage() {
     i18n.changeLanguage(code);
     try {
       await updateConfig({ lang: code });
-      showToast('Changes saved', 'success');
+      showToast(t('common:changes_saved'), 'success');
     } catch {
-      showToast('Error.', 'error');
+      showToast(t('common:error'), 'error');
     }
   };
 
   return (
     <div className="tm-main pb-8 animate-fade-in">
-      <StickyHeader title="Idioma" subtitle="Selecciona tu idioma preferido" />
+      <StickyHeader title={t('settings:lang_title')} subtitle={t('settings:lang_subtitle')} />
       {/* Search */}
       <div className="mx-4 mt-3">
         <div className="tm-search-field">

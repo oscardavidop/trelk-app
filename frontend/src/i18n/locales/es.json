@@ -57,5 +57,9 @@
   "nl": "Neerlandés",
   "search_timezone": "Buscar zona horaria",
   "detected_timezone": "Zona horaria detectada",
-  "choose_timezone": "Elige una zona horaria"
+  "choose_timezone": "Elige una zona horaria",
+  "choose_country": "Elige un país",
+  "country_saved": "País guardado",
+  "detected_country": "País detectado",
+  "search_country": "Buscar país"
 }

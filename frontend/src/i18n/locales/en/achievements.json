@@ -1,0 +1,18 @@
+{
+  "title": "Achievements",
+  "subtitle": "Your progress and unlocked achievements",
+  "achieved": "Achieved",
+  "remaining": "Remaining",
+  "progress": "Progress",
+  "all": "All",
+  "unlocked": "Unlocked",
+  "locked": "Locked",
+  "no_achievements": "No achievements yet",
+  "no_achievements_desc": "Complete tasks to unlock achievements",
+  "done": "Done",
+  "total": "Total",
+  "level": "Level {{level}}",
+  "xp_remaining": "{{xp}} XP remaining",
+  "streak_days": "{{count}} day streak",
+  "achievements_count": "{{count}} achievements"
+}

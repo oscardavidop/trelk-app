@@ -1,26 +1,27 @@
 import { useThemeStore, type ThemeMode } from '../stores/theme';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { Moon, Sun, Monitor, Check } from 'lucide-react';
 
-const THEME_OPTIONS: { mode: ThemeMode; label: string; description: string; icon: typeof Moon; bgClass: string }[] = [
+const THEME_OPTIONS: { mode: ThemeMode; labelKey: string; descKey: string; icon: typeof Moon; bgClass: string }[] = [
   {
     mode: 'dark',
-    label: 'Oscuro',
-    description: 'Tema oscuro para reducir fatiga visual',
+    labelKey: 'theme_dark',
+    descKey: 'theme_dark_desc',
     icon: Moon,
     bgClass: 'bg-indigo-500',
   },
   {
     mode: 'light',
-    label: 'Claro',
-    description: 'Tema claro y brillante',
+    labelKey: 'theme_light',
+    descKey: 'theme_light_desc',
     icon: Sun,
     bgClass: 'bg-amber-500',
   },
   {
     mode: 'system',
-    label: 'Sistema',
-    description: 'Sigue el tema de tu dispositivo',
+    labelKey: 'theme_system',
+    descKey: 'theme_system_desc',
     icon: Monitor,
     bgClass: 'bg-slate-500',
   },
@@ -29,6 +30,7 @@ const THEME_OPTIONS: { mode: ThemeMode; label: string; description: string; icon
 export default function ThemePage() {
   const { mode, setMode } = useThemeStore();
   const { haptic } = useTelegram();
+  const { t } = useTranslation('settings');
 
   const handleSelect = (m: ThemeMode) => {
     haptic?.selectionChanged();
@@ -46,16 +48,16 @@ export default function ThemePage() {
         <div className="w-24 h-24 rounded-full bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center mb-5">
           <ActiveIcon className="w-12 h-12 text-tg-accent" strokeWidth={1.5} />
         </div>
-        <h1 className="text-[22px] font-bold text-tg-text tracking-tight">Apariencia</h1>
+        <h1 className="text-[22px] font-bold text-tg-text ">{t('appearance')}</h1>
         <p className="text-[14px] text-tg-hint text-center mt-1 max-w-[280px]">
-          Elige cómo quieres que se vea la interfaz de la aplicación.
+          {t('appearance_desc')}
         </p>
       </div>
 
       {/* ── Lista de Opciones ── */}
       <div className="px-4 mt-2">
         <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2 px-1">
-          Tema
+          {t('theme')}
         </h2>
         
         <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up">
@@ -74,10 +76,10 @@ export default function ThemePage() {
                 {/* Textos */}
                 <div>
                   <div className="text-[15px] font-medium text-tg-text leading-tight">
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </div>
                   <div className="text-[12px] text-tg-hint mt-0.5">
-                    {opt.description}
+                    {t(opt.descKey)}
                   </div>
                 </div>
               </div>
@@ -93,7 +95,7 @@ export default function ThemePage() {
         </div>
 
         <p className="text-[12px] text-tg-hint/70 px-2 mt-3 leading-relaxed">
-          El tema se guarda automáticamente y se aplica al instante en toda la app.
+          {t('theme_auto_save')}
         </p>
       </div>
 

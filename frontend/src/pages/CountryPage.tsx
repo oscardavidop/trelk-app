@@ -111,9 +111,9 @@ export default function CountryPage() {
     setSelected(code);
     try {
       await saveLocale({ country: code });
-      showToast('País actualizado', 'success'); // Puedes cambiarlo por t('country_saved')
+      showToast(t('settings:country_updated'), 'success'); // Puedes cambiarlo por t('country_saved')
     } catch {
-      showToast('Error al guardar.', 'error');
+      showToast(t('settings:error_saving_country'), 'error');
     }
   };
 
@@ -126,7 +126,7 @@ export default function CountryPage() {
           <input
             type="search"
             className="tm-input text-[15px]"
-            placeholder="Buscar país..." // O t('search_country')
+            placeholder={t('settings:search_country')} // O t('search_country')
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoComplete="off"
@@ -138,7 +138,7 @@ export default function CountryPage() {
       {/* Detected Country */}
       {detected && (
         <>
-          <SectionHeader title="País Detectado" /> {/* O t('detected_country') */}
+          <SectionHeader title={t('settings:detected_country')} /> {/* O t('detected_country') */}
           <div className="mx-4">
             <label
               className="tm-row cursor-pointer"
@@ -160,7 +160,7 @@ export default function CountryPage() {
       )}
 
       {/* All Countries */}
-      <SectionHeader title="Todos los países" /> {/* O t('choose_country') */}
+      <SectionHeader title={t('settings:all_countries')} /> {/* O t('choose_country') */}
       <div className="mx-4">
         {filtered.length > 0 ? (
           filtered.map(([code, name]) => (
@@ -179,7 +179,7 @@ export default function CountryPage() {
         ) : (
           /* Estado vacío si no hay resultados en la búsqueda */
           <div className="py-8 text-center text-tg-hint text-[15px]">
-            No se encontraron países.
+            {t('settings:no_countries_found')}
           </div>
         )}
       </div>

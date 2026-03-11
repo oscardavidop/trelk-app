@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { LimitCounter } from '../services/subscriptionApi';
 
 interface LimitBarProps {
@@ -23,6 +24,7 @@ function getBarGlow(ratio: number): string {
 }
 
 export default function LimitBar({ label, icon, counter, suffix }: LimitBarProps) {
+  const { t } = useTranslation('subscription');
   const { total, used } = counter;
   const ratio = total > 0 ? used / total : 0;
   const pct = Math.min(ratio * 100, 100);
@@ -49,7 +51,7 @@ export default function LimitBar({ label, icon, counter, suffix }: LimitBarProps
               {label}
             </div>
             <div className="text-[12px] text-tg-hint mt-0.5">
-              {remaining > 0 ? `${remaining} restante${remaining !== 1 ? 's' : ''}` : 'Sin límite disponible'}
+              {remaining > 0 ? t('remaining', { count: remaining }) : t('no_limit')}
             </div>
           </div>
         </div>
@@ -59,12 +61,12 @@ export default function LimitBar({ label, icon, counter, suffix }: LimitBarProps
           <div className="flex items-center gap-2">
             {isNearLimit && (
               <span className="text-[9px] bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full font-bold uppercase ">
-                Cerca
+                {t('near')}
               </span>
             )}
             {isExhausted && (
               <span className="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full font-bold uppercase ">
-                Agotado
+                {t('exhausted')}
               </span>
             )}
             <span className="text-[15px] font-medium text-tg-text tabular-nums">

@@ -25,7 +25,7 @@ export default function StickyHeader({ title, subtitle, children, icon }: Sticky
                 }
 
                 <div>
-                    <h1 className="text-[24px] font-extrabold text-tg-text tracking-tight leading-none">{title}</h1>
+                    <h1 className="text-[24px] font-extrabold text-tg-text  leading-none">{title}</h1>
                     {subtitle && <p className="text-[13px] font-medium text-tg-hint/80 mt-1">{subtitle}</p>}
                 </div>
             </div>

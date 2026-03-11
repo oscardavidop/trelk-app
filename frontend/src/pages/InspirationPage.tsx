@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { X, ChevronLeft, ChevronRight, Pause, Play, RefreshCw } from 'lucide-react';
 import { fetchRandom, fileUrl, getFullSize, type FavoriteItem } from '../services/favoritesApi';
 import { useTelegram } from '../hooks/useTelegram';
@@ -8,6 +9,7 @@ const INTERVAL = 5000;
 
 export default function InspirationPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('favorites');
   const { haptic } = useTelegram();
   const [items, setItems] = useState<FavoriteItem[]>([]);
   const [index, setIndex] = useState(0);
@@ -81,9 +83,9 @@ export default function InspirationPage() {
   if (items.length === 0) return (
     <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center gap-4 text-center px-8">
       <span className="text-5xl">✨</span>
-      <p className="text-white/80 text-[15px]">No hay favoritos para inspirarse</p>
+      <p className="text-white/80 text-[15px]">{t('no_inspiration')}</p>
       <button onClick={() => navigate(-1)} className="mt-4 px-6 py-2 rounded-xl bg-tg-accent text-white text-[14px] font-medium active:scale-95 transition-transform">
-        Volver
+        {t('go_back')}
       </button>
     </div>
   );

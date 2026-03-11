@@ -20,7 +20,7 @@ export default function RelatedCommands({ slugs }: Props) {
 
   return (
     <section className="px-5 mt-8">
-      <h2 className="text-[12px] font-bold text-tg-hint uppercase tracking-widest mb-3 flex items-center gap-1.5 px-1">
+      <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 flex items-center gap-1.5 px-1">
         <Compass size={14} className="text-tg-accent" /> Comandos relacionados
       </h2>
       
@@ -59,7 +59,7 @@ export default function RelatedCommands({ slugs }: Props) {
                 
                 {/* ── Textos ── */}
                 <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="text-[15px] font-bold text-tg-text font-mono tracking-tight truncate">
+                  <div className="text-[15px] font-bold text-tg-text font-mono  truncate">
                     /{slug}
                   </div>
                   <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">

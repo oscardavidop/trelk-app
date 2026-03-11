@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { EXPERIMENTAL_COMMANDS } from '../data/commandMocks';
@@ -15,17 +16,18 @@ export default function LabsPage() {
     useHideIsland();
     const { userId } = useParams();
     const navigate = useNavigate();
+    const { t } = useTranslation('labs');
     const { haptic } = useTelegram();
 
     return (
         <div className="pb-24 animate-fade-in relative">
-            <StickyHeader title="Trelk Labs" subtitle="Comandos experimentales" icon={<FlaskConical className="w-6 h-6 text-purple-500 fill-purple-500/20" />} />
+            <StickyHeader title={t('title')} subtitle={t('subtitle')} icon={<FlaskConical className="w-6 h-6 text-purple-500 fill-purple-500/20" />} />
 
             {/* ── Advertencia ── */}
             <div className="mx-5 mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-[20px] flex items-start gap-3 shadow-sm">
                 <AlertTriangle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-[13px] font-medium text-amber-600 dark:text-amber-300 leading-relaxed">
-                    Estos comandos están en desarrollo activo. Pueden cambiar, tener errores o ser retirados sin previo aviso.
+                    {t('warning')}
                 </p>
             </div>
 
@@ -48,12 +50,12 @@ export default function LabsPage() {
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="flex items-center gap-2">
                                             <Sparkles size={16} className="text-purple-500" />
-                                            <span className="text-[16px] font-extrabold font-mono text-tg-text tracking-tight">/{exp.id}</span>
+                                            <span className="text-[16px] font-extrabold font-mono text-tg-text ">/{exp.id}</span>
                                         </div>
                                         <span
-                                            className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border ${BADGE_STYLES[exp.status]}`}
+                                            className={`text-[10px] font-extrabold uppercase  px-2.5 py-1 rounded-full border ${BADGE_STYLES[exp.status]}`}
                                         >
-                                            {isComingSoon ? 'Pronto' : exp.status}
+                                            {isComingSoon ? t('soon') : exp.status}
                                         </span>
                                     </div>
 
@@ -92,10 +94,10 @@ export default function LabsPage() {
                                             }`}
                                     >
                                         {isComingSoon ? (
-                                            <>En desarrollo</>
+                                            <>{t('in_development')}</>
                                         ) : (
                                             <>
-                                                <Zap size={16} className="fill-purple-500/20" /> Probar experimento
+                                                <Zap size={16} className="fill-purple-500/20" /> {t('try_experiment')}
                                             </>
                                         )}
                                     </button>

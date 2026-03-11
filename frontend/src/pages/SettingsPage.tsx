@@ -43,6 +43,7 @@ interface SettingsState {
 
 // 1. COMPONENTE PRINCIPAL (Solo maneja la carga)
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { config, load: loadConfig } = useConfigStore();
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function SettingsPage() {
     return (
       <div className="tm-main flex-col items-center justify-center h-screen">
         <div className="loader" />
-        <p className="text-tg-text/80 mt-4">Cargando configuración...</p>
+        <p className="text-tg-text/80 mt-4">{t('settings:loading_config')}</p>
       </div>
     );
   }
@@ -131,7 +132,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
 
       try {
         await changeSettings({ chat_actions: activeKeys.length > 0 ? activeKeys : null });
-        patchConfig({ chat_actions: newActions });
+        patchConfig({ chat_actions: newActions } as unknown as Partial<UserConfig>);
       } catch {
         showToast('Error.', 'error');
       }
@@ -155,7 +156,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
 
       try {
         await changeSettings({ chat_actions: activeKeys.length > 0 ? activeKeys : null });
-        patchConfig({ chat_actions: newActions });
+        patchConfig({ chat_actions: newActions } as unknown as Partial<UserConfig>);
       } catch {
         showToast('Error.', 'error');
       }
@@ -174,7 +175,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
 
       try {
         await changeSettings({ notifications_settings: activeKeys.length > 0 ? activeKeys : null });
-        patchConfig({ notifications: newNotif });
+        patchConfig({ notifications: newNotif } as unknown as Partial<UserConfig>);
       } catch {
         showToast('Error.', 'error');
       }
@@ -187,7 +188,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
       setSettings((prev) => ({ ...prev, time_format: value }));
       try {
         await updateConfig({ time_format: value });
-        patchConfig({ time_format: value });
+        patchConfig({ time_format: value } as unknown as Partial<UserConfig>);
       } catch {
         showToast('Error.', 'error');
       }
@@ -202,7 +203,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
     <div className="tm-main pb-8 animate-fade-in" style={{
       top: 'var(--tg-top-offset, 0px)',
     }}>
-      <StickyHeader title="Configuración" subtitle="Personaliza tu experiencia" />
+      <StickyHeader title={t('settings:configuration')} subtitle={t('settings:subtitle')} />
       
       {/* Language Section */}
       <SectionHeader title={t('lang_title')} />
@@ -304,7 +305,7 @@ function SettingsForm({ config }: { config: UserConfig }) {
         
         {/* Date format */}
         <DropdownRow
-          label="Formato de fecha"
+          label={t('settings:date_format')}
           value={locale.datetime_format?.date || 'DD/MM/YYYY'}
           options={[
             { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
@@ -315,14 +316,14 @@ function SettingsForm({ config }: { config: UserConfig }) {
           onChange={async (v) => {
             try {
               await saveLocale({ datetime_format: { ...locale.datetime_format, date: v } });
-              showToast('Formato actualizado', 'success');
-            } catch { showToast('Error', 'error'); }
+              showToast(t('common:format_updated'), 'success');
+            } catch { showToast(t('common:error'), 'error'); }
           }}
         />
 
         {/* Time format */}
         <DropdownRow
-          label="Formato de hora"
+          label={t('settings:time_format_label')}
           value={locale.datetime_format?.time || 'HH:mm'}
           options={[
             { value: 'HH:mm', label: 'HH:mm (24h)' },
@@ -332,8 +333,8 @@ function SettingsForm({ config }: { config: UserConfig }) {
           onChange={async (v) => {
             try {
               await saveLocale({ datetime_format: { ...locale.datetime_format, time: v } });
-              showToast('Formato actualizado', 'success');
-            } catch { showToast('Error', 'error'); }
+              showToast(t('common:format_updated'), 'success');
+            } catch { showToast(t('common:error'), 'error'); }
           }}
         />
       </div>

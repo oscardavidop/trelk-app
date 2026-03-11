@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { X, Flag, Camera, Send, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 import { submitReport } from '@/services/commandStatsApi';
 
 const REPORT_TYPES = [
-  { id: 'bug', label: 'Bug / Error visual' },
-  { id: 'wrong-result', label: 'Resultado incorrecto' },
-  { id: 'crash', label: 'Comando no responde' },
-  { id: 'other', label: 'Otro problema' },
+  { id: 'bug', labelKey: 'report_bug' },
+  { id: 'wrong-result', labelKey: 'report_wrong_result' },
+  { id: 'crash', labelKey: 'report_crash' },
+  { id: 'other', labelKey: 'report_other' },
 ];
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 
 export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit }: Props) {
   const { haptic } = useTelegram();
+  const { t } = useTranslation('commandDetail');
 
   const [type, setType] = useState('bug');
   const [details, setDetails] = useState('');
@@ -109,9 +111,9 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
         <div className="px-5 pt-2 pb-4 border-b border-tg-border/50 flex-shrink-0 bg-tg-bg/95 backdrop-blur-md z-10">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-[18px] font-bold text-tg-text tracking-tight">Reportar Error</h3>
+              <h3 className="text-[18px] font-bold text-tg-text ">{t('report_error')}</h3>
               <p className="text-[12px] font-mono text-tg-hint/80 mt-0.5 truncate max-w-[250px]">
-                Comando: <span className="font-bold text-tg-text">/{commandSlug}</span>
+                {t('report_command')}: <span className="font-bold text-tg-text">/{commandSlug}</span>
               </p>
             </div>
             <button
@@ -131,12 +133,12 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                 <CheckCircle2 size={40} className="text-emerald-500" />
               </div>
 
-              <p className="text-[18px] font-extrabold text-tg-text tracking-tight">
-                ¡Reporte enviado!
+              <p className="text-[18px] font-extrabold text-tg-text ">
+                {t('report_sent')}
               </p>
 
               <p className="text-[14px] font-medium text-tg-hint mt-1.5 leading-relaxed">
-                Gracias por ayudarnos a mejorar Trelk Bot.
+                {t('report_thanks')}
               </p>
             </div>
           ) : (
@@ -147,7 +149,7 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                 <AlertTriangle size={14} className="text-tg-hint/70" />
 
                 <div className="text-[12px] font-medium text-tg-hint">
-                  Comando afectado:
+                  {t('report_affected_command')}:
                   <span className="font-mono font-bold text-tg-text ml-1">
                     /{commandSlug}
                   </span>
@@ -156,8 +158,8 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
 
               {/* Tipo */}
               <div>
-                <label className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest mb-2.5 block px-1">
-                  ¿Qué ocurrió?
+                <label className="text-[11px] font-extrabold text-tg-hint uppercase  mb-2.5 block px-1">
+                  {t('report_what_happened')}
                 </label>
 
                 <div className="grid grid-cols-2 gap-2.5">
@@ -176,7 +178,7 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                             : 'bg-tg-secondary border-tg-border/50 text-tg-hint hover:bg-tg-text/[0.02]'
                           }`}
                       >
-                        {rt.label}
+                        {t(rt.labelKey)}
                       </button>
                     );
                   })}
@@ -185,8 +187,8 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
 
               {/* Detalles */}
               <div>
-                <label className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest mb-2.5 block px-1">
-                  Detalles del problema
+                <label className="text-[11px] font-extrabold text-tg-hint uppercase  mb-2.5 block px-1">
+                  {t('report_details')}
                 </label>
 
                 <div className="relative">
@@ -195,7 +197,7 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                     onChange={(e) => setDetails(e.target.value)}
                     rows={4}
                     maxLength={500}
-                    placeholder="Describe qué ocurrió..."
+                    placeholder={t('report_describe')}
                     className="w-full bg-tg-text/[0.02] border border-tg-border/40 rounded-[16px] p-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none resize-none focus:border-tg-accent/40 transition-colors shadow-inner"
                   />
 
@@ -210,10 +212,10 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
 
               {/* Screenshots */}
               <div>
-                <label className="text-[11px] font-extrabold text-tg-hint uppercase tracking-widest mb-2.5 block px-1">
-                  Capturas
+                <label className="text-[11px] font-extrabold text-tg-hint uppercase  mb-2.5 block px-1">
+                  {t('report_screenshots')}
                   <span className="text-tg-hint/50 font-medium normal-case ml-1">
-                    (opcional)
+                    ({t('common:optional')})
                   </span>
                 </label>
 
@@ -242,7 +244,7 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                       <Camera size={18} className="text-tg-hint/50 mb-1" />
 
                       <span className="text-[10px] font-bold text-tg-hint/60">
-                        Añadir
+                        {t('common:add')}
                       </span>
                     </button>
                   )}
@@ -265,7 +267,7 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                   <Send size={18} className="fill-white/20" />
                 )}
 
-                {sending ? 'Enviando reporte...' : 'Enviar Reporte'}
+                {sending ? t('report_sending') : t('report_submit')}
               </button>
             </div>
           )}
