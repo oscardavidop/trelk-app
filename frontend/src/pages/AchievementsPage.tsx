@@ -3,14 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useGamificationStore } from '../stores/gamification';
 import AchievementCard from '../components/achievements/AchievementCard';
 import XPProgress from '../components/XPProgress';
-import { useHideIsland } from '../hooks/useHideIsland';
 import { Trophy, Medal, Loader2 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
 type Filter = 'all' | 'unlocked' | 'locked';
 
 export default function AchievementsPage() {
-  useHideIsland();
   const { t } = useTranslation('achievements');
   const { achievements, loaded, loading, loadGamification } = useGamificationStore();
   const [filter, setFilter] = useState<Filter>('all');

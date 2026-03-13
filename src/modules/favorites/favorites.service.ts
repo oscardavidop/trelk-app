@@ -23,6 +23,7 @@ export interface FavoritesFilter {
   engine?: string;
   search?: string;
   collectionId?: string;
+  projections?: string | string[];
 }
 
 @Injectable()
@@ -74,11 +75,38 @@ export class FavoritesService {
       ];
     }
 
+    let projectionObject: Record<string, number> = {};
+
+    if (filters?.projections) {
+      const projArray = Array.isArray(filters.projections)
+        ? filters.projections
+        : filters.projections.split(',');
+
+      const validFields = projArray
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
+
+      // Convertimos ['campo1', 'campo2'] a { campo1: 1, campo2: 1 }
+      if (validFields.length > 0) {
+        projectionObject = validFields.reduce((acc, field) => {
+          acc[field] = 1;
+          return acc;
+        }, {} as Record<string, number>);
+      }
+    }
+
+
     const countQuery: Record<string, any> = { ...query };
     delete countQuery._id; // count total without cursor
 
     const [items, total] = await Promise.all([
-      this.favoriteModel.find(query).sort({ _id: -1 }).limit(limit + 1).lean().exec(),
+      this.favoriteModel
+        .find(query)
+        .select(projectionObject) // Usar .select() es más limpio que el 2do argumento de find()
+        .sort({ _id: -1 })
+        .limit(limit + 1)
+        .lean()
+        .exec(),
       this.favoriteModel.countDocuments(countQuery),
     ]);
 

@@ -5,6 +5,7 @@ import { Terminal, Plus, Trash2, Search, ChevronRight, Cpu } from 'lucide-react'
 import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
+import { SkeletonCard } from '../components/skeletons/SkeletonCard';
 
 export default function CommandsPage() {
   const { userId } = useParams();
@@ -57,9 +58,22 @@ export default function CommandsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
-        <div className="w-8 h-8 border-3 border-tg-accent border-t-transparent rounded-full animate-spin" />
-      </div>
+      <main className="pb-24 animate-fade-in">
+        {/* Hero skeleton */}
+        <div className="relative pt-8 pb-6 px-6 text-center border-b border-white/5">
+          <div className="w-20 h-20 mx-auto rounded-[24px] bg-tg-secondary animate-pulse mb-4" />
+          <div className="h-6 w-40 mx-auto bg-tg-secondary rounded-full animate-pulse mb-2" />
+          <div className="h-4 w-56 mx-auto bg-tg-secondary/60 rounded-full animate-pulse" />
+        </div>
+        <div className="px-4 mt-5">
+          <div className="h-3 w-32 bg-tg-secondary/60 rounded-full animate-pulse mb-3 pl-2" />
+          <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-lg">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </div>
+      </main>
     );
   }
 

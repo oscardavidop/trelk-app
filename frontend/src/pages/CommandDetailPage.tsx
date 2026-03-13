@@ -5,7 +5,9 @@ import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
 import ToggleRow from '../components/ToggleRow';
-import { Terminal, Save, Trash2, Cpu, FileJson, Link, AlertTriangle } from 'lucide-react';
+import CommandFeedback from '../components/commands/CommandFeedback';
+import { SkeletonCard } from '../components/skeletons/SkeletonCard';
+import { Terminal, Save, Trash2, Cpu, FileJson, AlertTriangle } from 'lucide-react';
 
 export default function CommandDetailPage() {
   const { command, userId } = useParams();
@@ -70,9 +72,13 @@ export default function CommandDetailPage() {
   // ── ESTADO: CARGANDO ──
   if (!config) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
-        <div className="w-8 h-8 border-3 border-tg-accent border-t-transparent rounded-full animate-spin" />
-      </div>
+      <main className="pb-24 animate-fade-in px-5 pt-10 space-y-4">
+        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </main>
     );
   }
 
@@ -174,6 +180,12 @@ export default function CommandDetailPage() {
           </div>
         </div>
       )}
+
+      {/* ── Feedback Section ── */}
+      <div className="px-5 mt-10 animate-slide-up" style={{ animationDelay: '80ms' }}>
+        <div className="w-full h-px bg-tg-border/30 mb-8" />
+        <CommandFeedback command={command!} />
+      </div>
 
       {/* ── Acciones de Guardado y Eliminación ── ABAJO */}
       <div className="px-5 mt-10 space-y-3 animate-slide-up bottom-0 relative" style={{ animationDelay: '100ms' }}>

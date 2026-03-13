@@ -11,6 +11,7 @@ import {
   type ActivityStats,
 } from '../services/historyApi';
 import StickyHeader from '@/components/StickyHeader';
+import { SkeletonListItem } from '../components/skeletons/SkeletonListItem';
 
 const PAGE_SIZE = 20;
 
@@ -149,17 +150,11 @@ export default function ActivityPage() {
         {initialLoad ? (
           /* ── Skeleton loaders ── */
           <div className="px-5 space-y-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-tg-secondary rounded-[18px] border border-tg-border/50 p-4 animate-pulse">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-[12px] bg-white/5" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3.5 bg-white/5 rounded-full w-3/4" />
-                    <div className="h-2.5 bg-white/5 rounded-full w-1/3" />
-                  </div>
-                </div>
-              </div>
-            ))}
+            <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-sm">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonListItem key={i} />
+              ))}
+            </div>
           </div>
         ) : grouped.length > 0 ? (
           <>

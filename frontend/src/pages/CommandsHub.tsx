@@ -17,6 +17,7 @@ import {
 import { TOTAL_BOT_COMMANDS } from '@/data/botCommands';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserStore } from '@/stores';
+import StickyHeader from '@/components/StickyHeader';
 
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
@@ -58,13 +59,7 @@ export default function CommandsHub() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-
-      {/* ── Header ── */}
-      <div className="px-5 pt-8 pb-4">
-        <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{t('title')}</h1>
-        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('hub_subtitle')}</p>
-      </div>
-
+      <StickyHeader title={t('title')} subtitle={t('hub_subtitle')} />
       {/* ── Explorar Bot Commands (NEW) ── */}
       <section className="mt-2 px-5">
         <button

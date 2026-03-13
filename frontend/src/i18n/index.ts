@@ -1,120 +1,135 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Legacy flat files (settings page keys)
-import en from './locales/en.json';
-import es from './locales/es.json';
-import fr from './locales/fr.json';
-import de from './locales/de.json';
-import it from './locales/it.json';
-import pt from './locales/pt.json';
-import ru from './locales/ru.json';
-import ja from './locales/ja.json';
-import ko from './locales/ko.json';
-import ar from './locales/ar.json';
-import hi from './locales/hi.json';
-import tr from './locales/tr.json';
-import nl from './locales/nl.json';
+// ─── Mode Configuration ──────────────────────────────────────────────
+// "expand"  → namespace files loaded individually (future lazy-loading ready)
+// "compact" → all namespaces merged into one resource object per language
+const I18N_MODE: 'expand' | 'compact' = 'expand';
 
-// Namespaced translations (en)
-import enCommon from './locales/en/common.json';
-import enNavigation from './locales/en/navigation.json';
-import enHome from './locales/en/home.json';
-import enCommands from './locales/en/commands.json';
-import enCommandDetail from './locales/en/commandDetail.json';
-import enFavorites from './locales/en/favorites.json';
-import enDiscover from './locales/en/discover.json';
-import enActivity from './locales/en/activity.json';
-import enAchievements from './locales/en/achievements.json';
-import enProfile from './locales/en/profile.json';
-import enSettings from './locales/en/settings.json';
-import enLabs from './locales/en/labs.json';
-import enErrors from './locales/en/errors.json';
-import enPayments from './locales/en/payments.json';
-import enSubscription from './locales/en/subscription.json';
-import enUi from './locales/en/ui.json';
+// ─── Auto-discover: namespace files per language ─────────────────────
+// Vite resolves these globs at build time — no hardcoded file list needed.
+// Adding a new JSON to locales/en/ or locales/es/ is picked up automatically.
+const enModules = import.meta.glob<Record<string, string>>(
+  './locales/en/*.json',
+  { eager: true, import: 'default' },
+);
+const esModules = import.meta.glob<Record<string, string>>(
+  './locales/es/*.json',
+  { eager: true, import: 'default' },
+);
 
-// Namespaced translations (es)
-import esCommon from './locales/es/common.json';
-import esNavigation from './locales/es/navigation.json';
-import esHome from './locales/es/home.json';
-import esCommands from './locales/es/commands.json';
-import esCommandDetail from './locales/es/commandDetail.json';
-import esFavorites from './locales/es/favorites.json';
-import esDiscover from './locales/es/discover.json';
-import esActivity from './locales/es/activity.json';
-import esAchievements from './locales/es/achievements.json';
-import esProfile from './locales/es/profile.json';
-import esSettings from './locales/es/settings.json';
-import esLabs from './locales/es/labs.json';
-import esErrors from './locales/es/errors.json';
-import esPayments from './locales/es/payments.json';
-import esSubscription from './locales/es/subscription.json';
-import esUi from './locales/es/ui.json';
+// ─── Auto-discover: legacy flat files (translation namespace) ────────
+// These provide the default "translation" namespace (SettingsPage, etc.)
+// and single-namespace languages (fr, de, it, …).
+const legacyModules = import.meta.glob<Record<string, string>>(
+  './locales/*.json',
+  { eager: true, import: 'default' },
+);
 
-const NS = ['translation', 'common', 'navigation', 'home', 'commands', 'commandDetail', 'favorites', 'discover', 'activity', 'achievements', 'profile', 'settings', 'labs', 'errors', 'payments', 'subscription', 'ui'] as const;
+// ─── Helpers ─────────────────────────────────────────────────────────
+/** Extract namespace (or language code) from a glob path. */
+function nsFromPath(path: string): string {
+  return path.split('/').pop()!.replace('.json', '');
+}
 
-const resources = {
-  en: {
-    translation: en,
-    common: enCommon,
-    navigation: enNavigation,
-    home: enHome,
-    commands: enCommands,
-    commandDetail: enCommandDetail,
-    favorites: enFavorites,
-    discover: enDiscover,
-    activity: enActivity,
-    achievements: enAchievements,
-    profile: enProfile,
-    settings: enSettings,
-    labs: enLabs,
-    errors: enErrors,
-    payments: enPayments,
-    subscription: enSubscription,
-    ui: enUi,
-  },
-  es: {
-    translation: es,
-    common: esCommon,
-    navigation: esNavigation,
-    home: esHome,
-    commands: esCommands,
-    commandDetail: esCommandDetail,
-    favorites: esFavorites,
-    discover: esDiscover,
-    activity: esActivity,
-    achievements: esAchievements,
-    profile: esProfile,
-    settings: esSettings,
-    labs: esLabs,
-    errors: esErrors,
-    payments: esPayments,
-    subscription: esSubscription,
-    ui: esUi,
-  },
-  fr: { translation: fr },
-  de: { translation: de },
-  it: { translation: it },
-  pt: { translation: pt },
-  ru: { translation: ru },
-  ja: { translation: ja },
-  ko: { translation: ko },
-  ar: { translation: ar },
-  hi: { translation: hi },
-  tr: { translation: tr },
-  nl: { translation: nl },
-};
+/** Convert a glob result into { namespaceName: jsonContent } map. */
+function buildNsMap(
+  modules: Record<string, Record<string, string>>,
+): Record<string, Record<string, string>> {
+  const map: Record<string, Record<string, string>> = {};
+  for (const [path, json] of Object.entries(modules)) {
+    map[nsFromPath(path)] = json;
+  }
+  return map;
+}
 
+// ─── Namespace Registry ──────────────────────────────────────────────
+const enNamespaces = buildNsMap(enModules);
+const esNamespaces = buildNsMap(esModules);
+
+/** All discovered namespace names (auto-derived from en/*.json files). */
+const NAMESPACES = Object.keys(enNamespaces);
+
+/** Full namespace list including the legacy "translation" namespace. */
+const NS = ['translation', ...NAMESPACES];
+
+// ─── TypeScript types ────────────────────────────────────────────────
+export type Namespace =
+  | 'achievements'
+  | 'activity'
+  | 'commandDetail'
+  | 'commands'
+  | 'common'
+  | 'discover'
+  | 'errors'
+  | 'favorites'
+  | 'feedback'
+  | 'home'
+  | 'labs'
+  | 'navigation'
+  | 'notifications'
+  | 'payments'
+  | 'profile'
+  | 'settings'
+  | 'subscription'
+  | 'ui';
+
+type LangResources = Record<string, Record<string, string>>;
+
+// ─── Loaders ─────────────────────────────────────────────────────────
+
+/**
+ * Expand mode: each namespace file is a separate i18next resource entry.
+ * Ready for future lazy-loading by switching to eager: false + dynamic imports.
+ */
+function loadExpandedTranslations(): Record<string, LangResources> {
+  return {
+    en: { translation: legacyModules['./locales/en.json'] ?? {}, ...enNamespaces },
+    es: { translation: legacyModules['./locales/es.json'] ?? {}, ...esNamespaces },
+  };
+}
+
+/**
+ * Compact mode: all namespaces combined into a single resource object
+ * per language for maximum performance — one logical bundle, zero overhead.
+ */
+function loadCompactTranslations(): Record<string, LangResources> {
+  const compact = (
+    legacy: Record<string, string>,
+    nsMap: Record<string, Record<string, string>>,
+  ): LangResources => ({
+    translation: legacy,
+    ...Object.fromEntries(NAMESPACES.map((ns) => [ns, nsMap[ns]])),
+  });
+
+  return {
+    en: compact(legacyModules['./locales/en.json'] ?? {}, enNamespaces),
+    es: compact(legacyModules['./locales/es.json'] ?? {}, esNamespaces),
+  };
+}
+
+// ─── Build resources ─────────────────────────────────────────────────
+const i18nResources: Record<string, LangResources> =
+  I18N_MODE === 'expand'
+    ? loadExpandedTranslations()
+    : loadCompactTranslations();
+
+// Append legacy-only languages (flat translation namespace only: fr, de, …)
+for (const [path, json] of Object.entries(legacyModules)) {
+  const lang = nsFromPath(path);
+  if (!i18nResources[lang]) {
+    i18nResources[lang] = { translation: json };
+  }
+}
+
+// ─── Init i18next ────────────────────────────────────────────────────
 i18n.use(initReactI18next).init({
-  resources,
-  ns: NS as unknown as string[],
+  resources: i18nResources,
+  ns: NS,
   defaultNS: 'translation',
   lng: 'en',
   fallbackLng: 'en',
-  interpolation: {
-    escapeValue: false,
-  },
+  interpolation: { escapeValue: false },
 });
 
 export default i18n;

@@ -11,11 +11,17 @@ export class CommandRating {
   @Prop({ required: true })
   command: string;
 
-  @Prop({ required: true, min: 1, max: 5 })
+  @Prop({ required: false, min: 1, max: 5 })
   rating: number;
 
   @Prop()
   review?: string;
+
+  @Prop({ enum: ['useful', 'not_useful'], required: false })
+  feedback?: 'useful' | 'not_useful';
+
+  @Prop({ enum: ['didnt_work', 'too_slow', 'bad_results', 'confusing'], required: false })
+  reason?: 'didnt_work' | 'too_slow' | 'bad_results' | 'confusing';
 
   @Prop({ required: true })
   createdAt: number;

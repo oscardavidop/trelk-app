@@ -1,17 +1,17 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { BOT_COMMANDS, CATEGORY_META, cmdSlug } from '../data/botCommands';
-import { ChevronRight, Search } from 'lucide-react';
+import type { BotCommand } from '../data/botCommands';
+import { ChevronRight, Search, TrendingUp, Star, Sparkles } from 'lucide-react';
+import { fetchCommandRankings } from '../services/commandStatsApi';
 
-/* ── Mock curated lists ── */
-const TRENDING_SLUGS = ['play', 'chatgpt', 'dl', 'ssweb', 'translate'];
-const POPULAR_SLUGS = ['play', 'akinator', 'img', 'weather', 'lyrics'];
+// "New" commands: ones that don't appear in the popular list (recently added heuristic)
 const NEW_SLUGS = ['apk', 'alert', 'tts', 'shorten'];
-
 const bySlug = (slugs: string[]) =>
-  slugs.map((s) => BOT_COMMANDS.find((c) => cmdSlug(c) === s)).filter(Boolean) as typeof BOT_COMMANDS;
+  slugs.map((s) => BOT_COMMANDS.find((c) => cmdSlug(c) === s)).filter(Boolean) as BotCommand[];
 
 export default function DiscoverPage() {
   useHideIsland();
@@ -19,6 +19,41 @@ export default function DiscoverPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('discover');
   const { haptic } = useTelegram();
+  const [trending, setTrending] = useState<BotCommand[]>([]);
+  const [popular, setPopular] = useState<BotCommand[]>([]);
+
+  const commandMap = useMemo(
+    () => new Map(BOT_COMMANDS.map((cmd) => [cmdSlug(cmd), cmd] as const)),
+    [],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchCommandRankings(5, 5)
+      .then((data) => {
+        if (cancelled) return;
+
+        const trendingCommands = data.trending
+          .map((item) => commandMap.get(item.command))
+          .filter((cmd): cmd is BotCommand => cmd !== undefined);
+        const popularCommands = data.popular
+          .map((item) => commandMap.get(item.command))
+          .filter((cmd): cmd is BotCommand => cmd !== undefined);
+
+        setTrending(trendingCommands.length ? trendingCommands : BOT_COMMANDS.slice(0, 5));
+        setPopular(popularCommands.length ? popularCommands : BOT_COMMANDS.slice(0, 5));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTrending(BOT_COMMANDS.slice(0, 5));
+        setPopular(BOT_COMMANDS.slice(0, 5));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [commandMap]);
 
   const go = (slug: string) => {
     haptic?.impactOccurred('light');
@@ -29,10 +64,29 @@ export default function DiscoverPage() {
     navigate(`/users/ui/${userId}/bot-commands/list`);
   };
 
-  const sections: { title: string; emoji: string; slugs: string[]; accent: string }[] = [
-    { title: t('trending'), emoji: '🔥', slugs: TRENDING_SLUGS, accent: 'from-orange-500 to-red-500' },
-    { title: t('popular_week'), emoji: '⭐', slugs: POPULAR_SLUGS, accent: 'from-amber-400 to-yellow-500' },
-    { title: t('new_commands'), emoji: '✨', slugs: NEW_SLUGS, accent: 'from-violet-500 to-purple-600' },
+  type SectionIcon = typeof TrendingUp;
+  const sections: { title: string; icon: SectionIcon; iconClass: string; commands: BotCommand[]; accent: string }[] = [
+    {
+      title: t('trending'),
+      icon: TrendingUp,
+      iconClass: 'text-orange-500',
+      commands: trending,
+      accent: 'from-orange-500 to-red-500',
+    },
+    {
+      title: t('popular_week'),
+      icon: Star,
+      iconClass: 'text-amber-400',
+      commands: popular,
+      accent: 'from-amber-400 to-yellow-500',
+    },
+    {
+      title: t('new_commands'),
+      icon: Sparkles,
+      iconClass: 'text-violet-400',
+      commands: bySlug(NEW_SLUGS),
+      accent: 'from-violet-500 to-purple-600',
+    },
   ];
 
   return (
@@ -56,13 +110,12 @@ export default function DiscoverPage() {
       </div>
 
       {/* ── Sections (Carruseles) ── */}
-      {sections.map(({ title, emoji, slugs, accent }) => {
-        const commands = bySlug(slugs);
+      {sections.map(({ title, icon: SectionIcon, iconClass, commands, accent }) => {
         return (
           <section key={title} className="mt-6">
             <div className="flex items-center justify-between px-5 mb-3">
               <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-2">
-                <span className="text-[16px]">{emoji}</span> {title}
+                <SectionIcon size={15} className={iconClass} /> {title}
               </h2>
               <button onClick={goList} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-all">
                 {t('see_more')}
@@ -89,9 +142,7 @@ export default function DiscoverPage() {
                         {CatIcon ? (
                           <CatIcon size={18} className="text-white" />
                         ) : (
-                          <span className="text-lg">
-                            <cat.icon />
-                          </span>
+                          <span className="text-lg"></span>
                         )}
                       </div>
                     </div>

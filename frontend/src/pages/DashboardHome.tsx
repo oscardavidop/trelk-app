@@ -10,11 +10,11 @@ import CommandShortcuts from '../components/commands/CommandShortcuts';
 import RecentCommands from '../components/commands/RecentCommands';
 import CommandUsageCounter from '../components/stats/CommandUsageCounter';
 import { cmdSlug } from '../data/botCommands';
-import { 
-  Heart, 
-  Terminal, 
-  Crown, 
-  Receipt, 
+import {
+  Heart,
+  Terminal,
+  Crown,
+  Receipt,
   ChevronRight,
   Sparkles,
   Trophy,
@@ -39,7 +39,11 @@ export default function DashboardHome() {
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   useEffect(() => {
-    loadFavs();
+    loadFavs({
+      filters: {
+        projections: ['data.photo', 'data.media_type'],
+      },
+    });
     if (!loaded) loadGamification();
     const timer = setTimeout(() => setShowGreeting(true), 100);
     return () => clearTimeout(timer);
@@ -54,10 +58,12 @@ export default function DashboardHome() {
 
   return (
     <div className="pb-24 animate-fade-in relative overflow-x-hidden">
-      
+
       {/* ── Saludo Hero ── */}
-      <div className={`px-4 pt-8 pb-3 transition-all duration-700 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        <div className="flex items-center gap-3.5 mb-2">
+      
+      <div className={`px-4 sticky pt-8 pb-3 transition-all duration-700 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} flex justify-between items-center`}>
+        {/* Bloque de la izquierda (Foto + Texto) */}
+        <div className="flex items-center gap-3.5">
           {photoUrl ? (
             <img src={photoUrl} alt="" className="w-[52px] h-[52px] rounded-full ring-[3px] ring-tg-accent/20 object-cover shadow-sm" />
           ) : (
@@ -66,13 +72,17 @@ export default function DashboardHome() {
             </div>
           )}
           <div>
-            <h1 className="text-[26px] font-extrabold text-tg-text  leading-none mb-1">
+            <h1 className="text-[26px] font-extrabold text-tg-text leading-none mb-1">
               {t('greeting', { name: firstName })}
             </h1>
             <p className="text-[14px] font-medium text-tg-hint/80 tracking-wide">{t('welcome_back')}</p>
           </div>
         </div>
+
+        {/* Bloque de la derecha (Progreso) */}
+        {/* <XPProgress rounded /> */}
       </div>
+
 
       {/* ── Global Usage Counter ── */}
       <div className="px-4 mt-3">
@@ -87,7 +97,7 @@ export default function DashboardHome() {
       <section className="mt-4 px-4">
         <h2 className="text-[14px] font-bold text-tg-hint uppercase  px-1 mb-2.5">{t('control_panel')}</h2>
         <div className="grid grid-cols-2 gap-3">
-          
+
           <button onClick={() => go('/favorites')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Heart size={20} className="text-white fill-white/20" />
@@ -97,7 +107,7 @@ export default function DashboardHome() {
               <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('your_gallery')}</div>
             </div>
           </button>
-          
+
           <button onClick={() => go('/premium')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-blue-500 to-tg-accent flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Terminal size={20} className="text-white" />
@@ -107,7 +117,7 @@ export default function DashboardHome() {
               <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('custom')}</div>
             </div>
           </button>
-          
+
           <button onClick={() => go('/subscription')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Crown size={20} className="text-white" />
@@ -117,7 +127,7 @@ export default function DashboardHome() {
               <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('manage_plan')}</div>
             </div>
           </button>
-          
+
           <button onClick={() => go('/payments')} className="flex items-center gap-3.5 p-3  rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
             <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
               <Receipt size={20} className="text-white" />
@@ -127,7 +137,7 @@ export default function DashboardHome() {
               <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('view_history')}</div>
             </div>
           </button>
-          
+
         </div>
       </section>
 
@@ -147,9 +157,9 @@ export default function DashboardHome() {
       {/* ── Franja de Gamificación (Logros y Descubrir) ── */}
       <div className="px-4 mt-6">
         <div className="grid grid-cols-2 gap-3">
-          
-          <button 
-            onClick={() => go('/achievements')} 
+
+          <button
+            onClick={() => go('/achievements')}
             className="relative flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left transition-all active:scale-[0.96] hover:bg-white/[0.02] shadow-sm group overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -162,8 +172,8 @@ export default function DashboardHome() {
             </div>
           </button>
 
-          <button 
-            onClick={() => go('/discover')} 
+          <button
+            onClick={() => go('/discover')}
             className="relative flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left transition-all active:scale-[0.96] hover:bg-white/[0.02] shadow-sm group overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -175,7 +185,7 @@ export default function DashboardHome() {
               <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">{t('explore_more')}</div>
             </div>
           </button>
-          
+
         </div>
       </div>
 
@@ -207,7 +217,7 @@ export default function DashboardHome() {
             {t('common:view_gallery')}
           </button>
         </div>
-        
+
         {favsLoading && recentFavs.length === 0 ? (
           /* Esqueleto de Carga */
           <div className="flex gap-3 overflow-x-auto px-4 pb-2 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -220,7 +230,7 @@ export default function DashboardHome() {
           <div className="flex gap-3 overflow-x-auto px-4 pb-3 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {recentFavs.map((fav) => {
               const thumb = (fav.data?.media_type === 'photo' && fav.data.photo) ? fileUrl(fav.data.photo[0].file_id) : null;
-              
+
               return (
                 <button
                   key={fav._id}
@@ -268,17 +278,17 @@ export default function DashboardHome() {
       {/* ── Tarjeta de Inspiración (Glassmorphism Prominente) ── */}
       <section className="mt-8 px-4 pb-4">
         <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">{t('inspiration_day')}</h2>
-        
+
         <button
           onClick={() => go('/favorites/inspiration')}
           className="w-full relative overflow-hidden rounded-[24px] active:scale-[0.98] transition-transform duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.12)] group text-left block"
         >
           {/* Fondo colorido base */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
-          
+
           {/* Efecto Cristal (Blur Oscuro) */}
           <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" />
-          
+
           {/* Contenido (Sobre el cristal) */}
           <div className="relative p-6 border border-white/15 rounded-[24px] h-full flex flex-col justify-between">
             <div>
@@ -292,7 +302,7 @@ export default function DashboardHome() {
                 "A dreamy landscape with floating islands at sunset, digital art masterpiece"
               </p>
             </div>
-            
+
             <div className="mt-6 flex items-center gap-1.5 text-white font-extrabold text-[12px] uppercase tracking-wider bg-white/10 border border-white/10 w-max px-4 py-2.5 rounded-full backdrop-blur-md group-hover:bg-white/20 transition-colors">
               <span>{t('explore_gallery')}</span>
               <ChevronRight size={14} strokeWidth={3} />

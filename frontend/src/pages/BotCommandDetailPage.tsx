@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useToastStore } from '../stores';
 import { BOT_COMMANDS, findCommand, cmdSlug, CATEGORY_META } from '../data/botCommands';
-import { getExamples, getChangelog, getComments, getRelated } from '../data/commandMocks';
+import { getExamples, getChangelog, getComments } from '../data/commandMocks';
 import { fetchCommandStats, fetchMyRating, submitRating, type CommandStatsData } from '../services/commandStatsApi';
 import CommandStats from '../components/commands/CommandStats';
 import CommandExamples from '../components/commands/CommandExamples';
@@ -25,6 +25,7 @@ import { StickySectionHeader } from '@/components/StickyHeader';
 import { useScrollCollapse, useScrollHeader } from '@/hooks/useScrollCollapse';
 import CommentsWidget from '@/components/CommentsWidget';
 import { useCommandFavoritesStore } from '../stores/commandFavorites';
+import CommandFeedback from '@/components/commands/CommandFeedback';
 /* ─── Mock screenshots for preview ─── */
 const MOCK_SCREENSHOTS = [
   'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+1',
@@ -60,14 +61,14 @@ export default function BotCommandDetailPage() {
   // Load real stats + user's own rating
   useEffect(() => {
     if (!mainSlug) return;
-    fetchCommandStats(mainSlug).then(setStats).catch(() => {});
+    fetchCommandStats(mainSlug).then(setStats).catch(() => { });
     fetchMyRating(mainSlug).then((data) => {
       if (data.rating != null) {
         setRating(data.rating);
         setHasRated(true);
         if (data.review) setReview(data.review);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, [mainSlug]);
 
   /* ─── Navigation helpers ─── */
@@ -385,34 +386,33 @@ export default function BotCommandDetailPage() {
         </div>
       </section>
 
-      {/* ── Share & Rate ── */}
-      <section className="px-5 mt-6 grid grid-cols-2 gap-3">
-        {/* Compartir */}
-        <button
-          onClick={() => {
-            const text = encodeURIComponent(t('share_command_text', { slug: mainSlug }));
-            window.open(`https://t.me/share/url?url=https://t.me/TrelkBot&text=${text}`, '_blank');
-            haptic?.impactOccurred('light');
-          }}
-          className="w-full py-3.5 rounded-[16px] bg-tg-secondary border border-tg-border/50 text-tg-text text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-white/[0.02]"
-        >
-          <Share size={18} className="text-tg-hint" />
-          {t('common:share')}
-        </button>
+      {/* ── Ejemplos de Uso ── */}
+      {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
 
-        {/* Reportar */}
-        <button
-          onClick={() => { setShowReportModal(true); haptic?.impactOccurred('light'); }}
-          disabled={reported}
-          className={`w-full py-3.5 rounded-[16px] border text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${reported
-            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-            : 'bg-tg-secondary border-tg-border/50 text-tg-text active:scale-95 hover:bg-white/[0.02]'
-            }`}
-        >
-          {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint" />}
-          {reported ? t('reported') : t('report_error')}
-        </button>
-      </section>
+
+      {/* ── Changelog ── */}
+      {getChangelog(mainSlug).length > 0 && <CommandChangelog entries={getChangelog(mainSlug)} />}
+
+      {/* ── Comentarios ── */}
+      {getComments(mainSlug).length > 0 && <CommandComments comments={getComments(mainSlug)} />}
+
+      {/* ── Sugerencias ── */}
+      <CommandSuggestions currentSlug={mainSlug} onSelect={(s) => goTo(s)} />
+
+      {/* ── Comandos Relacionados ── */}
+      {mainSlug && <RelatedCommands slug={mainSlug} />}
+
+      {/* comments section */}
+      {/* <section className="px-5 mt-8">
+        <div className="flex items-center gap-2 px-2 mb-3">
+          <MessageSquare size={14} className="text-tg-accent" />
+          <span className="text-[12px] font-bold text-tg-hint uppercase">  {t('comments')}</span>
+        </div>
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 shadow-sm mb-8">
+          <CommentsWidget />
+        </div>
+      </section> */}
+
 
       {/* ── Calificar Comando ── */}
       <section className="px-5 mt-6 mb-8">
@@ -449,7 +449,7 @@ export default function BotCommandDetailPage() {
                         setHasRated(true);
                         haptic?.notificationOccurred('success');
                         // Refresh stats after rating
-                        fetchCommandStats(mainSlug).then(setStats).catch(() => {});
+                        fetchCommandStats(mainSlug).then(setStats).catch(() => { });
                       } catch {
                         showToast(t('common:error'), 'error');
                       } finally {
@@ -474,33 +474,39 @@ export default function BotCommandDetailPage() {
         </div>
       </section>
 
-      {/* ── Ejemplos de Uso ── */}
-      {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
+      {/* ── Share & Rate ── */}
+      <section className="px-5 mt-6 grid grid-cols-2 gap-3">
+        {/* Compartir */}
+        <button
+          onClick={() => {
+            const text = encodeURIComponent(t('share_command_text', { slug: mainSlug }));
+            window.open(`https://t.me/share/url?url=https://t.me/TrelkBot&text=${text}`, '_blank');
+            haptic?.impactOccurred('light');
+          }}
+          className="w-full py-3.5 rounded-[16px] bg-tg-secondary border border-tg-border/50 text-tg-text text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-white/[0.02]"
+        >
+          <Share size={18} className="text-tg-hint" />
+          {t('common:share')}
+        </button>
 
-
-      {/* ── Changelog ── */}
-      {getChangelog(mainSlug).length > 0 && <CommandChangelog entries={getChangelog(mainSlug)} />}
-
-      {/* ── Comentarios ── */}
-      {getComments(mainSlug).length > 0 && <CommandComments comments={getComments(mainSlug)} />}
-
-      {/* ── Sugerencias ── */}
-      <CommandSuggestions onSelect={(s) => goTo(s)} />
-
-      {/* ── Comandos Relacionados ── */}
-      {getRelated(mainSlug).length > 0 && <RelatedCommands slugs={getRelated(mainSlug)} />}
-
-      {/* comments section */}
-      <section className="px-5 mt-8">
-        <div className="flex items-center gap-2 px-2 mb-3">
-          <MessageSquare size={14} className="text-tg-accent" />
-          <span className="text-[12px] font-bold text-tg-hint uppercase">  {t('comments')}</span>
-        </div>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 shadow-sm mb-8">
-          <CommentsWidget />
-        </div>
+        {/* Reportar */}
+        <button
+          onClick={() => { setShowReportModal(true); haptic?.impactOccurred('light'); }}
+          disabled={reported}
+          className={`w-full py-3.5 rounded-[16px] border text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${reported
+            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+            : 'bg-tg-secondary border-tg-border/50 text-tg-text active:scale-95 hover:bg-white/[0.02]'
+            }`}
+        >
+          {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint" />}
+          {reported ? t('reported') : t('report_error')}
+        </button>
       </section>
 
+      <div className="px-5 mt-10 animate-slide-up" style={{ animationDelay: '80ms' }}>
+        <div className="w-full h-px bg-tg-border/30 mb-8" />
+        <CommandFeedback command={cmd.uniqueName!} />
+      </div>
 
       {/* ── Navigation (Anterior d/ Siguiente) ── */}
       <section className="px-5 mt-8">

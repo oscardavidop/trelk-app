@@ -34,6 +34,7 @@ import Toast from './components/Toast';
 import { useThemeStore } from './stores/theme';
 import CountryPage from './pages/CountryPage';
 import ScrollToTop from './components/ScrollToTop';
+import NotificationsPage from './pages/NotificationsPage';
 
 function App() {
   const { isAuthenticated, isLoading, authError, authenticate } = useAuth();
@@ -117,6 +118,7 @@ function App() {
           <Route path="/users/ui/:userId/activity" element={<ActivityPage />} />
           <Route path="/users/ui/:userId/command-favorites" element={<CommandFavoritesPage />} />
           <Route path="/users/ui/:userId/labs" element={<LabsPage />} />
+          <Route path="/users/ui/:userId/notifications" element={<NotificationsPage />} />
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />

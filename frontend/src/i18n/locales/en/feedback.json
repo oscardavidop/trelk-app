@@ -1,0 +1,15 @@
+{
+  "useful": "Was this command useful?",
+  "yes": "Yes",
+  "no": "No",
+  "thanks": "Thanks for your feedback!",
+  "what_went_wrong": "What went wrong?",
+  "didnt_work": "Didn't work",
+  "too_slow": "Too slow",
+  "bad_results": "Bad results",
+  "confusing": "Confusing",
+  "submit": "Submit",
+  "edit": "Edit",
+  "marked_useful": "Marked as useful",
+  "marked_not_useful": "Marked as not useful"
+}

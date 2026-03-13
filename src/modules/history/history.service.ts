@@ -25,6 +25,7 @@ export class HistoryService {
     const [items, total] = await Promise.all([
       this.historyModel
         .find({ userId })
+        .select(['type', 'command', 'timestamp', 'args', 'achievementName'])
         .sort({ timestamp: -1 })
         .skip(safeOffset)
         .limit(safeLimit)

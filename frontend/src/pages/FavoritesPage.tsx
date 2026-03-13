@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
     Search, LayoutGrid, List, Grid3X3, Sparkles, FolderPlus, Trash2, FolderInput, X, ChevronDown, CheckCircle2,
     Filter,
-    Loader2,
 
 } from 'lucide-react';
 import { useFavoritesStore } from '../stores/favorites';
@@ -13,6 +12,7 @@ import FavoriteCard from '../components/FavoriteCard';
 import FavoriteModal from '../components/FavoriteModal';
 import type { FavoriteItem, ViewMode } from '../services/favoritesApi';
 import { useTelegram } from '../hooks/useTelegram';
+import { SkeletonCard } from '../components/skeletons/SkeletonCard';
 
 // ── Date grouping ────────────────────────────────
 function groupLabel(date: Date): string {
@@ -274,8 +274,17 @@ export default function FavoritesPage() {
 
             {/* ── Content ── */}
             {loading ? (
-                <div className="flex items-center justify-center pt-24">
-                    <Loader2 size={36} className="text-tg-accent animate-spin" />
+                <div className="px-0.5 sm:px-2 mt-1">
+                    <div className="grid grid-cols-3 gap-[2px]">
+                        {Array.from({ length: 9 }).map((_, i) => (
+                            <div key={i} className="aspect-square bg-tg-secondary animate-pulse rounded-sm" />
+                        ))}
+                    </div>
+                    <div className="mt-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <SkeletonCard key={i} />
+                        ))}
+                    </div>
                 </div>
             ) : items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center pt-24 text-center px-6">

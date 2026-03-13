@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles, X, ChevronRight } from 'lucide-react';
-import { BOT_COMMANDS, cmdSlug } from '../../data/botCommands';
+import { cmdSlug } from '../../data/botCommands';
+import { getSuggestions } from '../../services/commandSimilarity';
 
 interface Props {
+  /** Slug of the command currently being viewed — used to exclude it and personalise results. */
+  currentSlug?: string;
   onSelect: (slug: string) => void;
 }
 
-export default function CommandSuggestions({ onSelect }: Props) {
+export default function CommandSuggestions({ currentSlug, onSelect }: Props) {
   const [visible, setVisible] = useState(true);
   const { t } = useTranslation('commandDetail');
-  
-  // Mantenemos el estado inicial aleatorio para que no cambie en cada re-render
-  const [suggestions] = useState(() => {
-    const shuffled = [...BOT_COMMANDS].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
-  });
 
-  if (!visible) return null;
+  // Computed once from similarity engine — stable across re-renders
+  const [suggestions] = useState(() =>
+    getSuggestions(currentSlug ?? '', 3),
+  );
+
+  if (!visible || suggestions.length === 0) return null;
 
   return (
     <div className="mx-5 mt-6 bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">

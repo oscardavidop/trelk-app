@@ -1,27 +1,60 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
-import { BOT_COMMANDS, POPULAR_SLUGS, cmdSlug, CATEGORY_META, getCategories, findCommand } from '../data/botCommands';
+import { BOT_COMMANDS, cmdSlug, CATEGORY_META, getCategories } from '../data/botCommands';
+import type { BotCommand } from '../data/botCommands';
 import CommandCard from '../components/commands/CommandCard';
 import StickyHeader from '../components/StickyHeader';
-import { Flame, Star, Folder, ArrowRight } from 'lucide-react';
+import { TrendingUp, Star, Folder, ArrowRight } from 'lucide-react';
+import { fetchCommandRankings } from '../services/commandStatsApi';
 import CommandFavoritesPage from './CommandFavoritesPage';
-
-const TRENDING = ['chatgpt', 'dl', 'play', 'img'];
 
 export default function BotCommandsPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
   const { t } = useTranslation('commandDetail');
+  const [trending, setTrending] = useState<BotCommand[]>([]);
+  const [popular, setPopular] = useState<BotCommand[]>([]);
+
+  const commandMap = useMemo(
+    () => new Map(BOT_COMMANDS.map((cmd) => [cmdSlug(cmd), cmd] as const)),
+    [],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchCommandRankings(4, 6)
+      .then((data) => {
+        if (cancelled) return;
+        const trendingCommands = data.trending
+          .map((item) => commandMap.get(item.command))
+          .filter((cmd): cmd is BotCommand => cmd !== undefined);
+        const popularCommands = data.popular
+          .map((item) => commandMap.get(item.command))
+          .filter((cmd): cmd is BotCommand => cmd !== undefined);
+
+        setTrending(trendingCommands.length ? trendingCommands : BOT_COMMANDS.slice(0, 4));
+        setPopular(popularCommands.length ? popularCommands : BOT_COMMANDS.slice(0, 6));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTrending(BOT_COMMANDS.slice(0, 4));
+        setPopular(BOT_COMMANDS.slice(0, 6));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [commandMap]);
 
   const go = (slug: string) => {
     haptic?.impactOccurred('light');
     navigate(`/users/ui/${userId}/bot-commands/${slug}`);
   };
 
-  const popular = POPULAR_SLUGS.map(findCommand).filter(Boolean);
-  const trending = TRENDING.map(findCommand).filter(Boolean);
   const cats = getCategories();
 
   return (
@@ -32,7 +65,7 @@ export default function BotCommandsPage() {
       <section className="px-5 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5">
-            <Flame size={14} className="text-orange-500" /> {t('trending')}
+            <TrendingUp size={14} className="text-orange-500" /> {t('trending')}
           </h2>
         </div>
         

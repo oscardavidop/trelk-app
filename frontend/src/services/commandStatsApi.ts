@@ -25,6 +25,22 @@ export interface CommandStatsData {
 export interface MyRating {
   rating: number | null;
   review: string | null;
+  feedback?: 'useful' | 'not_useful' | null;
+  reason?: 'didnt_work' | 'too_slow' | 'bad_results' | 'confusing' | null;
+}
+
+export interface RankingItem {
+  command: string;
+  weeklyUses: number;
+  favorites: number;
+  trendingScore: number;
+  popularScore: number;
+}
+
+export interface CommandRankingsData {
+  generatedAt: number;
+  trending: RankingItem[];
+  popular: RankingItem[];
 }
 
 export interface Review {
@@ -39,6 +55,10 @@ export interface ReviewsPage {
   total: number;
 }
 
+const rankingsCache = new Map<string, { expiresAt: number; data: CommandRankingsData }>();
+const rankingsInflight = new Map<string, Promise<CommandRankingsData>>();
+const RANKINGS_CLIENT_TTL = 60_000;
+
 // ── API calls ────────────────────────────────────
 
 export function fetchCommandStats(command: string): Promise<CommandStatsData> {
@@ -47,6 +67,36 @@ export function fetchCommandStats(command: string): Promise<CommandStatsData> {
 
 export function fetchMyRating(command: string): Promise<MyRating> {
   return json(`${BASE}/${encodeURIComponent(command)}/my-rating`);
+}
+
+export async function fetchCommandRankings(
+  trendingLimit = 6,
+  popularLimit = 6,
+): Promise<CommandRankingsData> {
+  const key = `${trendingLimit}:${popularLimit}`;
+  const now = Date.now();
+  const cached = rankingsCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.data;
+
+  const inflight = rankingsInflight.get(key);
+  if (inflight) return inflight;
+
+  const req = json<CommandRankingsData>(
+    `${BASE}/rankings?trendingLimit=${trendingLimit}&popularLimit=${popularLimit}`,
+  )
+    .then((data) => {
+      rankingsCache.set(key, {
+        data,
+        expiresAt: Date.now() + RANKINGS_CLIENT_TTL,
+      });
+      return data;
+    })
+    .finally(() => {
+      rankingsInflight.delete(key);
+    });
+
+  rankingsInflight.set(key, req);
+  return req;
 }
 
 export function submitRating(command: string, rating: number, review?: string): Promise<void> {

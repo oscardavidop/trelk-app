@@ -20,6 +20,7 @@ export class FavoritesController {
     @Query('context') context: string,
     @Query('engine') engine: string,
     @Query('search') search: string,
+    @Query('projections') projections: string,
     @Query('collectionId') collectionId: string,
     @Req() req: any,
   ) {
@@ -30,6 +31,7 @@ export class FavoritesController {
       engine: engine || undefined,
       search: search || undefined,
       collectionId: collectionId || undefined,
+      projections: projections || undefined,
     });
     return { ok: true, ...result };
   }

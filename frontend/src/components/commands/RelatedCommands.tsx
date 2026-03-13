@@ -1,20 +1,20 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { BOT_COMMANDS, CATEGORY_META, cmdSlug } from '../../data/botCommands';
+import { CATEGORY_META, cmdSlug } from '../../data/botCommands';
 import { Compass, ChevronRight } from 'lucide-react';
 import { useTelegram } from '../../hooks/useTelegram';
+import { getRelated } from '../../services/commandSimilarity';
 
 interface Props {
-  slugs: string[];
+  /** Slug of the current command — related commands are computed automatically. */
+  slug: string;
 }
 
-export default function RelatedCommands({ slugs }: Props) {
+export default function RelatedCommands({ slug }: Props) {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { haptic } = useTelegram();
 
-  const commands = slugs
-    .map((s) => BOT_COMMANDS.find((c) => cmdSlug(c) === s))
-    .filter(Boolean) as typeof BOT_COMMANDS;
+  const commands = getRelated(slug, 4);
 
   if (!commands.length) return null;
 

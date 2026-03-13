@@ -67,6 +67,78 @@ export class CommandStatsService {
     return result;
   }
 
+  async getRankings(trendingLimit = 6, popularLimit = 6): Promise<CommandRankingsResult> {
+    const safeTrending = Math.min(Math.max(trendingLimit || 6, 1), 30);
+    const safePopular = Math.min(Math.max(popularLimit || 6, 1), 30);
+    const cacheKey = `command:rankings:${safeTrending}:${safePopular}`;
+
+    const cached = await this.redis.get<CommandRankingsResult>(cacheKey);
+    if (cached) return cached;
+
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    const [weeklyRows, favoriteRows] = await Promise.all([
+      this.historyModel.aggregate<{ _id: string; weeklyUses: number }>([
+        {
+          $match: {
+            type: 'command',
+            timestamp: { $gte: weekAgo },
+            command: { $exists: true, $ne: null },
+          },
+        },
+        { $project: { command: { $toLower: '$command' } } },
+        { $match: { command: { $ne: '' } } },
+        { $group: { _id: '$command', weeklyUses: { $sum: 1 } } },
+      ]).exec(),
+      this.favModel.aggregate<{ _id: string; favorites: number }>([
+        { $match: { command: { $exists: true, $ne: null } } },
+        { $project: { command: { $toLower: '$command' } } },
+        { $match: { command: { $ne: '' } } },
+        { $group: { _id: '$command', favorites: { $sum: 1 } } },
+      ]).exec(),
+    ]);
+
+    const commandMap = new Map<string, { weeklyUses: number; favorites: number }>();
+
+    for (const row of weeklyRows) {
+      commandMap.set(row._id, { weeklyUses: row.weeklyUses, favorites: 0 });
+    }
+
+    for (const row of favoriteRows) {
+      const existing = commandMap.get(row._id);
+      if (existing) {
+        existing.favorites = row.favorites;
+      } else {
+        commandMap.set(row._id, { weeklyUses: 0, favorites: row.favorites });
+      }
+    }
+
+    const combined: RankingEntry[] = [...commandMap.entries()].map(([command, stats]) => {
+      const trendingScore = stats.weeklyUses * 2 + stats.favorites;
+      const popularScore = stats.weeklyUses + stats.favorites;
+      return {
+        command,
+        weeklyUses: stats.weeklyUses,
+        favorites: stats.favorites,
+        trendingScore,
+        popularScore,
+      };
+    });
+
+    const result: CommandRankingsResult = {
+      generatedAt: Date.now(),
+      trending: [...combined]
+        .sort((a, b) => b.trendingScore - a.trendingScore)
+        .slice(0, safeTrending),
+      popular: [...combined]
+        .sort((a, b) => b.popularScore - a.popularScore)
+        .slice(0, safePopular),
+    };
+
+    await this.redis.set(cacheKey, result, WEEKLY_TTL);
+    return result;
+  }
+
   // ════════════════════════════════════════════════
   // RATING SYSTEM
   // ════════════════════════════════════════════════
@@ -88,15 +160,20 @@ export class CommandStatsService {
     return rounded;
   }
 
-  /** Get user's own rating for a command */
-  async getMyRating(userId: number, command: string): Promise<{ rating: number | null; review: string | null }> {
+  /** Get user's own rating/feedback for a command */
+  async getMyRating(userId: number, command: string): Promise<{ rating: number | null; review: string | null; feedback: 'useful' | 'not_useful' | null; reason: 'didnt_work' | 'too_slow' | 'bad_results' | 'confusing' | null }> {
     const doc = await this.ratingModel
       .findOne({ userId, command: command.toLowerCase().trim() })
       .lean()
       .exec();
     return doc
-      ? { rating: doc.rating, review: (doc as any).review ?? null }
-      : { rating: null, review: null };
+      ? {
+        rating: doc.rating,
+        review: (doc as any).review ?? null,
+        feedback: (doc as any).feedback ?? null,
+        reason: (doc as any).reason ?? null,
+      }
+      : { rating: null, review: null, feedback: null, reason: null };
   }
 
   /** Submit or update a rating */
@@ -133,6 +210,45 @@ export class CommandStatsService {
     ).exec();
 
     // Invalidate caches
+    await this.redis.del(`command:rating:${cmd}`);
+    await this.redis.del(`command:stats:${cmd}`);
+  }
+
+  /** Submit useful / not-useful feedback and optional reason */
+  async submitFeedback(
+    userId: number,
+    command: string,
+    useful: boolean,
+    reason?: 'didnt_work' | 'too_slow' | 'bad_results' | 'confusing',
+  ): Promise<void> {
+    const cmd = command.toLowerCase().trim();
+
+    if (!useful && !reason) {
+      throw new BadRequestException('reason required when useful=false');
+    }
+
+    if (reason && !['didnt_work', 'too_slow', 'bad_results', 'confusing'].includes(reason)) {
+      throw new BadRequestException('Invalid reason');
+    }
+
+    await this.checkRateLimit(`rate:feedback:${userId}`, RATING_LIMIT, 3600);
+
+    const now = Date.now();
+    await this.ratingModel.findOneAndUpdate(
+      { userId, command: cmd },
+      {
+        $set: {
+          feedback: useful ? 'useful' : 'not_useful',
+          reason: useful ? undefined : reason,
+          updatedAt: now,
+        },
+        $setOnInsert: {
+          createdAt: now,
+        },
+      },
+      { upsert: true },
+    ).exec();
+
     await this.redis.del(`command:rating:${cmd}`);
     await this.redis.del(`command:stats:${cmd}`);
   }
@@ -270,4 +386,18 @@ export interface CommandStatsResult {
   ratingsCount: number;
   weeklyUses: number;
   favorites: number;
+}
+
+export interface RankingEntry {
+  command: string;
+  weeklyUses: number;
+  favorites: number;
+  trendingScore: number;
+  popularScore: number;
+}
+
+export interface CommandRankingsResult {
+  generatedAt: number;
+  trending: RankingEntry[];
+  popular: RankingEntry[];
 }

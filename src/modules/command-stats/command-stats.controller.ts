@@ -9,6 +9,19 @@ import { CommandStatsService } from './command-stats.service';
 export class CommandStatsController {
   constructor(private readonly svc: CommandStatsService) {}
 
+  /** GET /rankings — trending/popular rankings (cached) */
+  @Get('rankings')
+  async rankings(
+    @Query('limit') limitStr: string,
+    @Query('trendingLimit') trendingLimitStr: string,
+    @Query('popularLimit') popularLimitStr: string,
+  ) {
+    const limit = parseInt(limitStr, 10);
+    const trendingLimit = Math.min(Math.max(parseInt(trendingLimitStr, 10) || limit || 6, 1), 30);
+    const popularLimit = Math.min(Math.max(parseInt(popularLimitStr, 10) || limit || 6, 1), 30);
+    return { ok: true, ...(await this.svc.getRankings(trendingLimit, popularLimit)) };
+  }
+
   /** GET /:command/stats — aggregated stats (cached 120s) */
   @Get(':command/stats')
   async stats(@Param('command') command: string) {
@@ -33,6 +46,19 @@ export class CommandStatsController {
     if (!command?.trim()) throw new BadRequestException('command required');
     if (body.rating == null) throw new BadRequestException('rating required');
     await this.svc.rate(this.uid(req), command, body.rating, body.review);
+    return { ok: true };
+  }
+
+  /** POST /:command/feedback — submit useful/not-useful feedback */
+  @Post(':command/feedback')
+  async feedback(
+    @Param('command') command: string,
+    @Body() body: { useful: boolean; reason?: 'didnt_work' | 'too_slow' | 'bad_results' | 'confusing' },
+    @Req() req: any,
+  ) {
+    if (!command?.trim()) throw new BadRequestException('command required');
+    if (typeof body?.useful !== 'boolean') throw new BadRequestException('useful boolean required');
+    await this.svc.submitFeedback(this.uid(req), command, body.useful, body.reason);
     return { ok: true };
   }
 

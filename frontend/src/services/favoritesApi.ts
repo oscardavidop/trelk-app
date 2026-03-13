@@ -71,7 +71,8 @@ export type ViewMode = 'gallery' | 'list' | 'compact';
 // ── API ──────────────────────────────────────────
 
 export const fetchFavorites = (p: {
-  cursor?: string; limit?: number; context?: string; engine?: string; search?: string; collectionId?: string;
+  cursor?: string; limit?: number; context?: string; engine?: string; search?: string; collectionId?: string; 
+  filters?: { projections?: string | string[] };  
 }): Promise<PaginatedResponse> => {
   const q = new URLSearchParams();
   if (p.cursor) q.set('cursor', p.cursor);
@@ -80,6 +81,10 @@ export const fetchFavorites = (p: {
   if (p.engine) q.set('engine', p.engine);
   if (p.search) q.set('search', p.search);
   if (p.collectionId) q.set('collectionId', p.collectionId);
+  if (p.filters?.projections) {
+    const projections = Array.isArray(p.filters.projections) ? p.filters.projections.join(',') : p.filters.projections;
+    q.set('projections', projections);
+  }
   const qs = q.toString();
   return json(`${BASE}${qs ? `?${qs}` : ''}`);
 };

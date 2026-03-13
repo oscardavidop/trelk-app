@@ -29,7 +29,7 @@ interface FavoritesState {
   selectedIds: Set<string>;
   selectMode: boolean;
 
-  load: () => Promise<void>;
+  load: (options?: { filters?: { projections?: string | string[] } }) => Promise<void>;
   loadMore: () => Promise<void>;
   loadFilters: () => Promise<void>;
   loadCollections: () => Promise<void>;
@@ -60,7 +60,7 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   loading: false, loadingMore: false, error: null,
   selectedIds: new Set<string>(), selectMode: false,
 
-  load: async () => {
+  load: async (options) => {
     const { activeContext, activeEngine, searchQuery, activeCollectionId } = get();
     set({ loading: true, error: null });
     try {
@@ -70,6 +70,7 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
         engine: activeEngine || undefined,
         search: searchQuery || undefined,
         collectionId: activeCollectionId || undefined,
+        filters: options?.filters,
       });
       if (res.ok) set({ items: res.items, total: res.total, nextCursor: res.nextCursor, hasMore: res.hasMore, loading: false });
       else set({ error: 'Error cargando', loading: false });

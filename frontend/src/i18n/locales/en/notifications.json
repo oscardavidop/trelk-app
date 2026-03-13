@@ -1,0 +1,17 @@
+{
+  "title": "Notifications",
+  "empty": "No notifications",
+  "empty_desc": "You're all caught up!",
+  "mark_read": "Mark as read",
+  "mark_all_read": "Mark all as read",
+  "open": "Open",
+  "unread": "unread",
+  "type_achievement": "Achievement",
+  "type_command": "Command",
+  "type_subscription": "Subscription",
+  "type_system": "System",
+  "just_now": "Just now",
+  "min_ago": "{{count}}m ago",
+  "hours_ago": "{{count}}h ago",
+  "days_ago": "{{count}}d ago"
+}

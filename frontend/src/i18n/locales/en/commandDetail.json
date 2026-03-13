@@ -29,7 +29,7 @@
   "rate_question": "How would you rate this command?",
   "rate_stars": "{{count}} stars",
   "thanks_rating": "Thanks for your rating!",
-  "you_rated": "You rated",
+  "you_rated": "You rated this command {{count}} stars",
   "run_in_telegram": "Run in Telegram",
   "report_sent": "Report sent",
   "report_error": "Report error",

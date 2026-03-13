@@ -7,15 +7,9 @@ import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
 import Select from '@/components/Select';
 import { useHideIsland } from '@/hooks/useHideIsland';
+import { BOT_COMMANDS } from '@/data/botCommands';
 
-const ALLOWED_ALIAS = [
-  'chatgpt-premium',
-  'gpt4',
-  'gpt4-premium',
-  'bard-pro',
-  'gemini-1.5-pro',
-  'custom-model',
-];
+const ALLOWED_ALIAS = BOT_COMMANDS.map((cmd) => cmd.uniqueName).filter(Boolean) as string[]; // Solo comandos con descripción definida pueden ser alias
 
 export default function PremiumCommandsPage() {
   const { userId } = useParams();

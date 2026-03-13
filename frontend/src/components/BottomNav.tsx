@@ -1,6 +1,8 @@
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { useTranslation } from 'react-i18next';
+import { Bell } from 'lucide-react';
+import { useNotificationsStore } from '../stores/notifications';
 
 const TAB_KEYS = [
   {
@@ -49,6 +51,14 @@ const TAB_KEYS = [
       </svg>
     ),
   },
+  {
+    key: 'notifications',
+    labelKey: 'notifications',
+    path: '/notifications',
+    icon: (active: boolean) => (
+      <Bell size={active ? 23 : 22} strokeWidth={active ? 2.2 : 1.8} />
+    ),
+  },
 ];
 
 export default function BottomNav() {
@@ -57,6 +67,7 @@ export default function BottomNav() {
   const { userId } = useParams();
   const { haptic } = useTelegram();
   const { t } = useTranslation('navigation');
+  const unreadCount = useNotificationsStore((s) => s.unreadCount);
 
   const basePath = `/users/ui/${userId}`;
 
@@ -66,6 +77,7 @@ export default function BottomNav() {
     if (path.startsWith(`${basePath}/hub`)) return 'commands';
     if (path.startsWith(`${basePath}/settings-hub`)) return 'settings';
     if (path.startsWith(`${basePath}/profile-tab`)) return 'profile';
+    if (path.startsWith(`${basePath}/notifications`)) return 'notifications';
     return 'home';
   };
 
@@ -86,8 +98,13 @@ export default function BottomNav() {
             }}
             className={`btm-nav-item ${isActive ? 'btm-nav-active' : ''}`}
           >
-            <span className={`btm-nav-icon ${isActive ? 'text-tg-accent' : 'text-tg-hint'}`}>
+            <span className={`btm-nav-icon ${isActive ? 'text-tg-accent' : 'text-tg-hint'} relative`}>
               {tab.icon(isActive)}
+              {tab.key === 'notifications' && unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </span>
             <span className={`btm-nav-label ${isActive ? 'text-tg-accent' : 'text-tg-hint'}`}>
               {t(tab.labelKey)}

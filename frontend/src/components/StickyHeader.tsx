@@ -6,12 +6,13 @@ interface StickyHeaderProps {
     subtitle?: string;
     children?: ReactNode;
     icon?: ReactNode; // Por si queremos añadir un icono o elemento extra en el header
+    border?: boolean; // Para controlar si queremos borde o no (útil para el header principal vs secciones)
 }
 
-export default function StickyHeader({ title, subtitle, children, icon }: StickyHeaderProps) {
+export default function StickyHeader({ title, subtitle, children, icon, border }: StickyHeaderProps) {
     return (
         <div
-            className="sticky z-30 bg-tg-bg backdrop-blur-md border-b border-tg-border/50 pb-4"
+            className={`sticky z-30 bg-tg-bg backdrop-blur-md ${border ? 'border-b border-tg-border/50' : ''} pb-4`}
             style={{
                 top: 'var(--tg-top-offset, var(--tg-top-offset, env(--tg-top2-offset, 0px)))'
             }}
@@ -25,14 +26,10 @@ export default function StickyHeader({ title, subtitle, children, icon }: Sticky
                 }
 
                 <div>
-                    <h1 className="text-[24px] font-extrabold text-tg-text  leading-none">{title}</h1>
-                    {subtitle && <p className="text-[13px] font-medium text-tg-hint/80 mt-1">{subtitle}</p>}
+                    <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{title}</h1>
+                    {subtitle && <p className="text-[14px] font-medium text-tg-hint/80 mt-1">{subtitle}</p>}
                 </div>
             </div>
-            {/* <div className="px-4 pt-4 relative z-10">
-                <h1 className="text-xl font-bold text-tg-text">{title}</h1>
-                {subtitle && <p className="text-xs text-tg-hint mt-0.5">{subtitle}</p>}
-            </div> */}
             {children && children}
         </div>
     );

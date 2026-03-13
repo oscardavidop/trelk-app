@@ -16,6 +16,7 @@ import {
   Crown, 
   CreditCard 
 } from 'lucide-react';
+import StickyHeader from '@/components/StickyHeader';
 
 export default function SettingsHub() {
   const { userId } = useParams();
@@ -47,13 +48,7 @@ export default function SettingsHub() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      
-      {/* ── Header ── */}
-      <div className="px-5 pt-8 pb-4">
-        <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{t('title')}</h1>
-        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('subtitle')}</p>
-      </div>
-
+      <StickyHeader title={t('title')} subtitle={t('subtitle')} />
       {/* ── Account Card ── */}
       <section className="px-5 mt-2">
         <button
