@@ -10,7 +10,7 @@ import { CommandFavorite, CommandFavoriteDocument } from '../command-favorites/s
 import { RedisCacheService } from '../redis/redis-cache.service';
 
 const STATS_TTL = 120;       // 2min cache for aggregated stats
-const WEEKLY_TTL = 300;       // 5min cache for weekly usage
+const WEEKLY_TTL = 3600;      // 60min cache for weekly usage
 const RATING_LIMIT = 10;     // max ratings per hour
 const REPORT_LIMIT = 3;      // max reports per hour
 const REPORT_DEDUP_TTL = 86400; // 24h dedup window
@@ -20,6 +20,9 @@ export class CommandStatsService {
   private readonly logger = new Logger(CommandStatsService.name);
   private readonly botToken: string;
   private readonly adminChatId: string;
+  private readonly apiUrl: string;
+
+
 
   constructor(
     @InjectModel(CommandRating.name) private readonly ratingModel: Model<CommandRatingDocument>,
@@ -31,6 +34,7 @@ export class CommandStatsService {
   ) {
     this.botToken = this.configService.get<string>('BOT_TOKEN', '');
     this.adminChatId = this.configService.get<string>('ADMIN_CHAT_ID', '');
+    this.apiUrl = this.configService.get<string>('TELEGRAM_API_URL') || 'https://api.telegram.org';
   }
 
   // ════════════════════════════════════════════════
@@ -67,6 +71,82 @@ export class CommandStatsService {
     return result;
   }
 
+  // async getRankings(trendingLimit = 6, popularLimit = 6): Promise<CommandRankingsResult> {
+  //   const safeTrending = Math.min(Math.max(trendingLimit || 6, 1), 30);
+  //   const safePopular = Math.min(Math.max(popularLimit || 6, 1), 30);
+  //   const cacheKey = `command:rankings:${safeTrending}:${safePopular}`;
+
+  //   const cached = await this.redis.get<CommandRankingsResult>(cacheKey);
+  //   if (cached) return cached;
+
+  //   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+  //   const [weeklyRows, favoriteRows] = await Promise.all([
+  //     this.historyModel.aggregate<{ _id: string; weeklyUses: number }>([
+  //       {
+  //         $match: {
+  //           type: 'command',
+  //           timestamp: { $gte: weekAgo },
+  //           command: { $exists: true, $ne: null },
+  //         },
+  //       },
+  //       { $project: { command: { $toLower: '$command' } } },
+  //       { $match: { command: { $ne: '' } } },
+  //       { $group: { _id: '$command', weeklyUses: { $sum: 1 } } },
+  //     ]).exec(),
+  //     this.favModel.aggregate<{ _id: string; favorites: number }>([
+  //       { $match: { command: { $exists: true, $ne: null } } },
+  //       { $project: { command: { $toLower: '$command' } } },
+  //       { $match: { command: { $ne: '' } } },
+  //       { $group: { _id: '$command', favorites: { $sum: 1 } } },
+  //     ]).exec(),
+  //   ]);
+
+  //   const commandMap = new Map<string, { weeklyUses: number; favorites: number }>();
+
+  //   for (const row of weeklyRows) {
+  //     commandMap.set(row._id, { weeklyUses: row.weeklyUses, favorites: 0 });
+  //   }
+
+  //   for (const row of favoriteRows) {
+  //     const existing = commandMap.get(row._id);
+  //     if (existing) {
+  //       existing.favorites = row.favorites;
+  //     } else {
+  //       commandMap.set(row._id, { weeklyUses: 0, favorites: row.favorites });
+  //     }
+  //   }
+
+  //   const combined: RankingEntry[] = [...commandMap.entries()].map(([command, stats]) => {
+  //     const trendingScore = stats.weeklyUses * 2 + stats.favorites;
+  //     const popularScore = stats.weeklyUses + stats.favorites;
+  //     return {
+  //       command,
+  //       weeklyUses: stats.weeklyUses,
+  //       favorites: stats.favorites,
+  //       trendingScore,
+  //       popularScore,
+  //     };
+  //   });
+
+  //   const result: CommandRankingsResult = {
+  //     generatedAt: Date.now(),
+  //     trending: [...combined]
+  //       .sort((a, b) => b.trendingScore - a.trendingScore)
+  //       .slice(0, safeTrending),
+  //     popular: [...combined]
+  //       .sort((a, b) => b.popularScore - a.popularScore)
+  //       .slice(0, safePopular),
+  //   };
+
+  //   await this.redis.set(cacheKey, result, WEEKLY_TTL);
+  //   return result;
+  // }
+
+  // ════════════════════════════════════════════════
+  // RATING SYSTEM
+  // ════════════════════════════════════════════════
+
   async getRankings(trendingLimit = 6, popularLimit = 6): Promise<CommandRankingsResult> {
     const safeTrending = Math.min(Math.max(trendingLimit || 6, 1), 30);
     const safePopular = Math.min(Math.max(popularLimit || 6, 1), 30);
@@ -83,23 +163,37 @@ export class CommandStatsService {
           $match: {
             type: 'command',
             timestamp: { $gte: weekAgo },
-            command: { $exists: true, $ne: null },
+            // Filtramos nulos, indefinidos y strings vacíos de una vez usando índices
+            command: { $type: 'string', $nin: ['', null] },
           },
         },
-        { $project: { command: { $toLower: '$command' } } },
-        { $match: { command: { $ne: '' } } },
-        { $group: { _id: '$command', weeklyUses: { $sum: 1 } } },
+        {
+          // Agrupamos y convertimos a minúsculas en un solo paso
+          $group: {
+            _id: { $toLower: '$command' },
+            weeklyUses: { $sum: 1 }
+          }
+        },
       ]).exec(),
+
       this.favModel.aggregate<{ _id: string; favorites: number }>([
-        { $match: { command: { $exists: true, $ne: null } } },
-        { $project: { command: { $toLower: '$command' } } },
-        { $match: { command: { $ne: '' } } },
-        { $group: { _id: '$command', favorites: { $sum: 1 } } },
+        {
+          $match: {
+            command: { $type: 'string', $nin: ['', null] }
+          }
+        },
+        {
+          $group: {
+            _id: { $toLower: '$command' },
+            favorites: { $sum: 1 }
+          }
+        },
       ]).exec(),
     ]);
 
     const commandMap = new Map<string, { weeklyUses: number; favorites: number }>();
 
+    // Tu lógica de mapeo está perfecta y es muy rápida (O(N)), la mantenemos igual.
     for (const row of weeklyRows) {
       commandMap.set(row._id, { weeklyUses: row.weeklyUses, favorites: 0 });
     }
@@ -114,34 +208,42 @@ export class CommandStatsService {
     }
 
     const combined: RankingEntry[] = [...commandMap.entries()].map(([command, stats]) => {
-      const trendingScore = stats.weeklyUses * 2 + stats.favorites;
-      const popularScore = stats.weeklyUses + stats.favorites;
       return {
         command,
         weeklyUses: stats.weeklyUses,
         favorites: stats.favorites,
-        trendingScore,
-        popularScore,
+        trendingScore: stats.weeklyUses * 2 + stats.favorites,
+        popularScore: stats.weeklyUses + stats.favorites,
       };
     });
 
+    // 1. Calcular trending primero
+    const trending = [...combined]
+      .sort((a, b) => b.trendingScore - a.trendingScore)
+      .slice(0, safeTrending);
+
+    // 2. Crear un Set con los comandos de trending para búsqueda instantánea O(1)
+    const trendingCommands = new Set(trending.map(t => t.command));
+
+    // 3. Calcular popular filtrando los que ya están en trending
+    const popular = combined
+      .sort((a, b) => b.popularScore - a.popularScore)
+      // Filtramos: que NO esté en el Set de trending
+      .filter(item => !trendingCommands.has(item.command))
+      .slice(0, safePopular);
+
+    // 4. Armar el objeto final
     const result: CommandRankingsResult = {
       generatedAt: Date.now(),
-      trending: [...combined]
-        .sort((a, b) => b.trendingScore - a.trendingScore)
-        .slice(0, safeTrending),
-      popular: [...combined]
-        .sort((a, b) => b.popularScore - a.popularScore)
-        .slice(0, safePopular),
+      trending,
+      popular
     };
 
+
+    // Asumo que WEEKLY_TTL está definido en otra parte de tu archivo
     await this.redis.set(cacheKey, result, WEEKLY_TTL);
     return result;
   }
-
-  // ════════════════════════════════════════════════
-  // RATING SYSTEM
-  // ════════════════════════════════════════════════
 
   /** Get aggregated rating stats from Redis cache or Mongo */
   private async getRatingStats(command: string): Promise<{ avg: number; count: number }> {
@@ -325,7 +427,7 @@ export class CommandStatsService {
     await this.redis.set(dedupKey, '1', REPORT_DEDUP_TTL);
 
     // Notify admin via Telegram
-    this.notifyAdmin(cmd, userId, category, msg).catch(() => {});
+    this.notifyAdmin(cmd, userId, category, msg).catch(() => { });
   }
 
   // ════════════════════════════════════════════════
@@ -347,7 +449,7 @@ export class CommandStatsService {
     ].join('\n');
 
     try {
-      await fetch(`https://api.telegram.org/bot${this.botToken}/sendMessage`, {
+      await fetch(`${this.apiUrl}/bot${this.botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

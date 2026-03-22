@@ -36,7 +36,7 @@ export default function Toast() {
         `}
       >
         <Icon className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
-        <span className="text-[14.5px] font-medium text-white/95 leading-snug tracking-wide">
+        <span className="text-[14.5px] font-medium text-white/95 leading-snug ">
           {message}
         </span>
       </div>

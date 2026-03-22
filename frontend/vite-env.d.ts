@@ -37,7 +37,7 @@ interface TelegramWebApp {
     hide: () => void;
     enable: () => void;
     disable: () => void;
-    showProgress: () => void;
+    showProgress: (state: boolean) => void;
     hideProgress: () => void;
     onClick: (fn: () => void) => void;
     offClick: (fn: () => void) => void;

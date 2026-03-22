@@ -8,7 +8,6 @@ import CommandCard from '../components/commands/CommandCard';
 import StickyHeader from '../components/StickyHeader';
 import { TrendingUp, Star, Folder, ArrowRight } from 'lucide-react';
 import { fetchCommandRankings } from '../services/commandStatsApi';
-import CommandFavoritesPage from './CommandFavoritesPage';
 
 export default function BotCommandsPage() {
   const { userId } = useParams();
@@ -20,7 +19,7 @@ export default function BotCommandsPage() {
 
   const commandMap = useMemo(
     () => new Map(BOT_COMMANDS.map((cmd) => [cmdSlug(cmd), cmd] as const)),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -58,18 +57,18 @@ export default function BotCommandsPage() {
   const cats = getCategories();
 
   return (
-    <div className="pb-24 animate-fade-in relative">
+    <div className="pb-28 animate-fade-in relative">
       <StickyHeader title={t('bot_commands')} subtitle={t('commands_available', { count: BOT_COMMANDS.length })} />
 
       {/* ── Trending (Carrusel) ── */}
-      <section className="px-5 mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5">
-            <TrendingUp size={14} className="text-orange-500" /> {t('trending')}
+      <section className="px-5 mt-5">
+        <div className="flex items-center justify-between mb-3 pl-1">
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider flex items-center gap-1.5">
+            <TrendingUp size={16} className="text-orange-500" /> {t('trending')}
           </h2>
         </div>
         
-        <div className="flex gap-3 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-5 pl-5 pr-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {trending.map((cmd) => {
             const slug = cmdSlug(cmd!);
             const cat = CATEGORY_META[cmd!.category] ?? { label: cmd!.category, color: '#6b7280', icon: '📦' };
@@ -78,20 +77,20 @@ export default function BotCommandsPage() {
               <button
                 key={slug}
                 onClick={() => go(slug)}
-                className="flex-shrink-0 w-[140px] bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-left active:scale-[0.96] transition-transform shadow-sm group hover:bg-white/[0.02]"
+                className="flex-shrink-0 w-[140px] bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 text-left active:scale-[0.96] transition-all duration-200 shadow-sm group"
               >
                 <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center text-xl mb-3 shadow-inner"
+                  className="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center text-xl mb-3 shadow-sm border border-white/5 group-active:scale-95 transition-transform duration-200"
                   style={{ backgroundColor: `${cat.color}20` }}
                 >
-                  <span className="group-hover:scale-110 transition-transform">
+                  <span>
                     {typeof cat.icon === 'string' ? cat.icon : <cat.icon className="w-5 h-5" style={{ color: cat.color }} />}
                   </span>
                 </div>
-                <div className="text-[15px] font-extrabold text-tg-text font-mono  leading-none mb-1.5 truncate">
+                <div className="text-[15px] font-bold text-tg-text font-mono leading-tight mb-1 truncate">
                   /{slug}
                 </div>
-                <div className="text-[11px] text-tg-hint/80 line-clamp-2 leading-tight">
+                <div className="text-[12px] font-medium text-tg-hint line-clamp-2 leading-snug">
                   {cmd!.description}
                 </div>
               </button>
@@ -102,14 +101,12 @@ export default function BotCommandsPage() {
 
       {/* ── Popular Commands ── */}
       <section className="px-5 mt-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5">
-            <Star size={14} className="text-amber-400 fill-amber-400/20" /> {t('popular_commands')}
+        <div className="flex items-center justify-between mb-3 pl-1">
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider flex items-center gap-1.5">
+            <Star size={16} className="text-amber-500 fill-amber-500/20" /> {t('popular_commands')}
           </h2>
         </div>
         
-        {/* CORRECCIÓN: Volvemos a usar una lista con espacio (gap-3) 
-            para que cada CommandCard sea una tarjeta independiente, sin "cajas dobles" */}
         <div className="flex flex-col gap-3">
           {popular.slice(0, 6).map((cmd) => (
             <CommandCard key={cmdSlug(cmd!)} cmd={cmd!} onClick={go} />
@@ -119,8 +116,8 @@ export default function BotCommandsPage() {
 
       {/* ── Categories (Grid) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  pl-1 flex items-center gap-1.5 mb-3">
-          <Folder size={14} className="text-sky-400 fill-sky-400/20" /> {t('categories')}
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 flex items-center gap-1.5 mb-3">
+          <Folder size={16} className="text-sky-500 fill-sky-500/20" /> {t('categories')}
         </h2>
         
         <div className="grid grid-cols-2 gap-3">
@@ -135,17 +132,17 @@ export default function BotCommandsPage() {
                   haptic?.impactOccurred('light');
                   navigate(`/users/ui/${userId}/bot-commands/list?cat=${c}`);
                 }}
-                className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-left active:scale-[0.96] transition-transform shadow-sm hover:bg-white/[0.02] group"
+                className="bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 text-left active:scale-[0.98] transition-all duration-200 shadow-sm group"
               >
                 <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center text-xl mb-2.5 shadow-inner"
+                  className="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center text-xl mb-3 shadow-sm border border-white/5 group-active:scale-95 transition-transform duration-200"
                   style={{ backgroundColor: `${meta.color}20` }}
                 >
-                  <span className="group-hover:scale-110 transition-transform">
+                  <span>
                     {typeof meta.icon === 'string' ? meta.icon : <meta.icon className="w-5 h-5" style={{ color: meta.color }} />}
                   </span>
                 </div>
-                <div className="text-[15px] font-bold text-tg-text  truncate">
+                <div className="text-[15px] font-semibold text-tg-text truncate leading-tight">
                   {meta.label}
                 </div>
                 <div className="text-[12px] font-medium text-tg-hint mt-0.5">
@@ -158,13 +155,13 @@ export default function BotCommandsPage() {
       </section>
 
       {/* ── View All Button ── */}
-      <section className="px-5 mt-8 pb-2">
+      <section className="px-5 mt-8 pb-4">
         <button
           onClick={() => {
             haptic?.impactOccurred('light');
             navigate(`/users/ui/${userId}/bot-commands/list`);
           }}
-          className="w-full py-4 rounded-[16px] bg-tg-accent/10 border border-tg-accent/20 text-tg-accent text-[15px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] hover:bg-tg-accent/15 transition-all shadow-sm"
+          className="w-full py-3.5 rounded-[20px] bg-tg-accent/10 text-tg-accent text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform duration-200 shadow-sm"
         >
           {t('explore_all')}
           <ArrowRight size={18} strokeWidth={2.5} />

@@ -1,30 +1,31 @@
 import { useTranslation } from 'react-i18next';
 import type { PlanTier } from '../../services/subscriptionApi';
 import type { ProFeatures } from '../../services/subscriptionApi';
+import { Zap, Crown, Sparkles, Clock } from 'lucide-react';
 
 const TIER_META: Record<PlanTier, { label: string; color: string; gradient: string; icon: React.ReactNode }> = {
   free: {
-    label: 'Free', color: '#9ca3af', gradient: 'from-gray-600/30 to-gray-800/10',
-    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
+    label: 'Free', color: '#9ca3af', gradient: 'from-gray-500/10 to-gray-800/5',
+    icon: <Zap size={24} className="text-gray-400 drop-shadow-sm" />,
   },
   pro: {
-    label: 'Pro', color: '#f5a623', gradient: 'from-amber-500/30 to-orange-600/10',
-    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f5a623" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-9-4 9-6-7z" /><path d="M3 20h18" /></svg>,
+    label: 'Pro', color: '#f59e0b', gradient: 'from-amber-500/20 to-orange-600/5',
+    icon: <Crown size={24} className="text-amber-500 drop-shadow-md" />,
   },
   ultra: {
-    label: 'Ultra', color: '#a855f7', gradient: 'from-purple-500/30 to-pink-600/10',
-    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.5 4.5H18l-3.7 2.8 1.4 4.5L12 12l-3.7 2.8 1.4-4.5L6 7.5h4.5z" /><path d="M5 19l2-5" /><path d="M19 19l-2-5" /></svg>,
+    label: 'Ultra', color: '#8b5cf6', gradient: 'from-violet-500/20 to-fuchsia-600/5',
+    icon: <Sparkles size={24} className="text-violet-500 drop-shadow-md" />,
   },
 };
 
 function timeUntil(isoDate: string | undefined, t: (key: string, opts?: any) => string): string {
-  if (!isoDate) return t('subscription:no_expiry');
+  if (!isoDate) return t('subscription:no_expiry', 'Lifetime access');
   const diff = new Date(isoDate).getTime() - Date.now();
-  if (diff <= 0) return t('subscription:expired');
+  if (diff <= 0) return t('subscription:expired', 'Expired');
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
-  if (days > 0) return t('subscription:time_remaining_days', { days, hours });
-  return t('subscription:time_remaining_hours', { hours });
+  if (days > 0) return t('subscription:time_remaining_days', { days, hours, defaultValue: `${days}d ${hours}h left` });
+  return t('subscription:time_remaining_hours', { hours, defaultValue: `${hours}h left` });
 }
 
 interface Props {
@@ -38,42 +39,44 @@ export default function SubscriptionHero({ features }: Props) {
   const meta = TIER_META[tier];
 
   return (
-    <div className="mx-4 mt-4 animate-scale-in">
-      <div className={`relative rounded-[22px] overflow-hidden bg-gradient-to-br ${meta.gradient} p-5 ring-1 ring-tg-border/20`}>
+    <div className="px-5 mt-2 animate-scale-in">
+      <div className={`relative rounded-[24px] overflow-hidden bg-gradient-to-br ${meta.gradient} p-5 border border-white/5 shadow-sm`}>
         {/* Glow */}
         <div
-          className="absolute -top-20 -right-20 w-44 h-44 rounded-full blur-3xl opacity-20 pointer-events-none"
+          className="absolute -top-20 -right-20 w-[200px] h-[200px] rounded-full blur-[50px] opacity-30 pointer-events-none"
           style={{ background: meta.color }}
         />
 
         <div className="relative z-10">
           {/* Plan info */}
-          <div className="flex items-center gap-3.5 mb-5">
+          <div className="flex items-center gap-4 mb-5">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: `${meta.color}15`, border: `1px solid ${meta.color}25` }}
+              className="w-[52px] h-[52px] rounded-[16px] flex items-center justify-center shadow-sm"
+              style={{ background: `${meta.color}15`, border: `1px solid ${meta.color}30` }}
             >
               {meta.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-bold text-tg-text ">{t('plan_label', { plan: meta.label })}</div>
-              <div className="text-[13px] text-tg-hint flex items-center gap-1.5 mt-0.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                {tier === 'free' ? t('no_expiry') : timeUntil(subscription.expires_at, t)}
+              <div className="text-[22px] font-bold text-tg-text leading-tight tracking-tight">
+                {t('plan_label', { plan: meta.label, defaultValue: meta.label })}
+              </div>
+              <div className="text-[13px] font-medium text-tg-hint flex items-center gap-1.5 mt-0.5">
+                <Clock size={14} className="opacity-70" />
+                {tier === 'free' ? t('no_expiry', 'Never expires') : timeUntil(subscription.expires_at, t)}
               </div>
             </div>
           </div>
 
-          {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-2">
+          {/* Quick stats (Bento Grid Mini) */}
+          <div className="grid grid-cols-3 gap-2.5">
             {[
-              { label: t('priority'), value: performance.queue_priority },
-              { label: t('speed'), value: `${performance.response_speed_multiplier}x` },
-              { label: t('support'), value: support.priority },
+              { label: t('priority', 'Priority'), value: performance.queue_priority },
+              { label: t('speed', 'Speed'), value: `${performance.response_speed_multiplier}x` },
+              { label: t('support', 'Support'), value: support.priority },
             ].map((s) => (
-              <div key={s.label} className="bg-tg-surface/50 backdrop-blur-sm rounded-2xl py-2.5 px-2 text-center border border-tg-border/10">
-                <div className="text-[11px] text-tg-hint font-medium mb-0.5">{s.label}</div>
-                <div className="text-[13px] font-bold text-tg-text capitalize">{s.value}</div>
+              <div key={s.label} className="backdrop-blur-md rounded-[16px] py-3 px-2 text-center shadow-sm">
+                <div className="text-[11px] font-bold text-tg-hint uppercase tracking-wider mb-1">{s.label}</div>
+                <div className="text-[14px] font-semibold text-tg-text capitalize leading-none truncate px-1">{s.value}</div>
               </div>
             ))}
           </div>

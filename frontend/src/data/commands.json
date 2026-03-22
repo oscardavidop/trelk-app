@@ -45,6 +45,72 @@
   },
   {
     "name": [
+      "alert",
+      "task",
+      "reminder",
+      "notify"
+    ],
+    "group": "alerta",
+    "category": "utilities",
+    "usage": "/alert <time> <message>",
+    "requireArgs": true,
+    "description": "Establece una alerta o recordatorio.",
+    "supportsInline": false,
+    "alias": [
+      "alert",
+      "task",
+      "reminder",
+      "notify"
+    ],
+    "protected": false,
+    "uniqueName": "alerta"
+  },
+  {
+    "name": [
+      "cancelalert",
+      "canceltask",
+      "deletealert",
+      "delete_alert",
+      "borraralerta",
+      "dalerts"
+    ],
+    "group": "dalert",
+    "category": "utilities",
+    "usage": "/dalert <id|all>",
+    "requireArgs": true,
+    "description": "Cancela o elimina una alerta programada.",
+    "supportsInline": false,
+    "alias": [
+      "cancelalert",
+      "canceltask",
+      "deletealert",
+      "delete_alert",
+      "borraralerta",
+      "dalerts"
+    ],
+    "protected": false,
+    "uniqueName": "dalert"
+  },
+  {
+    "name": [
+      "list_alert",
+      "listaralertas"
+    ],
+    "group": "listalert",
+    "category": "utilities",
+    "usage": "/listalert",
+    "requireArgs": false,
+    "description": "Lista todas las alertas programadas.",
+    "supportsInline": false,
+    "alias": [
+      "list_alert",
+      "listaralertas"
+    ],
+    "protected": false,
+    "uniqueName": "listalert"
+  },
+  {
+    "name": [
       "dogs",
       "perro",
       "perros",
@@ -168,8 +234,8 @@
   {
     "name": [],
     "group": "xnx",
-    "category": "uncategorized",
-    "usage": "",
+    "category": "downloader",
+    "usage": "/xnx <url>",
     "requireArgs": false,
     "description": "Descarga contenido de XNXX.",
     "supportsInline": false,
@@ -261,8 +327,8 @@
       "rate"
     ],
     "group": "feedback",
-    "category": "uncategorized",
-    "usage": "",
+    "category": "general",
+    "usage": "/feedback <comentarios>",
     "requireArgs": false,
     "description": "Envía tu opinión o calificación.",
     "supportsInline": false,
@@ -280,7 +346,7 @@
     ],
     "group": "help",
     "category": "information",
-    "usage": "",
+    "usage": "/help",
     "requireArgs": false,
     "description": "Mostrar la lista de comandos disponibles",
     "supportsInline": false,
@@ -301,7 +367,7 @@
     ],
     "group": "img",
     "category": "tools",
-    "usage": "",
+    "usage": "/img <term>",
     "requireArgs": false,
     "description": "Busca imágenes en línea utilizando varios motores de búsqueda.",
     "supportsInline": false,
@@ -322,8 +388,8 @@
       "correo_temporal"
     ],
     "group": "mail",
-    "category": "uncategorized",
-    "usage": "",
+    "category": "tools",
+    "usage": "/mail",
     "requireArgs": false,
     "description": "Crea un correo temporal para recibir emails anónimos.",
     "supportsInline": false,
@@ -520,8 +586,8 @@
       "configuración"
     ],
     "group": "settings",
-    "category": "uncategorized",
-    "usage": "",
+    "category": "general",
+    "usage": "/settings",
     "requireArgs": false,
     "description": "Ajustar las configuraciones del bot",
     "supportsInline": false,
@@ -556,6 +622,24 @@
   },
   {
     "name": [
+      "inicio",
+      "empezar"
+    ],
+    "group": "start",
+    "category": "information",
+    "usage": "/start",
+    "requireArgs": false,
+    "description": "Bienvenida y onboarding rápido del bot.",
+    "supportsInline": false,
+    "alias": [
+      "inicio",
+      "empezar"
+    ],
+    "protected": false,
+    "uniqueName": "start"
+  },
+  {
+    "name": [
       "hashmd5",
       "hash",
       "md5hash"
@@ -571,9 +655,6 @@
       "hashmd5",
       "hash",
       "md5hash"
-    ],
-    "photos": [
-      "1.jpg"
     ],
     "protected": false,
     "uniqueName": "md5"
@@ -806,71 +887,5 @@
     ],
     "protected": false,
     "uniqueName": "wiki"
-  },
-  {
-    "name": [
-      "alert",
-      "task",
-      "reminder",
-      "notify"
-    ],
-    "group": "alerta",
-    "category": "utilities",
-    "usage": "/alert <time> <message>",
-    "requireArgs": true,
-    "description": "Establece una alerta o recordatorio.",
-    "supportsInline": false,
-    "alias": [
-      "alert",
-      "task",
-      "reminder",
-      "notify"
-    ],
-    "protected": false,
-    "uniqueName": "alerta"
-  },
-  {
-    "name": [
-      "cancelalert",
-      "canceltask",
-      "deletealert",
-      "delete_alert",
-      "borraralerta",
-      "dalerts"
-    ],
-    "group": "dalert",
-    "category": "uncategorized",
-    "usage": "",
-    "requireArgs": true,
-    "description": "Cancela o elimina una alerta programada.",
-    "supportsInline": false,
-    "alias": [
-      "cancelalert",
-      "canceltask",
-      "deletealert",
-      "delete_alert",
-      "borraralerta",
-      "dalerts"
-    ],
-    "protected": false,
-    "uniqueName": "dalert"
-  },
-  {
-    "name": [
-      "list_alert",
-      "listaralertas"
-    ],
-    "group": "listalert",
-    "category": "uncategorized",
-    "usage": "",
-    "requireArgs": false,
-    "description": "Lista todas las alertas programadas.",
-    "supportsInline": false,
-    "alias": [
-      "list_alert",
-      "listaralertas"
-    ],
-    "protected": false,
-    "uniqueName": "listalert"
   }
 ]

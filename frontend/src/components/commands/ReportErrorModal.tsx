@@ -89,68 +89,69 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
       // Show inline error or just reset
     }
   };
+
   const content = (
     <div
       className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4 animate-fade-in"
       onClick={onClose}
     >
-      {/* ── Fondo Oscurecido ── */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {/* ── Fondo Oscurecido con Blur ── */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
 
       {/* ── Contenedor del Modal ── */}
       <div
-        className="relative w-full sm:max-w-md max-h-[90vh] bg-tg-bg rounded-t-[24px] sm:rounded-[24px] overflow-hidden flex flex-col shadow-2xl sm:animate-scale-in animate-slide-up"
+        className="relative w-full sm:max-w-md max-h-[90vh] bg-tg-secondary rounded-t-[24px] sm:rounded-[24px] overflow-hidden flex flex-col shadow-2xl sm:animate-scale-in animate-slide-up border border-tg-border/40"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar (Solo móvil) */}
-        <div className="flex justify-center pt-3 pb-2 sm:hidden flex-shrink-0">
+        <div className="flex justify-center pt-3 pb-1 sm:hidden flex-shrink-0">
           <div className="w-12 h-1.5 rounded-full bg-tg-hint/30" />
         </div>
 
         {/* ── Header ── */}
-        <div className="px-5 pt-2 pb-4 border-b border-tg-border/50 flex-shrink-0 bg-tg-bg/95 backdrop-blur-md z-10">
+        <div className="px-5 pt-3 pb-4 border-b border-tg-border/20 flex-shrink-0 bg-tg-secondary z-10">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-[18px] font-bold text-tg-text ">{t('report_error')}</h3>
-              <p className="text-[12px] font-mono text-tg-hint/80 mt-0.5 truncate max-w-[250px]">
-                {t('report_command')}: <span className="font-bold text-tg-text">/{commandSlug}</span>
+              <h3 className="text-[18px] font-bold text-tg-text leading-tight">{t('report_error', 'Report Error')}</h3>
+              <p className="text-[13px] font-mono font-medium text-tg-hint mt-1 truncate max-w-[250px]">
+                {t('report_command', 'Command')}: <span className="font-bold text-tg-text">/{commandSlug}</span>
               </p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-tg-secondary flex items-center justify-center text-tg-hint hover:bg-tg-accent/10 hover:text-tg-accent active:scale-95 transition-all"
+              className="w-[34px] h-[34px] rounded-full bg-tg-hint/10 flex items-center justify-center text-tg-hint hover:bg-tg-hint/20 active:scale-95 transition-all"
             >
               <X size={18} strokeWidth={2.5} />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-2 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {sent ? (
-            <div className="p-10 text-center animate-scale-in flex flex-col items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4 shadow-inner">
-                <CheckCircle2 size={40} className="text-emerald-500" />
+            /* ── Estado de Éxito ── */
+            <div className="p-10 text-center animate-scale-in flex flex-col items-center justify-center h-full min-h-[300px]">
+              <div className="w-[72px] h-[72px] rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 shadow-sm">
+                <CheckCircle2 size={36} className="text-emerald-500" strokeWidth={2.5} />
               </div>
 
-              <p className="text-[18px] font-extrabold text-tg-text ">
-                {t('report_sent')}
+              <p className="text-[20px] font-bold text-tg-text mb-1">
+                {t('report_sent', 'Report Sent')}
               </p>
 
-              <p className="text-[14px] font-medium text-tg-hint mt-1.5 leading-relaxed">
-                {t('report_thanks')}
+              <p className="text-[14px] font-medium text-tg-hint leading-relaxed max-w-[250px]">
+                {t('report_thanks', 'Thank you for helping us improve!')}
               </p>
             </div>
           ) : (
-            <div className="p-5 overflow-y-auto space-y-5 no-scrollbar">
+            /* ── Formulario ── */
+            <div className="p-5 space-y-6">
 
               {/* Referencia comando */}
-              <div className="flex items-center gap-2 bg-tg-text/[0.03] border border-tg-border/30 px-3 py-2.5 rounded-[12px]">
-                <AlertTriangle size={14} className="text-tg-hint/70" />
-
-                <div className="text-[12px] font-medium text-tg-hint">
-                  {t('report_affected_command')}:
-                  <span className="font-mono font-bold text-tg-text ml-1">
+              <div className="flex items-center gap-3 bg-tg-hint/5 border border-tg-border/30 px-3.5 py-3 rounded-[14px] shadow-sm">
+                <AlertTriangle size={16} className="text-tg-hint/70" />
+                <div className="text-[13px] font-medium text-tg-hint">
+                  {t('report_affected_command', 'Affected command')}:
+                  <span className="font-mono font-bold text-tg-text ml-1.5">
                     /{commandSlug}
                   </span>
                 </div>
@@ -158,14 +159,13 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
 
               {/* Tipo */}
               <div>
-                <label className="text-[11px] font-extrabold text-tg-hint uppercase  mb-2.5 block px-1">
-                  {t('report_what_happened')}
+                <label className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 block pl-1">
+                  {t('report_what_happened', 'What happened?')}
                 </label>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   {REPORT_TYPES.map((rt) => {
                     const active = type === rt.id;
-
                     return (
                       <button
                         key={rt.id}
@@ -173,10 +173,11 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                           setType(rt.id);
                           haptic?.selectionChanged();
                         }}
-                        className={`p-3 rounded-[14px] text-[13px] font-bold transition-all text-left border ${active
+                        className={`p-3 rounded-[14px] text-[13px] font-semibold transition-all duration-200 text-left border active:scale-[0.98] ${
+                          active
                             ? 'bg-tg-accent/10 border-tg-accent/30 text-tg-accent shadow-sm'
-                            : 'bg-tg-secondary border-tg-border/50 text-tg-hint hover:bg-tg-text/[0.02]'
-                          }`}
+                            : 'bg-tg-bg border-tg-border/40 text-tg-hint hover:bg-tg-hint/5'
+                        }`}
                       >
                         {t(rt.labelKey)}
                       </button>
@@ -187,8 +188,8 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
 
               {/* Detalles */}
               <div>
-                <label className="text-[11px] font-extrabold text-tg-hint uppercase  mb-2.5 block px-1">
-                  {t('report_details')}
+                <label className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 block pl-1">
+                  {t('report_details', 'Details')}
                 </label>
 
                 <div className="relative">
@@ -197,13 +198,14 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                     onChange={(e) => setDetails(e.target.value)}
                     rows={4}
                     maxLength={500}
-                    placeholder={t('report_describe')}
-                    className="w-full bg-tg-text/[0.02] border border-tg-border/40 rounded-[16px] p-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none resize-none focus:border-tg-accent/40 transition-colors shadow-inner"
+                    placeholder={t('report_describe', 'Please describe the issue in detail...')}
+                    className="w-full bg-tg-bg border border-tg-border/40 rounded-[16px] p-4 pb-8 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none resize-none focus:border-tg-accent/50 focus:ring-1 focus:ring-tg-accent/20 transition-all shadow-sm"
                   />
 
                   <div
-                    className={`absolute bottom-3 right-3 text-[10px] font-bold ${details.length > 450 ? 'text-red-400' : 'text-tg-hint/50'
-                      }`}
+                    className={`absolute bottom-3 right-4 text-[11px] font-bold ${
+                      details.length > 450 ? 'text-red-400' : 'text-tg-hint/50'
+                    }`}
                   >
                     {details.length}/500
                   </div>
@@ -212,24 +214,24 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
 
               {/* Screenshots */}
               <div>
-                <label className="text-[11px] font-extrabold text-tg-hint uppercase  mb-2.5 block px-1">
-                  {t('report_screenshots')}
-                  <span className="text-tg-hint/50 font-medium normal-case ml-1">
-                    ({t('common:optional')})
+                <label className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 flex items-center pl-1">
+                  {t('report_screenshots', 'Screenshots')}
+                  <span className="text-tg-hint/50 font-medium normal-case ml-1.5 text-[11px]">
+                    ({t('common:optional', 'Optional')})
                   </span>
                 </label>
 
-                <div className="flex gap-2.5 flex-wrap">
+                <div className="flex gap-3 flex-wrap">
                   {screenshots.map((s, i) => (
                     <div
                       key={i}
-                      className="relative w-[70px] h-[70px] rounded-[14px] bg-tg-secondary border border-tg-border/50 flex items-center justify-center shadow-sm"
+                      className="relative w-[72px] h-[72px] rounded-[14px] bg-tg-bg border border-tg-border/40 flex items-center justify-center shadow-sm"
                     >
-                      <Camera size={20} className="text-tg-hint/30" />
+                      <Camera size={20} className="text-tg-hint/40" />
 
                       <button
                         onClick={() => removeScreenshot(i)}
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 border-2 border-tg-bg flex items-center justify-center"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 border-2 border-tg-secondary flex items-center justify-center shadow-sm active:scale-90 transition-transform"
                       >
                         <X size={12} className="text-white" strokeWidth={3} />
                       </button>
@@ -239,43 +241,41 @@ export default function ReportErrorModal({ commandSlug, open, onClose, onSubmit 
                   {screenshots.length < 3 && (
                     <button
                       onClick={addScreenshot}
-                      className="w-[70px] h-[70px] rounded-[14px] border-2 border-dashed border-tg-border/40 bg-tg-text/[0.01] flex flex-col items-center justify-center"
+                      className="w-[72px] h-[72px] rounded-[14px] border-2 border-dashed border-tg-border/40 bg-tg-hint/5 flex flex-col items-center justify-center active:scale-95 transition-transform hover:bg-tg-hint/10"
                     >
                       <Camera size={18} className="text-tg-hint/50 mb-1" />
-
-                      <span className="text-[10px] font-bold text-tg-hint/60">
-                        {t('common:add')}
+                      <span className="text-[10px] font-bold text-tg-hint/60 uppercase tracking-wider">
+                        {t('common:add', 'Add')}
                       </span>
                     </button>
                   )}
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* ── Footer ── */}
-          {!sent && (
-            <div className="p-4">
-              <button
-                onClick={handleSubmit}
-                disabled={!details.trim() || sending}
-                className="w-full py-3.5 rounded-[16px] bg-red-500 text-white text-[15px] font-extrabold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_15px_rgba(239,68,68,0.3)]"
-              >
-                {sending ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Send size={18} className="fill-white/20" />
-                )}
-
-                {sending ? t('report_sending') : t('report_submit')}
-              </button>
             </div>
           )}
         </div>
 
+        {/* ── Footer ── */}
+        {!sent && (
+          <div className="p-5 border-t border-tg-border/20 bg-tg-secondary flex-shrink-0 z-10">
+            <button
+              onClick={handleSubmit}
+              disabled={!details.trim() || sending}
+              className="w-full py-3.5 rounded-[16px] bg-red-500 text-white text-[15px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              {sending ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Send size={18} className="fill-white/20" />
+              )}
+              {sending ? t('report_sending', 'Sending...') : t('report_submit', 'Submit Report')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 
   return createPortal(content, document.body);
 }

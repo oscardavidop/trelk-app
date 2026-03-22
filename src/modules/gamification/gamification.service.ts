@@ -103,7 +103,8 @@ export class GamificationService {
       streak: d.streak,
     }));
 
-    await this.redis.set(cacheKey, rankings, 120);
+    // cache for 20 minutes since rankings don't change super often and can be expensive to compute
+    await this.redis.set(cacheKey, rankings, 12000);
     return rankings;
   }
 }

@@ -9,7 +9,7 @@ import { Readable } from 'stream';
 @Controller('api/v1/ui/favorites')
 @UseGuards(CookieAuthGuard)
 export class FavoritesController {
-  constructor(private readonly svc: FavoritesService) {}
+  constructor(private readonly svc: FavoritesService) { }
 
   // ── Favorites ───────────────────────────────────
 
@@ -101,16 +101,18 @@ export class FavoritesController {
   @Get('file/:fileId')
   async getFile(@Param('fileId') fileId: string, @Res() reply: FastifyReply) {
     if (!fileId) throw new BadRequestException('fileId required');
+
     const { stream, contentType, contentLength } = await this.svc.getFileStream(fileId);
 
+    // Seteamos headers primero
     reply.header('Content-Type', contentType);
     reply.header('Cache-Control', 'public, max-age=86400, immutable');
     if (contentLength) reply.header('Content-Length', contentLength);
 
-    // Convert web ReadableStream to Node Readable and pipe
-    const nodeStream = Readable.fromWeb(stream as any);
-    return reply.send(nodeStream);
+    // En Fastify, enviar un Node Stream es directo
+    return reply.send(stream);
   }
+
 
   // ── Helper ──────────────────────────────────────
 

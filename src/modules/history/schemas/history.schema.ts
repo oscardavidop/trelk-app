@@ -37,3 +37,5 @@ HistorySchema.index({ userId: 1, timestamp: -1 });
 HistorySchema.index({ command: 1 });
 HistorySchema.index({ type: 1 });
 HistorySchema.index({ timestamp: -1 });
+HistorySchema.index({ type: 1, timestamp: 1, command: 1 });
+

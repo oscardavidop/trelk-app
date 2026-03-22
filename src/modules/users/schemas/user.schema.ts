@@ -169,9 +169,6 @@ export class User {
   @Prop()
   photoUrl: string;
 
-  @Prop()
-  languageCode: string;
-
   @Prop({ default: false })
   isPremium: boolean;
 

@@ -39,9 +39,10 @@ export class UserController {
     private readonly authService: AuthService,
   ) { }
 
-  @Post('users/api')
+  @Post('api/users')
   @UseGuards(DynamicAuthGuard)
   async api(@Body() dto: ChangeSettingsDto, @Req() req, @Res({ passthrough: true }) res) {
+    let ok = true;
     // Pre-parse JSON strings from x-www-form-urlencoded before class-transformer
     if (typeof dto.settings === 'string') {
       try { dto.settings = JSON.parse(dto.settings); } catch {}
@@ -97,7 +98,7 @@ export class UserController {
         const result = await this.userService.updateSetting(req.user.authTelegram.id, settingKey, settingValue);
         msg = `Config '${settingKey}' update to '${settingValue}'`;
       
-        if (result.modifiedCount === 0) {
+        if (!result.modifiedCount) {
           msg = `No changes made.`;
         }
         console.log('result', result);
@@ -106,8 +107,12 @@ export class UserController {
 
       case 'updateConfig':
         const r = await this.userService.updateConfig(req.user.authTelegram.id, body.config);
-        // console.log("Update config result", r);
+        console.log("Update config result", r, body.config);
         msg = `Changes saved`;
+        if (!r.modifiedCount) {
+          msg = `No changes made.`;
+          ok = false;
+        }
         break;
 
       case 'auth':
@@ -174,12 +179,12 @@ export class UserController {
     }
 
     return {
-      ok: true,
+      ok,
       msg,
     }
   }
 
-  @Put('users/api')
+  @Put('api/users')
   @UseGuards(DynamicAuthGuard)
   async apiPut(@Body() body: any, @Req() req) {
     return this.api(body, req, null);

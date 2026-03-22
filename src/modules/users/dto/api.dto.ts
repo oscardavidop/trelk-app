@@ -10,6 +10,10 @@ import {
   IsBooleanString,
   IsNumber,
   IsInt,
+  isTimeZone,
+  IsISO31661Alpha2,
+  IsTimeZone,
+  Matches,
 } from 'class-validator';
 
 const ALLOWED_SETTINGS = new Set([
@@ -20,20 +24,82 @@ const ALLOWED_SETTINGS = new Set([
   'notifications_settings',
   'notifications_settings.semanal_stats',
 ]);
+
 const ALLOWED_METHODS = new Set(['changeSettings', 'updateConfig', 'auth']);
 export class ConfigDto {
   @IsOptional()
   @IsString()
+  "config.locale.tz"?: string;
+
+  @IsOptional()
+  @IsIn(['es', 'en', 'fr', 'pt', 'it', 'de', 'ru', 'zh-CN', 'zh-TW', 'ja', 'ko', 'ar', 'hi', 'tr', 'nl'])
+  "config.locale.lang"?: string;
+
+  @IsOptional()
+  // @IsInt()
+  bid: number;
+
+}
+
+class DateTimeFormatDto {
+  @IsOptional() @IsIn(['2-digit', 'numeric', 'long', 'short', 'narrow'])
+  month?: string;
+
+  @IsOptional() @IsIn(['2-digit', 'numeric'])
+  day?: string;
+
+  @IsOptional() @IsIn(['2-digit', 'numeric'])
+  year?: string;
+
+  @IsOptional() @IsIn(['2-digit', 'numeric'])
+  hour?: string;
+
+  @IsOptional() @IsIn(['2-digit', 'numeric'])
+  minute?: string;
+
+  @IsOptional() @IsIn(['2-digit', 'numeric'])
+  second?: string;
+
+  @IsOptional()
+  @IsIn(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 'DD.MM.YYYY'], {
+    message: 'Invalid date format.'
+  })
+  date?: string;
+
+  @IsOptional()
+  @IsIn(['HH:mm', 'hh:mm A', 'HH:mm:ss'], {
+    message: 'Invalid time format.'
+  })
+  time?: string;
+}
+
+export class LocaleDto {
+  @IsOptional() @IsString() @IsTimeZone()
   tz?: string;
 
   @IsOptional()
   @IsIn(['es', 'en', 'fr', 'pt', 'it', 'de', 'ru', 'zh-CN', 'zh-TW', 'ja', 'ko', 'ar', 'hi', 'tr', 'nl'])
   lang?: string;
 
-  @IsOptional()
-  // @IsInt()
-  bid: number;
+  @IsOptional() @IsISO31661Alpha2()
+  country?: string;
 
+  @IsOptional()
+  @ValidateNested() // Activa la validación del objeto interno
+  @Type(() => DateTimeFormatDto) // Indica a qué clase transformar el objeto recibido
+  datetime_format?: DateTimeFormatDto;
+}
+
+
+function detectTimezone(): { key: string; name: string } | null {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!isTimeZone(tz)) return null;
+    const key = tz;
+    return { key, name: tz };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -141,5 +207,5 @@ export class UpdateDateDto {
   @IsIn(['createdAt', 'updatedAt'])
   field: 'createdAt' | 'updatedAt';
 
-  
+
 }

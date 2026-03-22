@@ -12,8 +12,8 @@ import SettingsPage from './pages/SettingsPage';
 import AccountPage from './pages/AccountPage';
 import LangPage from './pages/LangPage';
 import TimezonePage from './pages/TimezonePage';
-import CommandsPage from './pages/CommandsPage';
-import CommandDetailPage from './pages/CommandDetailPage';
+import CommandsPage from './pages/commands/CommandsPage';
+import CommandConfigPage from './pages/commands/CommandConfigPage';
 import PremiumCommandsPage from './pages/PremiumCommandsPage';
 import AuthExpiredPage from './pages/AuthExpiredPage';
 import TrelkEntry from './pages/TrelkEntry';
@@ -104,7 +104,7 @@ function App() {
           <Route path="/users/ui/:userId/set/timezone" element={<TimezonePage />} />
           <Route path="/users/ui/:userId/set/country" element={<CountryPage />} />
           <Route path="/users/ui/:userId/commands" element={<CommandsPage />} />
-          <Route path="/users/ui/:userId/commands/:command" element={<CommandDetailPage />} />
+          <Route path="/users/ui/:userId/commands/:command" element={<CommandConfigPage />} />
           <Route path="/users/ui/:userId/premium" element={<PremiumCommandsPage />} />
           <Route path="/users/ui/:userId/set/theme" element={<ThemePage />} />
           <Route path="/users/ui/:userId/subscription" element={<SubscriptionPage />} />

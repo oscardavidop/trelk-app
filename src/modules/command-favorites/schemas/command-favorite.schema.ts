@@ -24,3 +24,4 @@ export const CommandFavoriteSchema = SchemaFactory.createForClass(CommandFavorit
 CommandFavoriteSchema.index({ userId: 1, command: 1 }, { unique: true });
 // Fast lookups sorted by time
 CommandFavoriteSchema.index({ userId: 1, createdAt: -1 });
+CommandFavoriteSchema.index({ command: 1 });

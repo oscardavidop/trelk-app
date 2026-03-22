@@ -10,9 +10,13 @@ interface Props {
 
 export default function SubscriptionPlans({ currentTier, pendingChange, onSelect }: Props) {
   const { t } = useTranslation('subscription');
+  
   return (
-    <section className="px-4 mt-2">
-      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">{t('plans')}</h2>
+    <section className="px-5 mt-4">
+      <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 pl-1">
+        {t('plans', 'Available Plans')}
+      </h2>
+      
       <PlanComparison
         currentTier={currentTier}
         pendingChange={pendingChange}

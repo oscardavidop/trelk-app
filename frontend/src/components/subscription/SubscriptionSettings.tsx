@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ProFeatures } from '../../services/subscriptionApi';
+import { RefreshCcw, AlertTriangle, XCircle, Clock } from 'lucide-react';
 
 interface Props {
   features: ProFeatures;
@@ -17,70 +18,98 @@ export default function SubscriptionSettings({ features, onAutoRenewToggle, onCa
   if (tier === 'free' && !hasPendingChange) return null;
 
   return (
-    <section className="px-4">
-      <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2.5 px-1">{t('subscription')}</h2>
-      <div className="bg-tg-secondary rounded-[20px] overflow-hidden divide-y divide-tg-border/20">
-        {/* Auto Renew */}
-        {tier !== 'free' && (
-          <button
-            className="w-full flex items-center gap-3.5 p-4 text-left active:bg-tg-surface/40 transition-colors"
-            onClick={() => {
-              haptic?.impactOccurred('light');
-              onAutoRenewToggle();
-            }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-blue-500/12 flex items-center justify-center flex-shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-medium text-tg-text">Auto-Renew</div>
-              <div className="text-[12px] text-tg-hint mt-0.5">
-                {subscription.auto_renew ? t('will_auto_renew') : t('will_not_renew')}
-              </div>
-            </div>
-            <div
-              className={`tm-toggle ${subscription.auto_renew ? 'on' : ''} ml-2 flex-shrink-0`}
-              role="switch"
-              aria-checked={subscription.auto_renew}
-            />
-          </button>
-        )}
-
-        {/* Pending Change */}
-        {hasPendingChange && (
-          <div className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold text-amber-400">{t('pending_change')}</div>
-                <div className="text-[13px] text-tg-hint mt-1 leading-snug">
-                  <span className="text-tg-text font-medium">{subscription.change!.changed_from}</span>
-                  {' → '}
-                  <span className="text-tg-text font-medium">{subscription.change!.new_plan}</span>
-                  {subscription.change!.change_date && (
-                    <span className="block text-[12px] mt-0.5 opacity-75">
-                      {new Date(subscription.change!.change_date).toLocaleDateString()}
-                    </span>
-                  )}
+    <section className="px-5 mt-4">
+      <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 pl-1">
+        {t('subscription_settings', 'Settings')}
+      </h2>
+      
+      <div className="bg-tg-secondary rounded-[20px] overflow-hidden border border-tg-border/40 shadow-sm">
+        <div className="flex flex-col">
+          
+          {/* ── Auto Renew ── */}
+          {tier !== 'free' && (
+            <button
+              className={`w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors ${
+                hasPendingChange ? 'border-b border-tg-border/20' : ''
+              }`}
+              onClick={() => {
+                haptic?.impactOccurred('light');
+                onAutoRenewToggle();
+              }}
+            >
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                  <RefreshCcw size={18} className="text-sky-500" />
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onCancelChange(); }}
-                  className="mt-2.5 flex items-center gap-1.5 text-[13px] text-red-400 font-semibold active:opacity-70 transition-opacity"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
-                  {t('cancel_change')}
-                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[16px] font-semibold text-tg-text leading-tight">{t('auto_renew', 'Auto-Renew')}</div>
+                  <div className="text-[13px] font-medium text-tg-hint mt-0.5 truncate">
+                    {subscription.auto_renew ? t('will_auto_renew') : t('will_not_renew')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Tailwind Custom Toggle Switch */}
+              <div
+                className={`flex-shrink-0 ml-3 w-[46px] h-[26px] rounded-full p-1 transition-colors duration-300 ease-in-out relative ${
+                  subscription.auto_renew ? 'bg-tg-accent' : 'bg-tg-hint/30'
+                }`}
+                role="switch"
+                aria-checked={subscription.auto_renew}
+              >
+                <div
+                  className={`w-[18px] h-[18px] bg-white rounded-full shadow-sm transform transition-transform duration-300 ease-in-out ${
+                    subscription.auto_renew ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </div>
+            </button>
+          )}
+
+          {/* ── Pending Change ── */}
+          {hasPendingChange && (
+            <div className="p-4 bg-amber-500/5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-amber-500/15 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                  <AlertTriangle size={18} className="text-amber-500" />
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-bold text-amber-500 mb-1">
+                    {t('pending_change', 'Pending Change')}
+                  </div>
+                  
+                  <div className="text-[13px] text-tg-hint leading-snug bg-black/5 dark:bg-white/5 p-2.5 rounded-xl border border-tg-border/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-tg-text font-bold capitalize">{subscription.change!.changed_from}</span>
+                      <span className="text-tg-hint">→</span>
+                      <span className="text-tg-text font-bold capitalize">{subscription.change!.new_plan}</span>
+                    </div>
+                    {subscription.change!.change_date && (
+                      <div className="text-[12px] font-medium opacity-80 flex items-center gap-1">
+                        <Clock size={12} />
+                        {new Date(subscription.change!.change_date).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      haptic?.impactOccurred('medium');
+                      onCancelChange(); 
+                    }}
+                    className="mt-3.5 flex items-center gap-1.5 text-[13px] text-red-500 font-bold active:scale-95 transition-transform w-max bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20 shadow-sm"
+                  >
+                    <XCircle size={14} />
+                    {t('cancel_change', 'Cancel Change')}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+          
+        </div>
       </div>
     </section>
   );

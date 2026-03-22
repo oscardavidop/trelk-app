@@ -31,6 +31,21 @@ export class AjaxUsersUiController {
         };
     }
 
+    /** GET /api/v1/ui/user/config — lightweight user config payload */
+    @Get('user/config')
+    async getUserConfig(@Req() req: any) {
+        const telegramId = this.extractTelegramId(req);
+        const data = await this.userService.getFullConfig(telegramId);
+        if (!data) {
+            return { ok: false, error: 'User not found' };
+        }
+
+        return {
+            ok: true,
+            ...(data.config || { commands: {} }),
+        };
+    }
+
     @Get(':userId')
     async getUserHome(@Param('userId') userId: string, @Req() req: any) {
         const user = req.user;

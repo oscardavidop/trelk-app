@@ -11,7 +11,7 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
 
 function AchievementIcon({ name, className }: { name: string; className?: string }) {
   const Icon = ICON_MAP[name] || Trophy;
-  return <Icon className={className} size={22} />;
+  return <Icon className={className} size={20} />;
 }
 
 interface AchievementCardProps {
@@ -26,10 +26,10 @@ export default function AchievementCard({ achievement: a, onTap }: AchievementCa
   return (
     <button
       onClick={onTap}
-      className={`w-full relative bg-tg-secondary rounded-[20px] border p-4 text-left transition-all duration-300 active:scale-[0.95] group overflow-hidden flex flex-col h-full ${
+      className={`w-full relative rounded-[20px] border p-4 text-left transition-all duration-200 active:scale-[0.98] group overflow-hidden flex flex-col h-full shadow-sm ${
         a.unlocked 
-          ? 'border-amber-400/30 shadow-[0_4px_20px_rgba(245,158,11,0.08)] hover:bg-white/[0.03]' 
-          : 'border-tg-border/50 shadow-sm opacity-90 hover:opacity-100 hover:bg-white/[0.02]'
+          ? 'bg-amber-500/5 border-amber-500/30' 
+          : 'bg-tg-secondary border-tg-border/40'
       }`}
     >
       {/* ── Brillo de fondo (Solo desbloqueados) ── */}
@@ -41,18 +41,18 @@ export default function AchievementCard({ achievement: a, onTap }: AchievementCa
         
         {/* ── Cabecera: Icono y Estado ── */}
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-11 h-11 rounded-[14px] flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-110 ${
-            a.unlocked ? 'bg-amber-400/20' : 'bg-black/20'
+          <div className={`w-[42px] h-[42px] rounded-[14px] flex items-center justify-center shadow-sm border transition-transform duration-200 group-active:scale-95 ${
+            a.unlocked ? 'bg-amber-500/10 border-amber-500/20' : 'bg-tg-hint/10 border-white/5'
           }`}>
-            <AchievementIcon name={a.icon} className={a.unlocked ? 'text-amber-400 drop-shadow-md' : 'text-tg-hint/40'} />
+            <AchievementIcon name={a.icon} className={a.unlocked ? 'text-amber-500 drop-shadow-sm' : 'text-tg-hint/50'} />
           </div>
           
           {a.unlocked ? (
-            <span className="flex items-center gap-1 text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-              <CheckCircle2 size={10} strokeWidth={3} /> {t('done')}
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+              <CheckCircle2 size={12} strokeWidth={2.5} /> {t('done')}
             </span>
           ) : (
-            <span className="text-[10px] font-bold text-tg-hint font-mono bg-black/20 border border-white/5 px-2 py-0.5 rounded-full tracking-wider">
+            <span className="text-[11px] font-semibold text-tg-hint font-mono bg-tg-hint/10 border border-tg-border/40 px-2 py-0.5 rounded-full tracking-wider">
               {a.progress}/{a.goal}
             </span>
           )}
@@ -60,33 +60,30 @@ export default function AchievementCard({ achievement: a, onTap }: AchievementCa
 
         {/* ── Información (Título y Descripción) ── */}
         <div className="flex-1">
-          <h3 className={`text-[14px] font-bold  leading-tight ${a.unlocked ? 'text-tg-text' : 'text-tg-text/80'}`}>
+          <h3 className={`text-[15px] font-semibold leading-tight ${a.unlocked ? 'text-tg-text' : 'text-tg-text/80'}`}>
             {a.name}
           </h3>
-          <p className="text-[11px] font-medium text-tg-hint mt-1.5 leading-snug line-clamp-2">
+          <p className="text-[12px] font-medium text-tg-hint mt-1 leading-snug line-clamp-2">
             {a.description}
           </p>
         </div>
 
         {/* ── Pie de Tarjeta: Progreso y Recompensa ── */}
-        <div className="mt-3">
+        <div className="mt-3.5">
           {/* Barra de Progreso */}
           {!a.unlocked && (
-            <div className="mb-2.5 h-1.5 rounded-full bg-black/20 overflow-hidden border border-white/5">
+            <div className="mb-3 h-1.5 rounded-full bg-tg-hint/20 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-tg-accent to-blue-400 transition-all duration-500 ease-out relative"
+                className="h-full rounded-full bg-gradient-to-r from-tg-accent to-blue-500 transition-all duration-500 ease-out"
                 style={{ width: `${pct * 100}%` }}
-              >
-                {/* Brillo sutil dentro de la barra */}
-                <div className="absolute inset-0 bg-white/20" />
-              </div>
+              />
             </div>
           )}
 
           {/* Recompensa */}
-          <div className={`flex items-center gap-1.5 pt-2.5 border-t ${a.unlocked ? 'border-amber-400/15' : 'border-white/5'}`}>
-            <Gift size={12} className={a.unlocked ? 'text-amber-400' : 'text-tg-hint/60'} />
-            <span className={`text-[10px] font-bold tracking-wide truncate ${a.unlocked ? 'text-amber-400' : 'text-tg-hint'}`}>
+          <div className={`flex items-center gap-1.5 pt-2.5 border-t ${a.unlocked ? 'border-amber-500/20' : 'border-tg-border/40'}`}>
+            <Gift size={14} className={a.unlocked ? 'text-amber-500' : 'text-tg-hint/60'} />
+            <span className={`text-[11px] font-semibold tracking-wide truncate ${a.unlocked ? 'text-amber-500' : 'text-tg-hint/80'}`}>
               +{a.rewardXP} XP <span className="opacity-50 mx-0.5">•</span> {a.rewardLabel}
             </span>
           </div>

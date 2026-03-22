@@ -9,10 +9,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-//   allow inframe for telegram login and web app
+  //   allow inframe for telegram login and web app
   server: {
     port: 5173,
-    allowedHosts: ['localhost', 'app.trelk.site'],
+    allowedHosts: ['apps-telegram.trelkbot.com'],
+    hmr: {
+      // El host debe ser el dominio desde el cual accedes en el navegador
+      host: 'apps-telegram.trelkbot.com',
+      protocol: 'wss',
+      // clientPort: 443
+    },
     proxy: {
       '/users/api': {
         target: 'http://localhost:3008',

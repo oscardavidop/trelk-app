@@ -5,30 +5,8 @@ export interface CommandStats {
   favorites: number;
 }
 
-export const COMMAND_STATS: Record<string, CommandStats> = {
-  play:      { rating: 4.8, weeklyUses: 12_400, favorites: 2_310 },
-  chatgpt:   { rating: 4.9, weeklyUses: 18_200, favorites: 4_100 },
-  dl:        { rating: 4.6, weeklyUses: 9_800,  favorites: 1_750 },
-  img:       { rating: 4.5, weeklyUses: 7_600,  favorites: 1_430 },
-  translate: { rating: 4.7, weeklyUses: 8_900,  favorites: 2_020 },
-  ssweb:     { rating: 4.4, weeklyUses: 5_400,  favorites: 980 },
-  akinator:  { rating: 4.3, weeklyUses: 4_100,  favorites: 870 },
-  weather:   { rating: 4.2, weeklyUses: 3_800,  favorites: 650 },
-  tts:       { rating: 4.1, weeklyUses: 2_900,  favorites: 420 },
-  lyrics:    { rating: 4.0, weeklyUses: 3_200,  favorites: 510 },
-  wiki:      { rating: 4.0, weeklyUses: 2_700,  favorites: 380 },
-  meme:      { rating: 4.6, weeklyUses: 6_100,  favorites: 1_200 },
-  qr:        { rating: 3.9, weeklyUses: 1_900,  favorites: 290 },
-  sticker:   { rating: 4.2, weeklyUses: 3_500,  favorites: 600 },
-  shorten:   { rating: 3.8, weeklyUses: 1_400,  favorites: 210 },
-  apk:       { rating: 4.0, weeklyUses: 2_100,  favorites: 340 },
-  alert:     { rating: 4.1, weeklyUses: 2_500,  favorites: 390 },
-  ping:      { rating: 3.5, weeklyUses: 800,    favorites: 90 },
-};
 
-export function getStats(slug: string): CommandStats {
-  return COMMAND_STATS[slug] ?? { rating: 4.0, weeklyUses: 500, favorites: 50 };
-}
+
 
 /* ─── Command Examples mock ─── */
 export interface CommandExample {

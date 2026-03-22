@@ -2,40 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* === CSS Variables — RGB triplets for Tailwind opacity modifier support === */
-:root {
-  /* Legacy hex vars (kept for non-Tailwind CSS classes) */
-  --tg-bg: #1a2026;
-  --tg-secondary: #212a33;
-  --tg-surface: #293540;
-  --tg-accent: #248BDA;
-  --tg-text: #ffffff;
-  --tg-text-secondary: #7d8b97;
-  --tg-hint: #7d8b97;
-  --tg-link: #5eaadf;
-  --tg-destructive: #e5545e;
-  --tg-success: #50b85d;
-  --tg-border: #293540;
-  --tg-theme-text-color: #7d8b97; /* Used for scrollbar theming */
+@layer base {
 
-  /* RGB triplet vars for Tailwind alpha support */
-  --tg-bg-rgb: 26 32 38;
-  --tg-secondary-rgb: 33 42 51;
-  --tg-surface-rgb: 41 53 64;
-  --tg-accent-rgb: 36 139 218;
-  --tg-text-rgb: 255 255 255;
-  --tg-text-secondary-rgb: 125 139 151;
-  --tg-hint-rgb: 125 139 151;
-  --tg-link-rgb: 94 170 223;
-  --tg-destructive-rgb: 229 84 94;
-  --tg-success-rgb: 80 184 93;
-  --tg-border-rgb: 41 53 64;
-}
+  /* === CSS Variables — RGB triplets for Tailwind opacity modifier support === */
+  :root {
+    /* Legacy hex vars (kept for non-Tailwind CSS classes) */
+    --tg-bg: #1a2026;
+    --tg-secondary: #212a33;
+    --tg-surface: #293540;
+    --tg-accent: #248BDA;
+    --tg-text: #ffffff;
+    --tg-text-secondary: #7d8b97;
+    --tg-hint: #7d8b97;
+    --tg-link: #5eaadf;
+    --tg-destructive: #e5545e;
+    --tg-success: #50b85d;
+    --tg-border: #293540;
+    --tg-theme-text-color: #7d8b97;
 
-/* Light mode override */
-@media (prefers-color-scheme: light) {
-  :root:not(.dark) {
-    --tg-theme-text-color: #6b7280; /* Update theme text color for scrollbar in light mode */
+    /* RGB triplet vars for Tailwind alpha support */
+    --tg-bg-rgb: 26 32 38;
+    --tg-secondary-rgb: 33 42 51;
+    --tg-surface-rgb: 41 53 64;
+    --tg-accent-rgb: 36 139 218;
+    --tg-text-rgb: 255 255 255;
+    --tg-text-secondary-rgb: 125 139 151;
+    --tg-hint-rgb: 125 139 151;
+    --tg-link-rgb: 94 170 223;
+    --tg-destructive-rgb: 229 84 94;
+    --tg-success-rgb: 80 184 93;
+    --tg-border-rgb: 41 53 64;
+  }
+
+  /* Light mode override */
+  @media (prefers-color-scheme: light) {
+    :root:not(.dark) {
+      --tg-theme-text-color: #6b7280;
+      --tg-bg: #f0f2f5;
+      --tg-secondary: #ffffff;
+      --tg-surface: #e8eaed;
+      --tg-accent: #2481cc;
+      --tg-text: #1a1a1a;
+      --tg-text-secondary: #6b7280;
+      --tg-hint: #6b7280;
+      --tg-link: #2481cc;
+      --tg-destructive: #dc3545;
+      --tg-success: #28a745;
+      --tg-border: #d1d5db;
+
+      --tg-bg-rgb: 240 242 245;
+      --tg-secondary-rgb: 255 255 255;
+      --tg-surface-rgb: 232 234 237;
+      --tg-accent-rgb: 36 129 204;
+      --tg-text-rgb: 26 26 26;
+      --tg-text-secondary-rgb: 107 114 128;
+      --tg-hint-rgb: 107 114 128;
+      --tg-link-rgb: 36 129 204;
+      --tg-destructive-rgb: 220 53 69;
+      --tg-success-rgb: 40 167 69;
+      --tg-border-rgb: 209 213 219;
+    }
+  }
+
+  /* Explicit light class for Telegram WebApp theme */
+  .light {
+    --tg-theme-text-color: #6b7280;
     --tg-bg: #f0f2f5;
     --tg-secondary: #ffffff;
     --tg-surface: #e8eaed;
@@ -60,59 +91,59 @@
     --tg-success-rgb: 40 167 69;
     --tg-border-rgb: 209 213 219;
   }
+
+  /* Base HTML/Body reset */
+  html,
+  body {
+    background-color: var(--tg-bg);
+    color: var(--tg-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* ── TWEAK NATIVO 1: Elimina el destello azul al hacer tap en botones en Android/iOS ── */
+    -webkit-tap-highlight-color: transparent;
+
+    /* ── TWEAK NATIVO 2: Evita que el texto cambie de tamaño si el usuario rota el móvil ── */
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html {
+    height: 100%;
+    /* Previene el scroll pull-to-refresh nativo del navegador que rompe la ilusión de app */
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    min-height: 100%;
+    overflow-y: auto;
+    /* Suaviza el scroll en iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root {
+    background-color: var(--tg-bg);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
 }
 
-/* Explicit light class for Telegram WebApp theme */
-.light {
-  --tg-bg: #f0f2f5;
-  --tg-secondary: #ffffff;
-  --tg-surface: #e8eaed;
-  --tg-accent: #2481cc;
-  --tg-text: #1a1a1a;
-  --tg-text-secondary: #6b7280;
-  --tg-hint: #6b7280;
-  --tg-link: #2481cc;
-  --tg-destructive: #dc3545;
-  --tg-success: #28a745;
-  --tg-border: #d1d5db;
+@layer utilities {
 
-  --tg-bg-rgb: 240 242 245;
-  --tg-secondary-rgb: 255 255 255;
-  --tg-surface-rgb: 232 234 237;
-  --tg-accent-rgb: 36 129 204;
-  --tg-text-rgb: 26 26 26;
-  --tg-text-secondary-rgb: 107 114 128;
-  --tg-hint-rgb: 107 114 128;
-  --tg-link-rgb: 36 129 204;
-  --tg-destructive-rgb: 220 53 69;
-  --tg-success-rgb: 40 167 69;
-  --tg-border-rgb: 209 213 219;
-}
+  /* ── TWEAK NATIVO 3: Clase global para ocultar el scrollbar (usado en los screenshots/ejemplos) ── */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
-/* Use Telegram theme variables if available */
-html,
-body {
-  background-color: var(--tg-bg);
-  color: var(--tg-text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-html {
-  /* overflow: hidden; */
-  height: 100%;
-}
-
-body {
-  min-height: 100%;
-  overflow-y: auto;
-}
-
-#root {
-  background-color: var(--tg-bg);
-  min-height: 100vh;
-  min-height: 100dvh;
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
 }
 
 /* === Toast animations === */
@@ -411,71 +442,6 @@ body {
   top: var(--tg-top-offset, 0px);
 }
 
-/* === Bottom Navigation === */
-.btm-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px);
-  background: rgba(var(--tg-secondary-rgb, 33 42 51) / 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 0.5px solid rgba(var(--tg-border-rgb, 41 53 64) / 0.5);
-}
-
-.btm-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-  padding: 4px 0 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease;
-}
-
-.btm-nav-item:active {
-  transform: scale(0.92);
-}
-
-.btm-nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.btm-nav-active .btm-nav-icon {
-  transform: scale(1.08);
-}
-
-.btm-nav-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.btm-nav-dot {
-  position: absolute;
-  top: 2px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--tg-accent);
-}
 
 /* === Glass Card === */
 .glass-card {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { X, Trash2, Copy, ChevronLeft, ChevronRight, Calendar, Cpu, Tag, Maximize2, Share2, ExternalLink } from 'lucide-react';
+import { X, Trash2, Copy, ChevronLeft, ChevronRight, Calendar, Cpu, Tag, Maximize2, Share2, ExternalLink, Loader2 } from 'lucide-react';
 import { fileUrl, getFullSize, formatFileSize, type FavoriteItem } from '../services/favoritesApi';
 import { useTelegram } from '../hooks/useTelegram';
 
@@ -34,8 +34,16 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
 
   // Block body scroll
   useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    document.documentElement.style.overflow = 'hidden';
+    
+    return () => { 
+      document.body.style.overflow = originalBodyOverflow; 
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
   }, []);
 
   // Keyboard navigation
@@ -88,30 +96,29 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
 
   return createPortal(
     <div 
-      className="fixed inset-0 z-[9999] bg-black" 
+      className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl animate-fade-in flex justify-center" 
       onClick={onClose}
     >
       <div 
-        className="h-[100dvh] w-full max-w-[600px] mx-auto flex flex-col relative" 
+        className="h-[100dvh] w-full max-w-[480px] flex flex-col relative bg-black shadow-2xl" 
         onClick={(e) => e.stopPropagation()} 
         onTouchStart={onTS} 
         onTouchEnd={onTE}
       >
         {/* ── Header Flotante (Siempre Visible) ── */}
-        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-          <span className="text-[13px] font-bold  text-white/70 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md pointer-events-auto">
+        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-[env(safe-area-inset-top,1rem)] pb-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+          <span className="text-[13px] font-bold text-white/90 bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md pointer-events-auto border border-white/10 shadow-sm tracking-wider">
             {idx + 1} / {items.length}
           </span>
           <button 
             onClick={onClose} 
-            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 flex items-center justify-center text-white transition-all active:scale-95 pointer-events-auto"
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all active:scale-90 pointer-events-auto shadow-sm"
           >
-            <X size={22} />
+            <X size={20} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* ── Contenido Scrollable ── */}
-        {/* Usamos scrollbar-hide en Tailwind nativo */}
         <div className="flex-1 overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           
           {/* ── Área de Imagen ── */}
@@ -119,17 +126,17 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
             {hasPrev && (
               <button 
                 onClick={() => { haptic?.impactOccurred('light'); onNavigate(items[idx - 1]); }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90 shadow-sm"
               >
-                <ChevronLeft size={28} />
+                <ChevronLeft size={26} className="mr-0.5" />
               </button>
             )}
             {hasNext && (
               <button 
                 onClick={() => { haptic?.impactOccurred('light'); onNavigate(items[idx + 1]); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all active:scale-90 shadow-sm"
               >
-                <ChevronRight size={28} />
+                <ChevronRight size={26} className="ml-0.5" />
               </button>
             )}
 
@@ -137,51 +144,52 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
               <div className="w-full h-full relative flex items-center justify-center">
                 {!imgLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-tg-accent border-t-transparent rounded-full animate-spin" />
+                    <Loader2 size={32} className="text-white/50 animate-spin" />
                   </div>
                 )}
                 <img 
                   src={imgSrc} 
-                  alt={item.data?.caption || ''}
-                  className={`w-full max-h-[65dvh] object-contain transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  alt={item.data?.caption || 'Favorite Media'}
+                  className={`w-full max-h-[65dvh] object-contain transition-opacity duration-500 ease-out ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
                   onLoad={() => setImgLoaded(true)} 
                 />
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-[#111]">
-                <span className="text-7xl drop-shadow-2xl opacity-80">{item.context === 'animal' ? '🐾' : '⭐'}</span>
+              <div className="w-full h-full flex flex-col items-center justify-center bg-[#0a0a0a]">
+                <span className="text-7xl drop-shadow-2xl opacity-60 mb-4">{item.context === 'animal' ? '🐾' : '⭐'}</span>
+                <span className="text-white/30 text-[13px] font-medium tracking-wider uppercase">{t('no_preview', 'No Preview')}</span>
               </div>
             )}
           </div>
 
           {/* ── Panel de Información (Abajo de la imagen) ── */}
-          <div className="px-5 pt-6 pb-12 space-y-6 bg-gradient-to-b from-black to-[#111] min-h-[40dvh]">
+          <div className="px-5 pt-6 pb-[calc(2rem+env(safe-area-inset-bottom))] space-y-6 bg-gradient-to-b from-black via-[#0a0a0a] to-[#111] min-h-[40dvh]">
             
             {/* Caption */}
             {item.data?.caption && (
-              <p className="text-[15px] text-white/95 leading-relaxed whitespace-pre-wrap break-words font-medium">
+              <p className="text-[15px] text-white/90 leading-relaxed whitespace-pre-wrap break-words font-medium">
                 {item.data.caption}
               </p>
             )}
 
             {/* Metadata Chips */}
             <div className="flex flex-wrap gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
-                <Tag size={13} className="text-white/50" /> {CONTEXT_KEYS[item.context] ? t(CONTEXT_KEYS[item.context]) : item.context}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-semibold text-white/80 tracking-wide">
+                <Tag size={14} className="text-white/40" /> {CONTEXT_KEYS[item.context] ? t(CONTEXT_KEYS[item.context]) : item.context}
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
-                <Cpu size={13} className="text-white/50" /> {ENGINES[item.engine] || item.engine}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-semibold text-white/80 tracking-wide">
+                <Cpu size={14} className="text-white/40" /> {ENGINES[item.engine] || item.engine}
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
-                <Calendar size={13} className="text-white/50" /> {date}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-semibold text-white/80 tracking-wide">
+                <Calendar size={14} className="text-white/40" /> {date}
               </span>
               {full && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
-                  <Maximize2 size={13} className="text-white/50" /> {full.width}×{full.height}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-semibold text-white/80 tracking-wide">
+                  <Maximize2 size={14} className="text-white/40" /> {full.width}×{full.height}
                 </span>
               )}
               {full?.file_size && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-medium text-white/80">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/5 text-[12px] font-semibold text-white/80 tracking-wide">
                   {formatFileSize(full.file_size)}
                 </span>
               )}
@@ -192,38 +200,39 @@ export default function FavoriteModal({ item, items, onClose, onDelete, onNaviga
               {item.data?.caption && (
                 <button 
                   onClick={handleCopy}
-                  className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.1] text-white text-[14px] font-bold hover:bg-white/[0.15] active:scale-[0.98] transition-all"
+                  className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.08] border border-white/5 text-white text-[14px] font-bold hover:bg-white/[0.12] active:scale-[0.98] transition-all shadow-sm"
                 >
-                  <Copy size={18} className={copied ? "text-emerald-400" : "text-white/70"} /> 
-                  {copied ? t('common:copied') : t('common:copy_text')}
+                  <Copy size={18} className={copied ? "text-emerald-400" : "text-white/60"} /> 
+                  {copied ? t('common:copied', 'Copied') : t('common:copy_text', 'Copy Text')}
                 </button>
               )}
               
               <button 
                 onClick={handleShare}
-                className="col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.1] text-white text-[14px] font-bold hover:bg-white/[0.15] active:scale-[0.98] transition-all"
+                className="col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.08] border border-white/5 text-white text-[14px] font-bold hover:bg-white/[0.12] active:scale-[0.98] transition-all shadow-sm"
               >
-                <Share2 size={18} className="text-white/70" /> {t('common:share')}
+                <Share2 size={18} className="text-white/60" /> {t('common:share', 'Share')}
               </button>
 
               {item.engine_id && (
                 <button 
                   onClick={() => { navigator.clipboard.writeText(item.engine_id); haptic?.notificationOccurred('success'); }}
-                  className="col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.1] text-white text-[14px] font-bold hover:bg-white/[0.15] active:scale-[0.98] transition-all"
+                  className="col-span-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] bg-white/[0.08] border border-white/5 text-white text-[14px] font-bold hover:bg-white/[0.12] active:scale-[0.98] transition-all shadow-sm"
                 >
-                  <ExternalLink size={18} className="text-white/70" /> {t('common:copy_id')}
+                  <ExternalLink size={18} className="text-white/60" /> {t('common:copy_id', 'Copy ID')}
                 </button>
               )}
               
               <button 
                 onClick={handleDelete}
-                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] text-[14px] font-bold active:scale-[0.98] transition-all ${
+                className={`col-span-2 flex items-center justify-center gap-2 px-4 py-3.5 rounded-[16px] text-[14px] font-bold active:scale-[0.98] transition-all shadow-sm ${
                   confirmDelete 
-                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' 
-                    : 'bg-white/[0.05] text-red-400 hover:bg-red-500/10'
+                    ? 'bg-red-500/20 text-red-500 border border-red-500/30' 
+                    : 'bg-white/[0.05] border border-white/5 text-red-400 hover:bg-red-500/10'
                 }`}
               >
-                <Trash2 size={18} /> {confirmDelete ? t('confirm_delete_tap') : t('delete_favorite')}
+                <Trash2 size={18} className={confirmDelete ? "text-red-500" : "text-red-400/80"} /> 
+                {confirmDelete ? t('confirm_delete_tap', 'Tap to Confirm') : t('delete_favorite', 'Delete')}
               </button>
             </div>
             

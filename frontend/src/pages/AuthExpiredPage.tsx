@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useAuth } from '../hooks/useAuth';
+import { Lock } from 'lucide-react';
 
 export default function AuthExpiredPage() {
   const { t } = useTranslation('errors');
-  const { webApp } = useTelegram();
+  const { webApp, haptic } = useTelegram();
   const { authError } = useAuth();
 
   const handleClose = () => {
+    haptic?.impactOccurred('light');
     webApp?.MainButton.setText('Close');
     webApp?.MainButton.onClick(() => webApp.close());
     webApp?.MainButton.show();
@@ -15,41 +17,54 @@ export default function AuthExpiredPage() {
   };
 
   const getErrorMessage = () => {
+    console.error('Authentication error:', authError);
     switch (authError) {
       case 'no-init-data':
-        return t('no_auth_data');
+        return t('no_auth_data', 'Authentication data is missing.');
       case 'auth-failed':
-        return t('auth_failed');
+        return t('auth_failed', 'Authentication failed. Please try again.');
       case 'network-error':
-        return t('network_error');
+        return t('network_error', 'Network error. Check your connection.');
       default:
         if (authError?.startsWith('HTTP')) {
-          return t('server_error', { error: authError });
+          return t('server_error', { error: authError, defaultValue: `Server error: ${authError}` });
         }
-        return t('session_expired_msg');
+        return t('session_expired_msg', 'Your session has expired. Please restart the app.');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
-      <div className="text-6xl mb-6">🔒</div>
-      <h1 className="text-xl font-semibold mb-3 text-tg-text">
-        {authError === 'no-init-data' ? t('not_connected') : t('session_expired')}
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center bg-tg-bg max-w-[480px] mx-auto animate-fade-in">
+      
+      {/* ── Contenedor del Ícono de Bloqueo ── */}
+      <div className="w-[72px] h-[72px] rounded-[24px] bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 shadow-sm">
+        <Lock size={32} className="text-red-500" strokeWidth={2.5} />
+      </div>
+
+      {/* ── Textos de Error ── */}
+      <h1 className="text-[22px] font-bold text-tg-text tracking-tight mb-2.5">
+        {authError === 'no-init-data' ? t('not_connected', 'Not Connected') : t('session_expired', 'Session Expired')}
       </h1>
-      <p className="text-tg-hint text-[15px] mb-8">
+      
+      <p className="text-[14px] font-medium text-tg-hint leading-relaxed max-w-[260px] mx-auto mb-8">
         {getErrorMessage()}
       </p>
+
+      {/* ── Botón de Acción ── */}
       <button
         onClick={handleClose}
-        className="px-8 py-3 bg-tg-accent text-white rounded-xl text-[15px] font-medium active:opacity-80 transition-opacity"
+        className="w-full max-w-[280px] py-3.5 rounded-[16px] bg-tg-accent text-white text-[15px] font-bold active:scale-[0.98] transition-transform duration-200 shadow-md"
       >
-        {t('common:close')}
+        {t('common:close', 'Close')}
       </button>
+
+      {/* ── Debug / Info Técnica ── */}
       {authError && (
-        <p className="text-tg-hint text-[11px] mt-4 opacity-50">
-          {t('common:debug', { error: authError })}
+        <p className="text-tg-hint/50 text-[11px] font-mono mt-6 max-w-[80%] mx-auto truncate">
+          {t('common:debug', { error: authError, defaultValue: `Error: ${authError}` })}
         </p>
       )}
+      
     </div>
   );
 }

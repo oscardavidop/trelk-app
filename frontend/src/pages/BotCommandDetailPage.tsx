@@ -11,8 +11,6 @@ import CommandExamples from '../components/commands/CommandExamples';
 import CommandChangelog from '../components/commands/CommandChangelog';
 import CommandComments from '../components/commands/CommandComments';
 import RelatedCommands from '../components/commands/RelatedCommands';
-import CommandPlayground from '../components/commands/CommandPlayground';
-import CommandSuggestions from '../components/commands/CommandSuggestions';
 import ReportErrorModal from '../components/commands/ReportErrorModal';
 
 import {
@@ -22,10 +20,10 @@ import {
   Star
 } from 'lucide-react';
 import { StickySectionHeader } from '@/components/StickyHeader';
-import { useScrollCollapse, useScrollHeader } from '@/hooks/useScrollCollapse';
-import CommentsWidget from '@/components/CommentsWidget';
+import { useScrollHeader } from '@/hooks/useScrollCollapse';
 import { useCommandFavoritesStore } from '../stores/commandFavorites';
 import CommandFeedback from '@/components/commands/CommandFeedback';
+
 /* ─── Mock screenshots for preview ─── */
 const MOCK_SCREENSHOTS = [
   'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+1',
@@ -36,7 +34,7 @@ const MOCK_SCREENSHOTS = [
 export default function BotCommandDetailPage() {
   const { command: slug, userId } = useParams();
   const navigate = useNavigate();
-  const { haptic } = useTelegram();
+  const { haptic, webApp } = useTelegram();
   const { t } = useTranslation('commandDetail');
   const showToast = useToastStore((s) => s.show);
 
@@ -52,7 +50,6 @@ export default function BotCommandDetailPage() {
   const isFav = favLoaded && isFavorite(mainSlug);
   const [copied, setCopied] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  // const collapsed = useScrollCollapse(90);
   const collapsed = useScrollHeader(110);
 
   // Load favorites set if not loaded
@@ -96,15 +93,15 @@ export default function BotCommandDetailPage() {
   /* ─── Estado: No Encontrado ─── */
   if (!cmd) {
     return (
-      <div className="flex flex-col items-center justify-center pt-24 px-5 text-center animate-fade-in pb-24">
-        <div className="w-20 h-20 rounded-full bg-tg-secondary border border-white/5 flex items-center justify-center mb-5 shadow-sm">
-          <AlertTriangle size={36} className="text-tg-hint/40" />
+      <div className="flex flex-col items-center justify-center pt-24 px-5 text-center animate-fade-in pb-28 max-w-[480px] mx-auto">
+        <div className="w-[72px] h-[72px] rounded-[24px] bg-tg-secondary border border-tg-border/40 flex items-center justify-center mb-5 shadow-sm">
+          <AlertTriangle size={32} className="text-tg-hint/50" />
         </div>
-        <h1 className="text-[22px] font-bold text-tg-text  mb-2">{t('command_not_found')}</h1>
-        <p className="text-tg-hint text-[14px]">{t('command_not_registered', { slug })}</p>
+        <h1 className="text-[20px] font-bold text-tg-text mb-2">{t('command_not_found')}</h1>
+        <p className="text-tg-hint text-[14px] leading-relaxed">{t('command_not_registered', { slug })}</p>
         <button
           onClick={() => navigate(`/users/ui/${userId}/bot-commands`, { replace: true })}
-          className="mt-8 px-6 py-3 rounded-[16px] bg-tg-secondary border border-tg-border/50 text-tg-text font-bold text-[14px] active:scale-95 transition-all shadow-sm"
+          className="mt-8 px-6 py-3.5 rounded-[16px] bg-tg-accent/10 text-tg-accent font-bold text-[15px] active:scale-95 transition-transform shadow-sm"
         >
           {t('back_to_directory')}
         </button>
@@ -113,180 +110,179 @@ export default function BotCommandDetailPage() {
   }
 
   const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: '📦' };
+  
   return (
-    <div className="pb-24 animate-fade-in relative">
+    <div className="pb-28 animate-fade-in relative max-w-[480px] mx-auto">
 
       <StickySectionHeader>
-
         <section
-          className={`relative px-5 transition-all duration-300 ${collapsed ? 'pt-2 pb-2' : 'pt-5 pb-2'
-            }`}
+          className={`relative px-5 transition-all duration-300 ${
+            collapsed ? 'pt-2 pb-2' : 'pt-4 pb-2'
+          }`}
         >
-
           <div className="flex items-center gap-4">
-
             {/* Icon */}
             <div
-              className={`rounded-[22px] flex items-center justify-center transition-all duration-300
-      ${collapsed ? 'w-10 h-10 text-[18px]' : 'w-[72px] h-[72px] text-[32px]'}`}
+              className={`flex items-center justify-center transition-all duration-300 shadow-sm flex-shrink-0 ${
+                collapsed ? 'w-[42px] h-[42px] rounded-[12px] text-[20px]' : 'w-[72px] h-[72px] rounded-[20px] text-[32px]'
+              }`}
               style={{
                 backgroundColor: `${cat.color}15`,
                 border: `1px solid ${cat.color}30`
               }}
             >
               {typeof cat.icon !== 'string'
-                ? <cat.icon className="w-6 h-6" style={{ color: cat.color }} />
+                ? <cat.icon className={collapsed ? "w-5 h-5" : "w-8 h-8"} style={{ color: cat.color }} />
                 : cat.icon}
             </div>
 
             {/* Text */}
-            <div className="flex-1 pr-8 min-w-0">
-
+            <div className="flex-1 pr-10 min-w-0">
               <h1
-                className={`font-extrabold font-mono  truncate transition-all duration-300
-        ${collapsed ? 'text-[16px]' : 'text-[26px]'}`}
+                className={`font-bold font-mono text-tg-text truncate transition-all duration-300 leading-tight ${
+                  collapsed ? 'text-[18px]' : 'text-[24px]'
+                }`}
               >
                 /{mainSlug}
               </h1>
 
               {/* description */}
               <p
-                className={`text-tg-hint transition-all duration-300 overflow-hidden max-h-[60px] opacity-100 text-[14px] mt-2`}
+                className={`text-tg-hint font-medium transition-all duration-300 overflow-hidden text-[13px] mt-1 leading-snug ${
+                  collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-[60px] opacity-100'
+                }`}
               >
                 {cmd.description}
               </p>
 
               {/* badges */}
               <div
-                className={`flex flex-wrap gap-2 transition-all duration-300
-        ${collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-[50px] opacity-100 mt-3'}`}
+                className={`flex flex-wrap gap-2 transition-all duration-300 ${
+                  collapsed ? 'max-h-0 opacity-0 mt-0 overflow-hidden' : 'max-h-[50px] opacity-100 mt-2.5'
+                }`}
               >
                 <span
-                  className="text-[10px] font-extrabold uppercase  px-2.5 py-1 rounded-full"
+                  className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-sm"
                   style={{
                     color: cat.color,
-                    backgroundColor: `${cat.color}15`,
-                    border: `1px solid ${cat.color}20`
+                    backgroundColor: `${cat.color}10`,
+                    border: `1px solid ${cat.color}30`
                   }}
                 >
                   {cat.label}
                 </span>
 
                 {cmd.supportsInline && (
-                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full text-blue-500 bg-blue-500/10 border border-blue-500/20">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full text-sky-500 bg-sky-500/10 border border-sky-500/20 uppercase tracking-wider shadow-sm">
                     Inline
                   </span>
                 )}
 
                 {cmd.requireArgs && (
-                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full text-amber-600 bg-amber-500/10 border border-amber-500/20">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-500 bg-amber-500/10 border border-amber-500/20 uppercase tracking-wider shadow-sm">
                     Args*
                   </span>
                 )}
               </div>
-
             </div>
-
           </div>
 
-          {/* Fav */}
+          {/* Fav Button */}
           <button
             onClick={async () => {
               haptic?.impactOccurred('light');
               const added = await toggleFav(mainSlug);
               showToast(added ? t('added_to_favorites') : t('removed_from_favorites'), 'info');
             }}
-            className={`absolute right-5 transition-all duration-300
-    ${collapsed ? 'top-2' : 'top-8'}
-    w-10 h-10 rounded-full bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center`}
+            className={`absolute right-5 transition-all duration-300 flex items-center justify-center rounded-full bg-tg-secondary border border-tg-border/40 shadow-sm active:scale-90 ${
+              collapsed ? 'top-2.5 w-[38px] h-[38px]' : 'top-6 w-[42px] h-[42px]'
+            }`}
           >
             <Heart
-              size={20}
-              className={`transition-all ${isFav
-                ? 'text-pink-500 fill-pink-500 scale-110'
-                : 'text-tg-hint/70'
-                }`}
+              size={18}
+              className={`transition-all ${
+                isFav ? 'text-pink-500 fill-pink-500 scale-110' : 'text-tg-hint/60'
+              }`}
             />
           </button>
-
         </section>
-
       </StickySectionHeader>
 
       {/* ── Stats Strip ── */}
-      {stats && <div className="mt-5"><CommandStats stats={stats} /></div>}
+      {stats && <div className="mt-4"><CommandStats stats={stats} /></div>}
 
       {/* ── Botón de Acción Rápida (Ejecutar) ── */}
       <section className="px-5 mt-6">
         <button
           onClick={() => {
-            window.open(`https://t.me/TrelkBot?start=${mainSlug}`, '_blank');
+            // window.open(`https://t.me/TrelkBot?start=${mainSlug}`, '_blank');
+            webApp?.openTelegramLink(`https://t.me/TrelkBot?start=${mainSlug}`);
             haptic?.impactOccurred('medium');
           }}
-          className="w-full py-4 rounded-[20px] bg-tg-accent text-white text-[16px] font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(var(--tg-accent-rgb),0.35)] hover:brightness-110"
+          className="w-full py-3.5 rounded-[20px] bg-tg-accent text-white text-[16px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform duration-200 shadow-md"
         >
-          <Send size={20} className="fill-white/20" />
-          {t('run_in_telegram')}
+          <Send size={18} className="fill-white/20" />
+          {t('run_in_telegram', 'Run in Telegram')}
         </button>
       </section>
 
       {/* ── Bloque de Uso (Usage) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">{t('command_usage')}</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
-          <div className="flex items-center justify-between px-4 py-4">
-            <code className="text-[15px] font-mono font-bold text-tg-text  truncate">{cmd.usage}</code>
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('command_usage', 'Usage')}</h2>
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between p-4">
+            <code className="text-[15px] font-mono font-bold text-tg-text truncate">{cmd.usage}</code>
             <button
               onClick={() => copyText(cmd.usage)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[12px] font-bold transition-all active:scale-95 flex-shrink-0 ml-3 ${copied ? 'bg-emerald-500/15 text-emerald-400' : 'bg-tg-accent/10 text-tg-accent hover:bg-tg-accent/20'
-                }`}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-[12px] font-bold transition-all active:scale-95 flex-shrink-0 ml-3 ${
+                copied ? 'bg-emerald-500/15 text-emerald-500' : 'bg-tg-hint/10 text-tg-text hover:bg-tg-hint/20'
+              }`}
             >
-              {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-              {copied ? t('copied') : t('copy')}
+              {copied ? <CheckCircle2 size={14} /> : <Copy size={14} className="text-tg-hint" />}
+              {copied ? t('copied', 'Copied') : t('copy', 'Copy')}
             </button>
           </div>
         </div>
       </section>
 
-      {/* ── Playground ── */}
-      <CommandPlayground commandSlug={mainSlug} usage={cmd.usage} />
-
       {/* ── Aliases ── */}
-      <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-1 mb-3 flex items-center gap-1.5">
-          <Hash size={14} className="text-tg-accent" /> {t('allowed_aliases')}
-        </h2>
+      {cmd.name.length > 1 && (
+        <section className="px-5 mt-8">
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5 flex items-center gap-1.5">
+            <Hash size={14} className="text-tg-hint/60" /> {t('allowed_aliases', 'Aliases')}
+          </h2>
 
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 shadow-sm animate-slide-up">
-          <div className="flex flex-wrap gap-2.5">
-            {cmd.name.map((alias) => (
-              <button
-                key={alias}
-                onClick={() => copyText(`/${alias}`)}
-                title="Copiar alias"
-                className="px-3.5 py-1.5 rounded-[10px] bg-tg-text/[0.04] border border-tg-border/30 text-[14px] font-mono font-bold text-tg-text/90 active:scale-95 transition-all hover:bg-tg-text/[0.08] hover:text-tg-text shadow-inner"
-              >
-                /{alias}
-              </button>
-            ))}
+          <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 shadow-sm">
+            <div className="flex flex-wrap gap-2.5">
+              {cmd.name.map((alias) => (
+                <button
+                  key={alias}
+                  onClick={() => copyText(`/${alias}`)}
+                  title="Copiar alias"
+                  className="px-3 py-1.5 rounded-[12px] bg-tg-hint/10 border border-tg-border/20 text-[14px] font-mono font-semibold text-tg-text active:scale-95 transition-transform shadow-sm"
+                >
+                  /{alias}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Parámetros (Ajustes Estilo iOS) ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">{t('technical_details')}</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm">
-          <div className="divide-y divide-white/5">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('technical_details', 'Technical Details')}</h2>
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm">
+          <div className="flex flex-col">
 
             {/* Row: Argumentos */}
-            <div className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors">
-              <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner ${cmd.requireArgs ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}`}>
+            <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
+              <div className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center flex-shrink-0 shadow-sm ${cmd.requireArgs ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}`}>
                 <Hash size={18} className={cmd.requireArgs ? 'text-amber-500' : 'text-emerald-500'} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text ">
-                  {cmd.requireArgs ? t('args_required') : t('no_args')}
+                <div className="text-[15px] font-semibold text-tg-text leading-tight">
+                  {cmd.requireArgs ? t('args_required', 'Arguments Required') : t('no_args', 'No Arguments')}
                 </div>
                 <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">
                   {cmd.requireArgs ? t('args_required_desc') : t('no_args_desc')}
@@ -296,12 +292,12 @@ export default function BotCommandDetailPage() {
 
             {/* Row: Inline */}
             {cmd.supportsInline && (
-              <div className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors">
-                <div className="w-10 h-10 rounded-[12px] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  <MessageSquare size={18} className="text-blue-400" />
+              <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <MessageSquare size={18} className="text-sky-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text ">{t('supports_inline')}</div>
+                  <div className="text-[15px] font-semibold text-tg-text leading-tight">{t('supports_inline', 'Supports Inline')}</div>
                   <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('inline_desc', { slug: mainSlug })}</div>
                 </div>
               </div>
@@ -309,12 +305,12 @@ export default function BotCommandDetailPage() {
 
             {/* Row: Solo Privado */}
             {cmd.supportInGroups === false && (
-              <div className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors">
-                <div className="w-10 h-10 rounded-[12px] bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  <Lock size={18} className="text-red-400" />
+              <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Lock size={18} className="text-red-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text ">{t('private_only')}</div>
+                  <div className="text-[15px] font-semibold text-tg-text leading-tight">{t('private_only', 'Private Only')}</div>
                   <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('private_only_desc')}</div>
                 </div>
               </div>
@@ -322,12 +318,12 @@ export default function BotCommandDetailPage() {
 
             {/* Row: Max Length */}
             {cmd.maxLengthArgs != null && (
-              <div className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors">
-                <div className="w-10 h-10 rounded-[12px] bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  <Settings2 size={18} className="text-purple-400" />
+              <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Settings2 size={18} className="text-violet-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-bold text-tg-text ">{t('char_limit', { count: cmd.maxLengthArgs })}</div>
+                  <div className="text-[15px] font-semibold text-tg-text leading-tight">{t('char_limit', { count: cmd.maxLengthArgs, defaultValue: `${cmd.maxLengthArgs} Char Limit` })}</div>
                   <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('char_limit_desc')}</div>
                 </div>
               </div>
@@ -339,8 +335,8 @@ export default function BotCommandDetailPage() {
 
       {/* ── Screenshots ── */}
       <section className="px-5 mt-8">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-3">{t('preview')}</h2>
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-3">{t('preview', 'Preview')}</h2>
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {
             cmd.photos && cmd.photos.length > 0 ? (
               cmd.photos.map((url, i) => (
@@ -348,13 +344,13 @@ export default function BotCommandDetailPage() {
                   key={i}
                   src={`https://cdn.trelk.site/assets/img/commands/md5/1.jpg`}
                   alt={`Screenshot ${i + 1}`}
-                  className="w-[180px] h-[320px] rounded-[20px] object-cover border border-tg-border/50 shadow-sm flex-shrink-0"
+                  className="w-[180px] h-[320px] rounded-[20px] object-cover border border-tg-border/40 shadow-sm flex-shrink-0"
                 />
               ))
             ) : (
               MOCK_SCREENSHOTS.map((src, i) => (
-                <div key={i} className="flex-shrink-0 w-[180px] h-[320px] rounded-[24px] overflow-hidden bg-tg-secondary border border-white/5 shadow-md">
-                  <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                <div key={i} className="flex-shrink-0 w-[180px] h-[320px] rounded-[20px] overflow-hidden bg-tg-hint/5 border border-tg-border/40 shadow-sm">
+                  <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover opacity-80" loading="lazy" />
                 </div>
               ))
             )
@@ -364,79 +360,55 @@ export default function BotCommandDetailPage() {
 
       {/* ── Cómo funciona ── */}
       <section className="px-5 mt-4">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  px-2 mb-2">{t('how_it_works')}</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-5 shadow-sm">
-          <div className="space-y-5">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('how_it_works', 'How it works')}</h2>
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 p-5 shadow-sm">
+          <div className="space-y-6">
             {[
-              { step: '1', text: t('step_1', { cmd: cmd.usage.split(' ')[0] }) },
-              { step: '2', text: t('step_2') },
-              { step: '3', text: t('step_3') },
+              { step: '1', text: t('step_1', { cmd: cmd.usage.split(' ')[0], defaultValue: `Send ${cmd.usage.split(' ')[0]}` }) },
+              { step: '2', text: t('step_2', 'Wait for processing') },
+              { step: '3', text: t('step_3', 'Get your result') },
             ].map(({ step, text }, i, arr) => (
-              <div key={step} className="flex items-start gap-3.5 relative">
-                {/* Línea conectora */}
-                {i !== arr.length - 1 && <div className="absolute left-[13px] top-8 bottom-[-20px] w-[2px] bg-white/5" />}
+              <div key={step} className="flex items-start gap-4 relative">
+                {/* Línea conectora adaptada al tema */}
+                {i !== arr.length - 1 && <div className="absolute left-[13px] top-8 bottom-[-24px] w-[2px] bg-tg-border/50" />}
 
-                <div className="w-7 h-7 rounded-[10px] bg-tg-accent/15 border border-tg-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5 z-10">
-                  <span className="text-[13px] font-black text-tg-accent">{step}</span>
+                <div className="w-[28px] h-[28px] rounded-[8px] bg-tg-accent/15 flex items-center justify-center flex-shrink-0 mt-0.5 z-10 shadow-sm">
+                  <span className="text-[13px] font-bold text-tg-accent">{step}</span>
                 </div>
-                <p className="text-[14px] font-medium text-tg-text/90 leading-relaxed pt-0.5">{text}</p>
+                <p className="text-[14px] font-medium text-tg-text leading-relaxed pt-1">{text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Ejemplos de Uso ── */}
+      {/* ── Ejemplos de Uso, Changelog, Comentarios, etc. ── */}
       {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
-
-
-      {/* ── Changelog ── */}
       {getChangelog(mainSlug).length > 0 && <CommandChangelog entries={getChangelog(mainSlug)} />}
+      {/* {getComments(mainSlug).length > 0 && <CommandComments comments={getComments(mainSlug)} />} */}
 
-      {/* ── Comentarios ── */}
-      {getComments(mainSlug).length > 0 && <CommandComments comments={getComments(mainSlug)} />}
-
-      {/* ── Sugerencias ── */}
-      <CommandSuggestions currentSlug={mainSlug} onSelect={(s) => goTo(s)} />
-
-      {/* ── Comandos Relacionados ── */}
       {mainSlug && <RelatedCommands slug={mainSlug} />}
 
-      {/* comments section */}
-      {/* <section className="px-5 mt-8">
-        <div className="flex items-center gap-2 px-2 mb-3">
-          <MessageSquare size={14} className="text-tg-accent" />
-          <span className="text-[12px] font-bold text-tg-hint uppercase">  {t('comments')}</span>
-        </div>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 shadow-sm mb-8">
-          <CommentsWidget />
-        </div>
-      </section> */}
-
-
       {/* ── Calificar Comando ── */}
-      <section className="px-5 mt-6 mb-8">
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-center shadow-sm relative overflow-hidden">
-
-          {/* Brillo ambiental sutil de fondo */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-tg-text/[0.02] pointer-events-none" />
-
+      <section className="px-5 mt-8 mb-8">
+        <div className="bg-tg-secondary rounded-[24px] border border-tg-border/40 p-5 text-center shadow-sm relative overflow-hidden">
+          
           {hasRated ? (
             /* ── Estado: Calificado (Éxito) ── */
-            <div className="py-2 animate-slide-up relative z-10">
-              <div className="w-16 h-16 mx-auto bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-3 shadow-inner">
-                <Star size={32} className="text-amber-500 fill-amber-500 drop-shadow-md text-center center" />
+            <div className="py-2 animate-fade-in relative z-10">
+              <div className="w-[52px] h-[52px] mx-auto bg-amber-500/10 rounded-[16px] flex items-center justify-center mb-3 shadow-sm">
+                <Star size={28} className="text-amber-500 fill-amber-500 drop-shadow-sm" />
               </div>
-              <p className="text-[16px] font-extrabold text-tg-text ">{t('thanks_rating')}</p>
-              <p className="text-[13px] font-medium text-tg-hint mt-1">
-                {t('you_rated', { count: rating })}
+              <p className="text-[16px] font-bold text-tg-text leading-tight mb-1">{t('thanks_rating', 'Thanks for your feedback!')}</p>
+              <p className="text-[13px] font-medium text-tg-hint">
+                {t('you_rated', { count: rating, defaultValue: `You rated this ${rating} stars` })}
               </p>
             </div>
           ) : (
             /* ── Estado: Sin Calificar ── */
             <div className="relative z-10">
-              <p className="text-[14px] font-bold text-tg-text mb-4 ">{t('rate_question')}</p>
-              <div className="flex justify-center gap-2.5">
+              <p className="text-[15px] font-semibold text-tg-text mb-4">{t('rate_question', 'Rate this command')}</p>
+              <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
@@ -448,7 +420,6 @@ export default function BotCommandDetailPage() {
                         setRating(n);
                         setHasRated(true);
                         haptic?.notificationOccurred('success');
-                        // Refresh stats after rating
                         fetchCommandStats(mainSlug).then(setStats).catch(() => { });
                       } catch {
                         showToast(t('common:error'), 'error');
@@ -456,15 +427,16 @@ export default function BotCommandDetailPage() {
                         setRatingLoading(false);
                       }
                     }}
-                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center text-[22px] active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-inner disabled:opacity-50"
+                    className="w-11 h-11 rounded-[12px] bg-tg-hint/5 border border-tg-border/30 flex items-center justify-center active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-sm disabled:opacity-50"
                     title={t('rate_stars', { count: n })}
                   >
                     <Star
                       size={24}
-                      className={`transition-colors duration-300 ${n <= rating
-                        ? 'text-amber-500 fill-amber-500 drop-shadow-sm'
-                        : 'text-tg-hint/30 group-hover:text-amber-500/50'
-                        }`}
+                      className={`transition-colors duration-200 ${
+                        n <= rating
+                          ? 'text-amber-500 fill-amber-500 drop-shadow-sm'
+                          : 'text-tg-hint/40 group-hover:text-amber-500/50'
+                      }`}
                     />
                   </button>
                 ))}
@@ -474,50 +446,49 @@ export default function BotCommandDetailPage() {
         </div>
       </section>
 
-      {/* ── Share & Rate ── */}
+      {/* ── Share & Report ── */}
       <section className="px-5 mt-6 grid grid-cols-2 gap-3">
-        {/* Compartir */}
         <button
           onClick={() => {
             const text = encodeURIComponent(t('share_command_text', { slug: mainSlug }));
             window.open(`https://t.me/share/url?url=https://t.me/TrelkBot&text=${text}`, '_blank');
             haptic?.impactOccurred('light');
           }}
-          className="w-full py-3.5 rounded-[16px] bg-tg-secondary border border-tg-border/50 text-tg-text text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-white/[0.02]"
+          className="w-full py-3.5 rounded-[16px] bg-tg-secondary border border-tg-border/40 text-tg-text text-[15px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm"
         >
-          <Share size={18} className="text-tg-hint" />
-          {t('common:share')}
+          <Share size={18} className="text-tg-hint/80" />
+          {t('common:share', 'Share')}
         </button>
 
-        {/* Reportar */}
         <button
           onClick={() => { setShowReportModal(true); haptic?.impactOccurred('light'); }}
           disabled={reported}
-          className={`w-full py-3.5 rounded-[16px] border text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${reported
-            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-            : 'bg-tg-secondary border-tg-border/50 text-tg-text active:scale-95 hover:bg-white/[0.02]'
-            }`}
+          className={`w-full py-3.5 rounded-[16px] border text-[15px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm ${
+            reported
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+              : 'bg-tg-secondary border-tg-border/40 text-tg-text'
+          }`}
         >
-          {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint" />}
-          {reported ? t('reported') : t('report_error')}
+          {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint/80" />}
+          {reported ? t('reported', 'Reported') : t('report_error', 'Report')}
         </button>
       </section>
 
-      <div className="px-5 mt-10 animate-slide-up" style={{ animationDelay: '80ms' }}>
-        <div className="w-full h-px bg-tg-border/30 mb-8" />
+      <div className="px-5 mt-10 animate-fade-in">
+        <div className="w-full h-px bg-tg-border/40 mb-8" />
         <CommandFeedback command={cmd.uniqueName!} />
       </div>
 
-      {/* ── Navigation (Anterior d/ Siguiente) ── */}
+      {/* ── Navigation (Anterior / Siguiente) ── */}
       <section className="px-5 mt-8">
         <div className="flex gap-3">
           {prevCmd ? (
             <button
               onClick={() => goTo(cmdSlug(prevCmd))}
-              className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-left active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm group"
+              className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 text-left active:scale-[0.98] transition-transform shadow-sm group"
             >
-              <div className="flex items-center gap-1 text-[10px] font-bold text-tg-hint uppercase  mb-1.5">
-                <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> {t('previous')}
+              <div className="flex items-center gap-1 text-[11px] font-bold text-tg-hint uppercase tracking-wider mb-1.5">
+                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> {t('previous', 'Prev')}
               </div>
               <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(prevCmd)}</div>
             </button>
@@ -526,10 +497,10 @@ export default function BotCommandDetailPage() {
           {nextCmd ? (
             <button
               onClick={() => goTo(cmdSlug(nextCmd))}
-              className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/50 p-4 text-right active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm group"
+              className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 text-right active:scale-[0.98] transition-transform shadow-sm group"
             >
-              <div className="flex items-center justify-end gap-1 text-[10px] font-bold text-tg-hint uppercase  mb-1.5">
-                {t('next')} <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+              <div className="flex items-center justify-end gap-1 text-[11px] font-bold text-tg-hint uppercase tracking-wider mb-1.5">
+                {t('next', 'Next')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </div>
               <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(nextCmd)}</div>
             </button>

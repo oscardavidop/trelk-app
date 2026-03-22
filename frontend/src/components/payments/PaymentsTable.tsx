@@ -13,29 +13,29 @@ import type { PaymentEventItem } from '../../services/paymentsApi';
 
 // ── Mapeo de Iconos por Tipo de Evento ──
 function EventIcon({ type, className = 'w-4 h-4' }: { type: string; className?: string }) {
-  if (type.includes('CREATED')) return <FileText className={className} />;
-  if (type.includes('ACTIVATED') || type.includes('RE-ACTIVATED')) return <PlayCircle className={className} />;
-  if (type.includes('CANCELLED')) return <XCircle className={className} />;
-  if (type.includes('SUSPENDED')) return <Clock className={className} />;
-  if (type.includes('EXPIRED')) return <Clock className={className} />;
-  if (type.includes('COMPLETED')) return <CheckCircle2 className={className} />;
-  if (type.includes('DENIED')) return <AlertCircle className={className} />;
-  if (type.includes('REFUNDED') || type.includes('REVERSED')) return <ArrowLeftRight className={className} />;
-  return <RefreshCw className={className} />;
+  if (type.includes('CREATED')) return <FileText className={className} strokeWidth={2.5} />;
+  if (type.includes('ACTIVATED') || type.includes('RE-ACTIVATED')) return <PlayCircle className={className} strokeWidth={2.5} />;
+  if (type.includes('CANCELLED')) return <XCircle className={className} strokeWidth={2.5} />;
+  if (type.includes('SUSPENDED')) return <Clock className={className} strokeWidth={2.5} />;
+  if (type.includes('EXPIRED')) return <Clock className={className} strokeWidth={2.5} />;
+  if (type.includes('COMPLETED')) return <CheckCircle2 className={className} strokeWidth={2.5} />;
+  if (type.includes('DENIED')) return <AlertCircle className={className} strokeWidth={2.5} />;
+  if (type.includes('REFUNDED') || type.includes('REVERSED')) return <ArrowLeftRight className={className} strokeWidth={2.5} />;
+  return <RefreshCw className={className} strokeWidth={2.5} />;
 }
 
-// ── Meta-datos de Eventos ──
-const EVENT_META_KEYS: Record<string, { labelKey: string; color: string }> = {
-  'BILLING.SUBSCRIPTION.CREATED': { labelKey: 'evt_sub_created', color: 'text-blue-400' },
-  'BILLING.SUBSCRIPTION.ACTIVATED': { labelKey: 'evt_sub_activated', color: 'text-emerald-400' },
-  'BILLING.SUBSCRIPTION.CANCELLED': { labelKey: 'evt_sub_cancelled', color: 'text-red-400' },
-  'BILLING.SUBSCRIPTION.SUSPENDED': { labelKey: 'evt_sub_suspended', color: 'text-amber-500' },
-  'BILLING.SUBSCRIPTION.RE-ACTIVATED': { labelKey: 'evt_sub_reactivated', color: 'text-emerald-400' },
-  'BILLING.SUBSCRIPTION.EXPIRED': { labelKey: 'evt_sub_expired', color: 'text-zinc-400' },
-  'PAYMENT.SALE.COMPLETED': { labelKey: 'evt_payment_completed', color: 'text-emerald-400' },
-  'PAYMENT.SALE.DENIED': { labelKey: 'evt_payment_denied', color: 'text-red-400' },
-  'PAYMENT.SALE.REFUNDED': { labelKey: 'evt_refund', color: 'text-amber-500' },
-  'PAYMENT.SALE.REVERSED': { labelKey: 'evt_reversal', color: 'text-amber-500' },
+// ── Meta-datos de Eventos (Colores adaptables) ──
+const EVENT_META_KEYS: Record<string, { labelKey: string; color: string; bg: string; border: string }> = {
+  'BILLING.SUBSCRIPTION.CREATED': { labelKey: 'evt_sub_created', color: 'text-sky-500', bg: 'bg-sky-500/10', border: 'border-sky-500/20' },
+  'BILLING.SUBSCRIPTION.ACTIVATED': { labelKey: 'evt_sub_activated', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  'BILLING.SUBSCRIPTION.CANCELLED': { labelKey: 'evt_sub_cancelled', color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  'BILLING.SUBSCRIPTION.SUSPENDED': { labelKey: 'evt_sub_suspended', color: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+  'BILLING.SUBSCRIPTION.RE-ACTIVATED': { labelKey: 'evt_sub_reactivated', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  'BILLING.SUBSCRIPTION.EXPIRED': { labelKey: 'evt_sub_expired', color: 'text-zinc-500', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20' },
+  'PAYMENT.SALE.COMPLETED': { labelKey: 'evt_payment_completed', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  'PAYMENT.SALE.DENIED': { labelKey: 'evt_payment_denied', color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  'PAYMENT.SALE.REFUNDED': { labelKey: 'evt_refund', color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+  'PAYMENT.SALE.REVERSED': { labelKey: 'evt_reversal', color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
 };
 
 const FILTER_OPTION_KEYS = [
@@ -62,21 +62,22 @@ export default function PaymentsTable({
   events, loading, hasMore, loadingMore, onLoadMore, onEventClick, filter, onFilterChange,
 }: PaymentsTableProps) {
   const { t } = useTranslation('payments');
+  
   return (
     <div className="space-y-4">
       
       {/* ── Filter chips ── */}
-      <div className="flex gap-2 overflow-x-auto w-full pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex gap-2.5 overflow-x-auto w-full pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {FILTER_OPTION_KEYS.map((opt) => {
           const isActive = filter === opt.value;
           return (
             <button
               key={opt.value}
               onClick={() => onFilterChange(opt.value)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-all active:scale-95 border ${
+              className={`shrink-0 px-3.5 py-1.5 rounded-[12px] text-[13px] font-semibold transition-transform active:scale-95 border shadow-sm ${
                 isActive
-                  ? 'bg-tg-accent text-white border-tg-accent shadow-md'
-                  : 'bg-tg-secondary text-tg-text border-white/[0.04] hover:brightness-110'
+                  ? 'bg-tg-accent text-white border-tg-accent'
+                  : 'bg-tg-bg text-tg-text border-tg-border/40 hover:bg-tg-hint/5'
               }`}
             >
               {t(opt.labelKey)}
@@ -87,16 +88,16 @@ export default function PaymentsTable({
 
       {/* ── Loading skeleton ── */}
       {loading && (
-        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-lg">
-          <div className="divide-y divide-tg-border/20">
+        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/40 overflow-hidden shadow-sm">
+          <div className="flex flex-col divide-y divide-tg-border/20">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="p-4 flex items-center gap-4 animate-pulse">
-                <div className="w-10 h-10 rounded-[12px] bg-white/5 shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-white/10 rounded-full w-1/3" />
-                  <div className="h-2.5 bg-white/5 rounded-full w-1/2" />
+                <div className="w-[42px] h-[42px] rounded-[12px] bg-tg-hint/10 shrink-0" />
+                <div className="flex-1 space-y-2.5">
+                  <div className="h-3.5 bg-tg-hint/10 rounded-full w-1/3" />
+                  <div className="h-2.5 bg-tg-hint/5 rounded-full w-1/2" />
                 </div>
-                <div className="h-4 bg-white/10 rounded-full w-12 shrink-0" />
+                <div className="h-4 bg-tg-hint/10 rounded-full w-12 shrink-0" />
               </div>
             ))}
           </div>
@@ -105,25 +106,25 @@ export default function PaymentsTable({
 
       {/* ── Empty state ── */}
       {!loading && events.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-          <div className="w-16 h-16 rounded-full bg-tg-secondary flex items-center justify-center mb-4 border border-white/[0.05]">
+        <div className="flex flex-col items-center justify-center py-16 text-center px-5 bg-tg-secondary border border-tg-border/40 rounded-[24px] shadow-sm animate-fade-in">
+          <div className="w-[64px] h-[64px] rounded-[20px] bg-tg-hint/10 flex items-center justify-center mb-4 shadow-inner">
             <Clock size={28} className="text-tg-hint/40" />
           </div>
-          <p className="text-[16px] font-bold text-tg-text">{t('no_events')}</p>
-          <p className="text-[13px] text-tg-hint mt-2 leading-relaxed">
+          <p className="text-[17px] font-bold text-tg-text mb-1">{t('no_events', 'No events found')}</p>
+          <p className="text-[13px] font-medium text-tg-hint leading-relaxed max-w-[240px] mx-auto">
             {filter === '' 
-              ? t('events_will_appear') 
-              : t('no_events_match_filter')}
+              ? t('events_will_appear', 'Your payment and subscription events will appear here.') 
+              : t('no_events_match_filter', 'No events match the selected filter.')}
           </p>
         </div>
       )}
 
       {/* ── Events list (Estilo Menú iOS) ── */}
       {!loading && events.length > 0 && (
-        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-lg animate-fade-in">
-          <div className="divide-y divide-tg-border/20">
+        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/40 overflow-hidden shadow-sm animate-slide-up">
+          <div className="flex flex-col">
             {events.map((event) => {
-              const meta = EVENT_META_KEYS[event.eventType] || { labelKey: event.eventType, color: 'text-tg-text' };
+              const meta = EVENT_META_KEYS[event.eventType] || { labelKey: event.eventType, color: 'text-tg-text', bg: 'bg-tg-hint/10', border: 'border-tg-border/30' };
               const amount = event.resource?.amount?.total;
               const currency = event.resource?.amount?.currency;
               const date = new Date(event.create_time || event.createdAt);
@@ -134,24 +135,24 @@ export default function PaymentsTable({
                 <div
                   key={event._id}
                   onClick={() => onEventClick(event)}
-                  className="flex items-center gap-3.5 p-4 transition-colors hover:bg-white/[0.02] active:bg-white/[0.04] cursor-pointer"
+                  className="flex items-center gap-3.5 p-4 border-b border-tg-border/20 last:border-0 transition-colors hover:bg-tg-hint/5 active:bg-tg-hint/10 cursor-pointer group"
                 >
                   {/* Icono del evento */}
-                  <div className={`w-10 h-10 rounded-[12px] bg-white/[0.04] border border-white/5 flex items-center justify-center shrink-0 ${meta.color}`}>
+                  <div className={`w-[42px] h-[42px] rounded-[12px] border flex items-center justify-center shrink-0 shadow-sm transition-transform duration-200 group-active:scale-95 ${meta.bg} ${meta.border} ${meta.color}`}>
                     <EventIcon type={event.eventType} className="w-5 h-5" />
                   </div>
 
                   {/* Textos centrales */}
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-[14px] font-bold  truncate ${meta.color}`}>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <p className={`text-[15px] font-bold truncate leading-tight mb-1 ${meta.color}`}>
                       {t(meta.labelKey)}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[12px] font-medium text-tg-hint/80">{dateStr} · {timeStr}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] font-medium text-tg-hint">{dateStr} · {timeStr}</span>
                       {event.subscriptionId && (
                         <>
                           <span className="text-[10px] text-tg-hint/40">•</span>
-                          <span className="text-[11px] font-mono text-tg-hint/70 truncate max-w-[80px]">
+                          <span className="text-[11px] font-mono font-medium text-tg-hint/70 truncate max-w-[80px]">
                             {event.subscriptionId.slice(-6)}
                           </span>
                         </>
@@ -163,17 +164,17 @@ export default function PaymentsTable({
                   <div className="flex flex-col items-end shrink-0">
                     {amount ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[15px] font-bold text-tg-text tabular-nums ">${amount}</span>
-                        <span className="text-[11px] font-semibold text-tg-hint/80">{currency}</span>
+                        <span className="text-[16px] font-black text-tg-text tabular-nums tracking-tight">${amount}</span>
+                        <span className="text-[11px] font-bold text-tg-hint/80">{currency}</span>
                       </div>
                     ) : (
-                      <span className="text-[13px] font-medium text-tg-hint/50">—</span>
+                      <span className="text-[14px] font-bold text-tg-hint/40">—</span>
                     )}
 
                     {event.invalid_signature && (
-                      <div className="flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-[6px] bg-amber-500/10 border border-amber-500/20">
-                        <AlertCircle size={10} className="text-amber-500" />
-                        <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Firma</span>
+                      <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-[6px] bg-red-500/10 border border-red-500/20 shadow-sm">
+                        <AlertCircle size={10} className="text-red-500" strokeWidth={2.5} />
+                        <span className="text-[9px] font-extrabold text-red-500 uppercase tracking-wider">Invalid</span>
                       </div>
                     )}
                   </div>
@@ -189,15 +190,15 @@ export default function PaymentsTable({
         <button
           onClick={onLoadMore}
           disabled={loadingMore}
-          className="w-full py-3.5 rounded-2xl bg-tg-secondary border border-tg-border/50 text-[14px] font-semibold text-tg-text transition-all active:scale-[0.98] active:bg-tg-surface disabled:opacity-50 mt-2"
+          className="w-full py-3.5 rounded-[16px] bg-tg-hint/10 border border-tg-border/20 text-[14px] font-bold text-tg-text transition-transform active:scale-95 disabled:opacity-50 hover:bg-tg-hint/20 mt-4 shadow-sm"
         >
           {loadingMore ? (
             <span className="flex items-center justify-center gap-2">
-              <RefreshCw size={16} className="animate-spin text-tg-hint" />
-              <span className="text-tg-hint">{t('loading_events')}</span>
+              <RefreshCw size={16} className="animate-spin text-tg-hint" strokeWidth={2.5} />
+              <span className="text-tg-hint">{t('loading_events', 'Loading events...')}</span>
             </span>
           ) : (
-            t('load_more')
+            t('load_more', 'Load More')
           )}
         </button>
       )}

@@ -1,11 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { updateConfig } from '../services/api';
-import { useToastStore } from '../stores';
+import { useToastStore, useUserStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
-import SectionHeader from '../components/SectionHeader';
-import { Search } from 'lucide-react';
+import { Search, Check, Clock, Sparkles } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
+import { useConfigStore } from '@/stores/config';
 
 const TIMEZONES: Record<string, { label: string; description: string }> = {
   'GMT-12': { label: 'GMT-12', description: 'Baker Island, Howland Island' },
@@ -52,9 +51,12 @@ export default function TimezonePage() {
   const { t } = useTranslation();
   const showToast = useToastStore((s) => s.show);
   const { haptic } = useTelegram();
+  const { user, updateConfig: updateUserConfig } = useUserStore();
+  const { saveLocale } = useConfigStore();
+
 
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState((user as any)?.authUser?.config?.locale?.tz); // Usa la zona horaria del config o detectada, o GMT+0 como fallback
   const detected = useMemo(() => detectTimezone(), []);
 
   const tzEntries = useMemo(() => Object.entries(TIMEZONES), []);
@@ -69,28 +71,43 @@ export default function TimezonePage() {
   }, [search, tzEntries]);
 
   const handleSelect = async (key: string) => {
+    if (selected === key) return;
+
     haptic?.selectionChanged();
     setSelected(key);
     try {
-      await updateConfig({ tz: key });
-      showToast(t('common:changes_saved'), 'success');
+      const result = await saveLocale({ tz: key });
+      if (result.ok) {
+        showToast(t('common:changes_saved', 'Changes saved'), 'success');
+        updateUserConfig({
+          config: {
+            ...(user as any)?.authUser?.config,
+            locale: {
+              ...(user as any)?.authUser?.config?.locale,
+              tz: key
+            }
+          }
+        });
+      } else {
+        showToast(t('common:error', 'Error'), 'error');
+      }
     } catch {
-      showToast(t('common:error'), 'error');
+      showToast(t('common:error', 'Error'), 'error');
     }
   };
 
   return (
-    <div className="tm-main pb-8 animate-fade-in">
-      <StickyHeader title={t('settings:timezone')} subtitle={t('settings:timezone_desc')} />
+    <div className="pb-28 animate-fade-in relative">
+      <StickyHeader title={t('settings:timezone', 'Timezone')} subtitle={t('settings:timezone_desc', 'Set your local time')} />
 
-      {/* Search */}
-      <div className="mx-4 mt-3">
-        <div className="tm-search-field">
-          <Search className="w-5 h-5 text-tg-hint flex-shrink-0" />
+      {/* ── Barra de Búsqueda Estilo iOS ── */}
+      <div className="px-5 mt-4">
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-tg-secondary border border-tg-border/40 rounded-[14px] shadow-sm transition-colors focus-within:border-tg-accent/50 focus-within:bg-tg-secondary/80">
+          <Search className="w-[18px] h-[18px] text-tg-hint flex-shrink-0" />
           <input
             type="search"
-            className="tm-input text-[15px]"
-            placeholder={t('search_timezone')}
+            className="flex-1 min-w-0 bg-transparent text-[15px] text-tg-text placeholder:text-tg-hint/70 outline-none"
+            placeholder={t('search_timezone', 'Search timezone...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoComplete="off"
@@ -99,44 +116,80 @@ export default function TimezonePage() {
         </div>
       </div>
 
-      {/* Detected timezone */}
-      {detected && (
-        <>
-          <SectionHeader title={t('detected_timezone')} />
-          <div className="mx-4">
-            <label
-              className="tm-row cursor-pointer"
+      {/* ── Detected Timezone (Oculto si hay búsqueda activa) ── */}
+      {detected && !search && (
+        <section className="mt-8 px-5">
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5 flex items-center gap-1.5">
+            <Sparkles size={14} className="text-amber-500" /> {t('detected_timezone', 'Detected Timezone')}
+          </h2>
+          <div className="rounded-[20px] bg-tg-secondary border border-tg-border/40 overflow-hidden shadow-sm">
+            <button
               onClick={() => handleSelect(detected.key)}
+              className="w-full flex items-center justify-between p-3.5 text-left active:bg-tg-hint/10 transition-colors"
             >
-              <div className={`tm-checkbox ${selected === detected.key ? 'checked' : ''}`} />
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] text-tg-text">{detected.name}</div>
-                <div className="text-[13px] text-tg-hint mt-0.5">
-                  {TIMEZONES[detected.key]?.description || detected.key}
+              <div className="flex items-center gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                  <Clock size={18} className="text-violet-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-semibold text-tg-text leading-tight flex items-center gap-2">
+                    {detected.name.replace(/_/g, ' ')}
+                  </div>
+                  <div className="text-[13px] font-medium text-tg-hint mt-0.5 truncate">
+                    {TIMEZONES[detected.key]?.description || detected.key}
+                  </div>
                 </div>
               </div>
-            </label>
+              <div className="flex-shrink-0 ml-3 flex items-center justify-center w-6 h-6">
+                {selected === detected.key && (
+                  <Check size={20} className="text-tg-accent animate-fade-in" strokeWidth={3} />
+                )}
+              </div>
+            </button>
           </div>
-        </>
+        </section>
       )}
 
-      {/* All timezones */}
-      <SectionHeader title={t('choose_timezone')} />
-      <div className="mx-4">
-        {filtered.map(([key, tz]) => (
-          <label
-            key={key}
-            className="tm-row cursor-pointer"
-            onClick={() => handleSelect(key)}
-          >
-            <div className={`tm-checkbox ${selected === key ? 'checked' : ''}`} />
-            <div className="flex-1 min-w-0">
-              <div className="text-[15px] text-tg-text">{tz.label}</div>
-              <div className="text-[13px] text-tg-hint mt-0.5">{tz.description}</div>
-            </div>
-          </label>
-        ))}
-      </div>
+      {/* ── All Timezones ── */}
+      <section className="mt-8 px-5 pb-6">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">
+          {t('choose_timezone', 'Choose Timezone')}
+        </h2>
+
+        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/40 overflow-hidden shadow-sm">
+          <div className="flex flex-col">
+            {filtered.length > 0 ? (
+              filtered.map(([key, tz]) => (
+                <button
+                  key={key}
+                  onClick={() => handleSelect(key)}
+                  className="w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[16px] font-semibold text-tg-text leading-tight flex items-center gap-2">
+                      {tz.label}
+                    </div>
+                    <div className="text-[13px] font-medium text-tg-hint mt-0.5 truncate">
+                      {tz.description}
+                    </div>
+                  </div>
+
+                  <div className="flex-shrink-0 ml-3 flex items-center justify-center w-6 h-6">
+                    {selected === key && (
+                      <Check size={20} className="text-tg-accent animate-fade-in" strokeWidth={3} />
+                    )}
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="p-6 text-center text-tg-hint text-[14px] font-medium">
+                {t('common:no_results', 'No timezones found')}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

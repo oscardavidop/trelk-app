@@ -11,8 +11,15 @@ async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
     },
     ...opts,
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+
+
+  if (!res.ok) {
+    // Intentamos obtener el JSON del error
+    const errorData = await res.json().catch(() => null);
+
+    // Lanzamos el objeto completo. Si no es JSON, lanzamos el statusText
+    throw errorData || new Error(res.statusText);
+  } return res.json();
 }
 
 // ── Full config ─────────────────────────────────
@@ -73,17 +80,6 @@ export function fetchConfig(): Promise<FullConfigResponse> {
 }
 
 // ── Commands ────────────────────────────────────
-export function upsertCommand(key: string, cmd: CommandConfig) {
-  return json(`${BASE}/commands/${encodeURIComponent(key)}`, {
-    method: 'PUT',
-    body: JSON.stringify(cmd),
-  });
-}
-
-export function deleteCommand(key: string) {
-  return json(`${BASE}/commands/${encodeURIComponent(key)}`, { method: 'DELETE', body: JSON.stringify({}) });
-}
-
 // ── Premium Commands ────────────────────────────
 export function upsertPremiumCommand(key: string, alias: string) {
   return json(`${BASE}/premium/${encodeURIComponent(key)}`, {

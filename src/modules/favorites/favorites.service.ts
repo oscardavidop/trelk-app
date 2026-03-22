@@ -10,6 +10,9 @@ import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Favorite, FavoriteDocument } from './schemas/favorite.schema';
 import { FavCollection, FavCollectionDocument } from './schemas/fav-collection.schema';
+import fs, { createReadStream, existsSync, statSync } from 'fs';
+import path from 'path';
+import { Readable } from 'stream';
 
 export interface PaginatedFavorites {
   items: any[];
@@ -31,6 +34,8 @@ export class FavoritesService {
   private readonly logger = new Logger(FavoritesService.name);
   private readonly filePathCache = new Map<string, { path: string; expires: number }>();
   private readonly botToken: string;
+  private readonly apiUrl: string;
+  private readonly apiMode: 'local' | 'prod';
 
   constructor(
     @InjectModel(Favorite.name) private readonly favoriteModel: Model<FavoriteDocument>,
@@ -38,6 +43,8 @@ export class FavoritesService {
     private readonly configService: ConfigService,
   ) {
     this.botToken = this.configService.get<string>('BOT_TOKEN')!;
+    this.apiUrl = this.configService.get<string>('TELEGRAM_API_URL') || 'https://api.telegram.org';
+    this.apiMode = this.configService.get<'local' | 'prod'>('TELEGRAM_API_MODE') || 'prod';
   }
 
   // ════════════════════════════════════════════════
@@ -245,20 +252,27 @@ export class FavoritesService {
   // FILE PROXY (SECURE — streams content, never exposes token)
   // ════════════════════════════════════════════════
 
-  async getFileStream(fileId: string): Promise<{ stream: ReadableStream; contentType: string; contentLength?: string }> {
+  async getFileStream(fileId: string): Promise<{ stream: Readable; contentType: string; contentLength?: string }> {
     const filePath = await this.resolveFilePath(fileId);
-    const url = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
 
-    const response = await fetch(url);
-    if (!response.ok || !response.body) {
-      throw new NotFoundException('File not available');
+    if (this.apiMode === 'local') {
+      if (!existsSync(filePath)) throw new NotFoundException('File not found');
+      return {
+        stream: createReadStream(filePath),
+        contentType: 'application/octet-stream', // O usa la librería 'mime-types' para detectar por extensión
+        contentLength: String(statSync(filePath).size),
+      };
+    } else {
+      const url = `${this.apiUrl}/file/bot${this.botToken}/${filePath}`;
+      const response = await fetch(url);
+      if (!response.ok || !response.body) throw new NotFoundException('File not available');
+
+      return {
+        stream: Readable.fromWeb(response.body as any),
+        contentType: response.headers.get('content-type') || 'application/octet-stream',
+        contentLength: response.headers.get('content-length') || undefined,
+      };
     }
-
-    return {
-      stream: response.body as any,
-      contentType: response.headers.get('content-type') || 'application/octet-stream',
-      contentLength: response.headers.get('content-length') || undefined,
-    };
   }
 
   private async resolveFilePath(fileId: string): Promise<string> {
@@ -266,7 +280,7 @@ export class FavoritesService {
     if (cached && cached.expires > Date.now()) return cached.path;
 
     const res = await fetch(
-      `https://api.telegram.org/bot${this.botToken}/getFile?file_id=${encodeURIComponent(fileId)}`,
+      `${this.apiUrl}/bot${this.botToken}/getFile?file_id=${encodeURIComponent(fileId)}`,
     );
     const json: any = await res.json();
     if (!json.ok || !json.result?.file_path) {

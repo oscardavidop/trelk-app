@@ -20,12 +20,12 @@ export default function RelatedCommands({ slug }: Props) {
 
   return (
     <section className="px-5 mt-8">
-      <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 flex items-center gap-1.5 px-1">
-        <Compass size={14} className="text-tg-accent" /> Comandos relacionados
+      <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 flex items-center gap-1.5 pl-1">
+        <Compass size={16} className="text-tg-hint/60" /> Comandos relacionados
       </h2>
       
-      <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
-        <div className="divide-y divide-white/5">
+      <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm animate-slide-up">
+        <div className="flex flex-col">
           {commands.map((cmd) => {
             const slug = cmdSlug(cmd);
             const cat = CATEGORY_META[cmd.category];
@@ -41,12 +41,12 @@ export default function RelatedCommands({ slug }: Props) {
                   haptic?.impactOccurred('light');
                   navigate(`/users/ui/${userId}/bot-commands/${slug}`);
                 }}
-                className="w-full flex items-center gap-3.5 p-4 text-left transition-colors hover:bg-white/[0.02] active:bg-white/[0.04] group"
+                className="w-full flex items-center gap-3.5 p-3.5 text-left active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0 group"
               >
                 
                 {/* ── Icono ── */}
                 <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner transition-transform group-hover:scale-105"
+                  className="w-[38px] h-[38px] rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-200 group-active:scale-95"
                   style={{ backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
                 >
                   {isComponent && CatIcon ? (
@@ -58,8 +58,8 @@ export default function RelatedCommands({ slug }: Props) {
                 </div>
                 
                 {/* ── Textos ── */}
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="text-[15px] font-bold text-tg-text font-mono  truncate">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-semibold text-tg-text font-mono truncate leading-tight">
                     /{slug}
                   </div>
                   <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">
@@ -70,7 +70,7 @@ export default function RelatedCommands({ slug }: Props) {
                 {/* ── Flecha ── */}
                 <ChevronRight 
                   size={18} 
-                  className="text-tg-hint/40 flex-shrink-0 transition-transform group-hover:translate-x-0.5" 
+                  className="text-tg-hint/40 flex-shrink-0" 
                 />
               </button>
             );

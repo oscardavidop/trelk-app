@@ -1,7 +1,7 @@
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { useTranslation } from 'react-i18next';
-import { Bell } from 'lucide-react';
+import { Home, LayoutGrid, Settings, User, Bell } from 'lucide-react';
 import { useNotificationsStore } from '../stores/notifications';
 
 const TAB_KEYS = [
@@ -10,10 +10,8 @@ const TAB_KEYS = [
     labelKey: 'home',
     path: '',
     icon: (active: boolean) => (
-      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
-        <path d="M9 21V12h6v9" />
-      </svg>
+      // Cambiado de text-tg-hint/70 a text-tg-hint
+      <Home size={24} strokeWidth={active ? 2.5 : 2} className={active ? 'text-tg-accent' : 'text-tg-hint'} />
     ),
   },
   {
@@ -21,23 +19,7 @@ const TAB_KEYS = [
     labelKey: 'commands',
     path: '/hub',
     icon: (active: boolean) => (
-      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </svg>
-    ),
-  },
-  {
-    key: 'settings',
-    labelKey: 'settings',
-    path: '/settings-hub',
-    icon: (active: boolean) => (
-      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
+      <LayoutGrid size={24} strokeWidth={active ? 2.5 : 2} className={active ? 'text-tg-accent' : 'text-tg-hint'} />
     ),
   },
   {
@@ -45,10 +27,7 @@ const TAB_KEYS = [
     labelKey: 'profile',
     path: '/profile-tab',
     icon: (active: boolean) => (
-      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M20 21a8 8 0 0 0-16 0" />
-      </svg>
+      <User size={24} strokeWidth={active ? 2.5 : 2} className={active ? 'text-tg-accent' : 'text-tg-hint'} />
     ),
   },
   {
@@ -56,7 +35,15 @@ const TAB_KEYS = [
     labelKey: 'notifications',
     path: '/notifications',
     icon: (active: boolean) => (
-      <Bell size={active ? 23 : 22} strokeWidth={active ? 2.2 : 1.8} />
+      <Bell size={24} strokeWidth={active ? 2.5 : 2} className={active ? 'text-tg-accent' : 'text-tg-hint'} />
+    ),
+  },
+  {
+    key: 'settings',
+    labelKey: 'settings',
+    path: '/settings-hub',
+    icon: (active: boolean) => (
+      <Settings size={24} strokeWidth={active ? 2.5 : 2} className={active ? 'text-tg-accent' : 'text-tg-hint'} />
     ),
   },
 ];
@@ -84,35 +71,56 @@ export default function BottomNav() {
   const activeTab = getActiveTab();
 
   return (
-    <nav className="btm-nav">
-      {TAB_KEYS.map((tab) => {
-        const isActive = activeTab === tab.key;
-        return (
-          <button
-            key={tab.key}
-            onClick={() => {
-              if (!isActive) {
-                haptic?.impactOccurred('light');
-                navigate(`${basePath}${tab.path}`);
-              }
-            }}
-            className={`btm-nav-item ${isActive ? 'btm-nav-active' : ''}`}
-          >
-            <span className={`btm-nav-icon ${isActive ? 'text-tg-accent' : 'text-tg-hint'} relative`}>
-              {tab.icon(isActive)}
-              {tab.key === 'notifications' && unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+      <div className="w-full max-w-[480px] pointer-events-auto pb-[env(safe-area-inset-bottom)] bg-tg-bg/85 backdrop-blur-xl border-t border-tg-border/40 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-around px-2 py-1.5 h-[64px]">
+          {TAB_KEYS.map((tab) => {
+            const isActive = activeTab === tab.key;
+            
+            return (
+              <button
+                key={tab.key}
+                onClick={() => {
+                  if (!isActive) {
+                    haptic?.impactOccurred('light');
+                    navigate(`${basePath}${tab.path}`);
+                  }
+                }}
+                // Eliminado opacity-80 del estado inactivo para no perder legibilidad
+                className="relative flex flex-col items-center justify-center w-full h-full space-y-1 active:scale-95 transition-all duration-300"
+              >
+                {/* ── Indicador Activo (Fondo aumentado a 15% para mejor contraste en light mode) ── */}
+                <div 
+                  className={`absolute top-0 bottom-5 w-[48px] rounded-full transition-all duration-300 z-0 ${
+                    isActive ? 'bg-tg-accent/15 scale-100 opacity-100' : 'bg-transparent scale-50 opacity-0'
+                  }`} 
+                />
+
+                {/* ── Ícono ── */}
+                <span className="relative z-10 flex items-center justify-center transition-transform duration-300">
+                  {tab.icon(isActive)}
+                  
+                  {/* ── Badge de Notificaciones ── */}
+                  {tab.key === 'notifications' && unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-tg-bg shadow-sm z-20 animate-scale-in">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-            <span className={`btm-nav-label ${isActive ? 'text-tg-accent' : 'text-tg-hint'}`}>
-              {t(tab.labelKey)}
-            </span>
-            {isActive && <span className="btm-nav-dot" />}
-          </button>
-        );
-      })}
+                
+                {/* ── Texto ── */}
+                <span 
+                  className={`relative z-10 text-[10px] tracking-wide transition-all duration-300 font-semibold ${
+                    isActive ? 'text-tg-accent translate-y-0' : 'text-tg-hint translate-y-px'
+                  }`}
+                >
+                  {t(tab.labelKey, tab.key.charAt(0).toUpperCase() + tab.key.slice(1))}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </nav>
   );
 }

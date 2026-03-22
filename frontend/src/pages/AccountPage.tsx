@@ -1,15 +1,15 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
-import { Check, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { updateProfile } from '../services/api';
 import StickyHeader from '@/components/StickyHeader';
 
 export default function AccountPage() {
   const { userId } = useParams();
   const { t } = useTranslation('profile');
-  const { user, haptic } = useTelegram();
+  const { user, haptic, webApp } = useTelegram();
 
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || '';
 
@@ -21,7 +21,7 @@ export default function AccountPage() {
     phone: '',
     email: '',
   });
-  
+
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -40,18 +40,18 @@ export default function AccountPage() {
 
   const handleSave = useCallback(async () => {
     if (!dirty || saving) return;
-    
+
     setSaving(true);
     setError('');
     haptic?.impactOccurred('medium');
-    
+
     try {
       await updateProfile(form);
       initialRef.current = { ...form };
       setDirty(false);
       setSaved(true);
       haptic?.notificationOccurred('success');
-      
+
       setTimeout(() => setSaved(false), 2500);
     } catch (e: any) {
       setError(e.message || t('error_saving_profile'));
@@ -59,11 +59,53 @@ export default function AccountPage() {
     } finally {
       setSaving(false);
     }
-  }, [form, dirty, saving, haptic]);
+  }, [form, dirty, saving, haptic, t]);
+
+  // ── Lógica del MainButton Nativo de Telegram ──
+  useEffect(() => {
+    if (!webApp?.MainButton) return;
+
+    const mainButton = webApp.MainButton;
+
+    // Actualizamos el estado visual del botón según el estado del componente
+    if (saving) {
+      mainButton.setText(t('common:saving'));
+      mainButton.showProgress(false); // Muestra el loader y deshabilita el clic
+      mainButton.show();
+    } else if (saved) {
+      mainButton.hide();
+
+    } else if (dirty) {
+      mainButton.hideProgress();
+      mainButton.setText(t('common:save_changes'));
+      mainButton.enable();
+      mainButton.show();
+    } else {
+      mainButton.hide();
+    }
+
+    // Manejo de eventos
+    mainButton.onClick(handleSave);
+
+    // Limpieza al desmontar o cambiar dependencias
+    return () => {
+      mainButton.offClick(handleSave);
+    };
+  }, [webApp, dirty, saving, saved, handleSave, t]);
+
+  // Asegurarnos de ocultar el botón si salimos de la pantalla (desmontaje final)
+  useEffect(() => {
+    return () => {
+      if (webApp?.MainButton) {
+        webApp.MainButton.hide();
+      }
+    };
+  }, [webApp]);
 
   return (
-    <div className="pb-24 animate-fade-in">
+    <div className="pb-8 animate-fade-in">
       <StickyHeader title={t('my_account')} subtitle={t('manage_info')} />
+
       {/* ── Datos de Telegram (Solo Lectura) ── */}
       <div className="mt-4 px-4">
         <h2 className="text-[13px] font-medium text-tg-hint uppercase tracking-wide mb-2 px-1">
@@ -83,76 +125,50 @@ export default function AccountPage() {
           {t('trelk_profile')}
         </h2>
         <div className="rounded-2xl bg-tg-secondary overflow-hidden divide-y divide-tg-border/20 animate-slide-up" style={{ animationDelay: '50ms' }}>
-          <EditableRow 
-            label={t('first_name')} 
-            value={form.firstName} 
-            onChange={v => handleChange('firstName', v)} 
-            placeholder={t('first_name_placeholder')} 
+          <EditableRow
+            label={t('first_name')}
+            value={form.firstName}
+            onChange={v => handleChange('firstName', v)}
+            placeholder={t('first_name_placeholder')}
           />
-          <EditableRow 
-            label={t('last_name')} 
-            value={form.lastName} 
-            onChange={v => handleChange('lastName', v)} 
-            placeholder={t('last_name_placeholder')} 
+          <EditableRow
+            label={t('last_name')}
+            value={form.lastName}
+            onChange={v => handleChange('lastName', v)}
+            placeholder={t('last_name_placeholder')}
           />
-          <EditableRow 
-            label={t('city')} 
-            value={form.city} 
-            onChange={v => handleChange('city', v)} 
-            placeholder={t('city_placeholder')} 
+          <EditableRow
+            label={t('city')}
+            value={form.city}
+            onChange={v => handleChange('city', v)}
+            placeholder={t('city_placeholder')}
           />
-          <EditableRow 
-            label={t('phone')} 
-            value={form.phone} 
-            onChange={v => handleChange('phone', v)} 
-            placeholder={t('phone_placeholder')} 
-            type="tel" 
+          <EditableRow
+            label={t('phone')}
+            value={form.phone}
+            onChange={v => handleChange('phone', v)}
+            placeholder={t('phone_placeholder')}
+            type="tel"
           />
-          <EditableRow 
-            label={t('email')} 
-            value={form.email} 
-            onChange={v => handleChange('email', v)} 
-            placeholder={t('email_placeholder')} 
-            type="email" 
+          <EditableRow
+            label={t('email')}
+            value={form.email}
+            onChange={v => handleChange('email', v)}
+            placeholder={t('email_placeholder')}
+            type="email"
           />
         </div>
       </div>
 
-      {/* ── Área de Guardado ── */}
+      {/* ── Área de Errores ── */}
+      {/* Mantenemos solo el manejo de errores en la UI, el botón ahora es nativo */}
       <div className="px-4 mt-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        
         {error && (
           <div className="mb-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2.5">
             <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
             <p className="text-[13px] text-red-400">{error}</p>
           </div>
         )}
-
-        <button
-          onClick={handleSave}
-          disabled={!dirty || saving}
-          className={`w-full py-3.5 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2 ${
-            dirty && !saving
-              ? 'bg-tg-accent text-white active:scale-[0.98]'
-              : saved
-                ? 'bg-emerald-500/15 text-emerald-500'
-                : 'bg-tg-surface/40 text-tg-hint cursor-not-allowed'
-          }`}
-        >
-          {saving ? (
-            <>
-              <Loader2 size={18} className="animate-spin text-tg-hint" />
-              <span>{t('common:saving')}</span>
-            </>
-          ) : saved ? (
-            <>
-              <Check size={18} strokeWidth={2.5} className="text-emerald-500" />
-              <span>{t('common:saved')}</span>
-            </>
-          ) : (
-            t('common:save_changes')
-          )}
-        </button>
       </div>
     </div>
   );

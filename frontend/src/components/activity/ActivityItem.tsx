@@ -2,18 +2,18 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { HistoryEntry } from '../../services/historyApi';
 import { useToastStore } from '../../stores';
-import { Terminal, Heart, Trophy, Play, Copy, Check } from 'lucide-react';
+import { Terminal, Heart, Trophy, Copy, Check } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 
 function timeAgo(ts: number, t: (key: string, opts?: any) => string): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return t('common:now');
-  if (mins < 60) return t('common:ago_mins', { count: mins });
+  if (mins < 1) return t('common:now', 'now');
+  if (mins < 60) return t('common:ago_mins', { count: mins, defaultValue: `${mins}m ago` });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return t('common:ago_hours', { count: hrs });
+  if (hrs < 24) return t('common:ago_hours', { count: hrs, defaultValue: `${hrs}h ago` });
   const days = Math.floor(hrs / 24);
-  return t('common:ago_days', { count: days });
+  return t('common:ago_days', { count: days, defaultValue: `${days}d ago` });
 }
 
 interface ActivityItemProps {
@@ -40,7 +40,7 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
     }
   }, [e, haptic]);
 
-  // Configuración visual según el tipo de actividad
+  // Configuración visual nativa y adaptativa
   const getConfig = () => {
     switch (e.type) {
       case 'favorite_added':
@@ -53,73 +53,78 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
     }
   };
 
-  // Renderizado dinámico del texto para resaltar elementos clave
   const renderText = () => {
     if (e.type === 'command') {
       return (
-        <>
-          <span className="font-mono text-tg-accent font-semibold ">/{e.command}</span>
-          {e.args && <span className="text-tg-hint/80 italic"> "{e.args}"</span>}
-        </>
+        <div className="min-w-0 flex flex-wrap items-center gap-1">
+          <span className="font-mono text-tg-accent font-bold tracking-tight">/{e.command}</span>
+          {e.args && <span className="text-tg-hint/80 italic text-[13px] truncate max-w-[120px]">"{e.args}"</span>}
+        </div>
       );
     }
     if (e.type === 'favorite_added') {
       return (
-        <>
-          {t('saved')} <span className="font-bold text-tg-text">"{e.item}"</span> {t('in_favorites')}
-        </>
+        <p className="text-[14px] text-tg-text/90 leading-tight">
+          {t('saved', 'Saved')} <span className="font-bold text-tg-text">"{e.item}"</span> {t('in_favorites', 'to favorites')}
+        </p>
       );
     }
     if (e.type === 'achievement') {
       return (
-        <>
-          {t('unlocked_achievement')} <span className="font-bold text-amber-400">"{e.achievementName}"</span>
-        </>
+        <p className="text-[14px] text-tg-text/90 leading-tight">
+          {t('unlocked_achievement', 'Unlocked')} <span className="font-bold text-amber-500">"{e.achievementName}"</span>
+        </p>
       );
     }
-    return t('unknown_action');
+    return <span className="text-tg-hint">{t('unknown_action', 'Unknown action')}</span>;
   };
 
   const { Icon, bg, border, color } = getConfig();
 
   return (
-    // Agregamos w-full para asegurar que la fila ocupe todo el ancho
-    <div className="w-full flex items-start gap-3.5 p-4 hover:bg-white/[0.02] transition-colors group">
-
-      {/* ── Icono ── */}
-      <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner border ${bg} ${border}`}>
-        <Icon className={`w-5 h-5 ${color}`} />
+    <div className="w-full flex items-center gap-3.5 p-4 active:bg-tg-hint/5 transition-colors group">
+      
+      {/* ── Icono Estilo iOS ── */}
+      <div className={`w-[42px] h-[42px] rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-sm border ${bg} ${border} transition-transform duration-200 group-active:scale-90`}>
+        <Icon className={`w-5 h-5 ${color} drop-shadow-sm`} />
       </div>
 
-      {/* ── Contenido ── */}
-      {/* ⚠️ LA CLAVE ESTÁ AQUÍ: Agregamos flex-1 para que empuje el botón hasta el final */}
-      <div className="flex-1 grid grid-cols-[1fr_auto] items-center gap-4 min-w-0 pt-0.5">
-
-        {/* Columna Izquierda: Información (Texto y Tiempo) */}
+      {/* ── Contenido Principal ── */}
+      <div className="flex-1 flex items-center justify-between min-w-0 gap-3">
+        
         <div className="flex flex-col min-w-0">
-          <p className="text-[14px] text-tg-text/90 leading-snug break-words truncate">
+          <div className="text-[15px] text-tg-text leading-snug truncate">
             {renderText()}
-          </p>
-          <span className="text-[11px] font-medium text-tg-hint/70 mt-0.5 tracking-wide">
-            {timeAgo(e.timestamp, t)}
+          </div>
+          <span className="text-[12px] font-medium text-tg-hint mt-0.5 flex items-center gap-1">
+            {timeAgo(e.timestamp || Date.now(), t)}
           </span>
         </div>
 
-        {/* Columna Derecha: Botón */}
-        <div className="flex justify-end">
+        {/* ── Acción: Botón Copiar ── */}
+        <div className="flex-shrink-0">
           {e.type === 'command' && e.command && (
             <button
-              onClick={handleCopy}
-              className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[10px] active:scale-95 transition-all border ${copied
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                  : 'bg-black/20 border-white/5 text-tg-hint hover:text-tg-text hover:bg-white/[0.04]'
-                }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleCopy();
+              }}
+              className={`flex items-center gap-1.5 text-[12px] font-bold px-3.5 py-1.5 rounded-full active:scale-95 transition-all duration-200 border shadow-sm ${
+                copied
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                  : 'bg-tg-hint/10 border-tg-border/30 text-tg-hint hover:text-tg-text'
+              }`}
             >
-              {copied ? <Check size={14} strokeWidth={2.5} /> : <Copy size={14} />}
-              <span>{copied ? t('common:copied') : t('common:copy')}</span>
+              {copied ? (
+                <Check size={14} strokeWidth={3} className="animate-scale-in" />
+              ) : (
+                <Copy size={14} strokeWidth={2.5} />
+              )}
+              <span className="uppercase tracking-wider text-[10px]">{copied ? t('common:copied') : t('common:copy')}</span>
             </button>
           )}
         </div>
+
       </div>
     </div>
   );

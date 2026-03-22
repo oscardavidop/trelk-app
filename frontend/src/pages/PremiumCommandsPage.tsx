@@ -44,8 +44,8 @@ export default function PremiumCommandsPage() {
       setNewAlias('');
       setShowAdd(false);
       haptic?.notificationOccurred('success');
-    } catch {
-      showToast(t('common:create_error'), 'error');
+    } catch (error: any) {
+      showToast(error.message || t('common:create_error'), 'error');
     }
   };
 
@@ -54,8 +54,8 @@ export default function PremiumCommandsPage() {
       await removePremiumCommand(key);
       showToast(t('common:deleted'), 'success');
       haptic?.notificationOccurred('warning');
-    } catch {
-      showToast(t('common:delete_error'), 'error');
+    } catch (error: any) {
+      showToast(error.message || t('common:delete_error'), 'error');
     }
   };
 
@@ -84,7 +84,7 @@ export default function PremiumCommandsPage() {
 
       {/* ── Buscador Pegajoso (Sticky) ── */}
       <div className="sticky top-0 z-20 px-4 py-3 bg-tg-bg/90 backdrop-blur-xl border-b border-tg-border/30">
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-tg-surface/50 border border-tg-border/20 rounded-[14px] shadow-inner focus-within:border-amber-500/40 transition-colors">
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-tg-surface/50 border border-tg-border/20 rounded-[14px] shadow-inner focus-within:border-amber-500/40 focus-within:border-2 transition-colors">
           <Search className="w-5 h-5 text-tg-hint shrink-0" />
           <input
             type="search"

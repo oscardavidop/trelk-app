@@ -14,11 +14,14 @@ import {
 } from '@nestjs/common';
 import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserService } from '../users/user.service';
+import { LocaleDto } from '../users/dto/api.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Controller('api/v1/ui/config')
 @UseGuards(CookieAuthGuard)
 export class ConfigController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   /** GET /api/v1/ui/config — full user config */
   @Get()
@@ -31,24 +34,18 @@ export class ConfigController {
 
   // ── Commands ────────────────────────────────────
 
-  /** PUT /api/v1/ui/config/commands/:key — upsert a command */
-  @Put('commands/:key')
-  async upsertCommand(
+  /** PATCH /api/v1/ui/config/commands/:key — partial command config update */
+  @Patch('commands/:key')
+  async patchCommand(
     @Param('key') key: string,
-    @Body() body: { engine: string; inline?: { results_per_page?: number; show_url?: boolean } },
+    @Body() body: Record<string, any>,
     @Req() req: any,
   ) {
-    if (!body.engine) throw new BadRequestException('engine is required');
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      throw new BadRequestException('Invalid patch payload');
+    }
     const telegramId = this.extractTelegramId(req);
-    await this.userService.upsertCommand(telegramId, key, body);
-    return { ok: true };
-  }
-
-  /** DELETE /api/v1/ui/config/commands/:key — delete a command */
-  @Delete('commands/:key')
-  async deleteCommand(@Param('key') key: string, @Req() req: any) {
-    const telegramId = this.extractTelegramId(req);
-    await this.userService.deleteCommand(telegramId, key);
+    await this.userService.patchCommandConfig(telegramId, key, body);
     return { ok: true };
   }
 
@@ -63,7 +60,7 @@ export class ConfigController {
   ) {
     if (!body.alias) throw new BadRequestException('alias is required');
     const telegramId = this.extractTelegramId(req);
-    await this.userService.upsertPremiumCommand(telegramId, key, body.alias);
+    await this.userService.upsertPremiumCommand(telegramId, key, body.alias, req.user.authUser.pro_features, req.user.authUser.config.premium_commands);
     return { ok: true };
   }
 
@@ -79,11 +76,28 @@ export class ConfigController {
 
   /** PATCH /api/v1/ui/config/locale — partial update locale */
   @Patch('locale')
-  async updateLocale(@Body() body: Record<string, any>, @Req() req: any) {
+  async updateLocale(@Body() dto: LocaleDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
+    const body = plainToInstance(LocaleDto, dto);
+
+    const errors = await validate(body, {
+      whitelist: true,
+      stopAtFirstError: true,
+    });
+
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        ok: false,
+        error: 'Bad Request',
+        details: this.formatErrors(errors),
+        error_code: 'VALIDATION_ERROR',
+      });
+    }
+
     await this.userService.updateLocale(telegramId, body);
     return { ok: true };
   }
+
 
   // ── Helpers ─────────────────────────────────────
 
@@ -95,4 +109,21 @@ export class ConfigController {
       user.authUser?.id
     );
   }
+
+  private formatErrors(validationErrors: any[]): any[] {
+   return validationErrors.reduce((acc, err) => {
+        if (err.constraints) {
+          acc.push({
+            property: err.property,
+            message: Object.values(err.constraints).join(', ')
+          });
+        }
+        if (err.children?.length) {
+          acc.push(...this.formatErrors(err.children));
+        }
+        return acc;
+      }, []);
+  };
 }
+
+

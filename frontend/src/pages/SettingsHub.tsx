@@ -3,18 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../hooks/useTelegram';
 import { useUserStore } from '../stores';
 import { useThemeStore, type ThemeMode } from '../stores/theme';
-import { 
-  ChevronRight, 
-  Moon, 
-  Sun, 
-  Monitor, 
-  Globe, 
-  Clock, 
-  MapPin, 
-  MessageSquare, 
-  Palette, 
-  Crown, 
-  CreditCard 
+import {
+  ChevronRight,
+  Moon,
+  Sun,
+  Monitor,
+  Globe,
+  Clock,
+  MapPin,
+  MessageSquare,
+  Palette,
+  Crown,
+  CreditCard
 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
@@ -23,6 +23,7 @@ export default function SettingsHub() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { user: tgUser, haptic } = useTelegram();
+  const { user } = useUserStore();
   const appUser = useUserStore((s) => s.user);
   const { mode: themeMode, setMode } = useThemeStore();
 
@@ -35,8 +36,10 @@ export default function SettingsHub() {
     navigate(`/users/ui/${userId}${path}`);
   };
 
+  console.log('User Config:', (user as any)?.authUser?.config);
+
   const themeLabel = themeMode === 'dark' ? t('dark') : themeMode === 'light' ? t('light') : t('system');
-  
+
   // Icono dinámico según el tema
   const ThemeIcon = themeMode === 'dark' ? Moon : themeMode === 'light' ? Sun : Monitor;
 
@@ -62,6 +65,9 @@ export default function SettingsHub() {
               {displayName.charAt(0)}
             </div>
           )}
+
+          {/* <div className="absolute inset-0 z-30 rounded-full" onContextMenu={(e) => e.preventDefault()} /> */}
+
           <div className="flex-1 min-w-0">
             <div className="text-[16px] font-bold text-tg-text  truncate">{displayName}</div>
             <div className="text-[13px] font-mono text-tg-hint/80 truncate mt-0.5">ID: {tgId}</div>
@@ -72,58 +78,104 @@ export default function SettingsHub() {
 
       {/* ── Preferences ── */}
       <section className="mt-8 px-5">
-        <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('preferences')}</h2>
-        
-        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
-          <div className="divide-y divide-tg-border/20">
-            
-            {/* Language */}
-            <button onClick={() => go('/set/lang')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
-              <div className="w-9 h-9 rounded-[10px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center flex-shrink-0">
-                <Globe size={18} className="text-sky-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text ">{t('language')}</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('language_desc')}</div>
-              </div>
-              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
-            </button>
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('preferences')}</h2>
 
-            {/* Timezone */}
-            <button onClick={() => go('/set/timezone')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
-              <div className="w-9 h-9 rounded-[10px] bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
-                <Clock size={18} className="text-violet-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text ">{t('timezone')}</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('timezone_desc')}</div>
-              </div>
-              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
-            </button>
+        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm flex flex-col divide-y divide-tg-border/20">
 
-            {/* Country */}
-            <button onClick={() => go('/set/country')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
-              <div className="w-9 h-9 rounded-[10px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0">
-                <MapPin size={18} className="text-rose-400" />
+          {/* Language */}
+          <button
+            onClick={() => go('/set/lang')}
+            className="w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors bg-transparent group"
+          >
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-active:scale-95">
+                <Globe size={18} className="text-sky-500" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text ">{t('country')}</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('country_desc')}</div>
+
+              <div className="flex-1 flex items-center justify-between min-w-0 gap-3">
+                <div className="min-w-0 pr-2">
+                  <div className="text-[16px] font-semibold text-tg-text leading-tight group-active:opacity-80 transition-opacity">
+                    {t('language')}
+                  </div>
+                </div>
+
+                {/* Valor Actual */}
+                <div className="text-[15px] font-medium text-tg-hint/80 uppercase truncate text-right">
+                  {(user as any)?.authUser?.config?.locale?.lang || 'EN'}
+                </div>
               </div>
-              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
-            </button>
-            
-          </div>
+            </div>
+
+            <ChevronRight size={18} className="text-tg-hint/40 flex-shrink-0 ml-1 transition-transform group-active:translate-x-0.5" />
+          </button>
+
+          {/* Timezone */}
+          <button
+            onClick={() => go('/set/timezone')}
+            className="w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors bg-transparent group"
+          >
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <div className="w-[34px] h-[34px] rounded-[10px] bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-active:scale-95">
+                <Clock size={18} className="text-violet-500" />
+              </div>
+
+              <div className="flex-1 flex items-center justify-between min-w-0 gap-3">
+                <div className="min-w-0 pr-2">
+                  <div className="text-[16px] font-semibold text-tg-text leading-tight group-active:opacity-80 transition-opacity">
+                    {t('timezone')}
+                  </div>
+                </div>
+
+                {/* Valor Actual (Limpio) */}
+                <div className="text-[15px] font-medium text-tg-hint/80 truncate text-right max-w-[100px]">
+                  {((user as any)?.authUser?.config?.locale?.tz || 'UTC')
+                    .split('/')
+                    .pop()
+                    ?.replace(/_/g, ' ')}
+                </div>
+              </div>
+            </div>
+
+            <ChevronRight size={18} className="text-tg-hint/40 flex-shrink-0 ml-1 transition-transform group-active:translate-x-0.5" />
+          </button>
+
+          {/* Country */}
+          <button
+            onClick={() => go('/set/country')}
+            className="w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors bg-transparent group"
+          >
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <div className="w-[34px] h-[34px] rounded-[10px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-active:scale-95">
+                <MapPin size={18} className="text-rose-500" />
+              </div>
+
+              <div className="flex-1 flex items-center justify-between min-w-0 gap-3">
+                <div className="min-w-0 pr-2">
+                  <div className="text-[16px] font-semibold text-tg-text leading-tight group-active:opacity-80 transition-opacity">
+                    {t('country')}
+                  </div>
+                </div>
+
+                {/* Valor Actual */}
+                <div className="text-[15px] font-medium text-tg-hint/80 uppercase truncate text-right">
+                  {(user as any)?.authUser?.config?.locale?.country || 'US'}
+                </div>
+              </div>
+            </div>
+
+            <ChevronRight size={18} className="text-tg-hint/40 flex-shrink-0 ml-1 transition-transform group-active:translate-x-0.5" />
+          </button>
+
         </div>
       </section>
 
       {/* ── Bot Settings ── */}
       <section className="mt-8 px-5">
         <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('bot_settings')}</h2>
-        
+
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
           <div className="divide-y divide-tg-border/20">
-            
+
             <button onClick={() => go('/settings')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center flex-shrink-0">
                 <MessageSquare size={18} className="text-tg-accent" />
@@ -153,10 +205,10 @@ export default function SettingsHub() {
       {/* ── Plan & Payments ── */}
       <section className="mt-8 px-5 pb-4">
         <h2 className="text-[12px] font-bold text-tg-hint uppercase  mb-3 pl-2">{t('plan_payments')}</h2>
-        
+
         <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
           <div className="divide-y divide-tg-border/20">
-            
+
             <button onClick={() => go('/subscription')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
               <div className="w-9 h-9 rounded-[10px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                 <Crown size={18} className="text-amber-500" />

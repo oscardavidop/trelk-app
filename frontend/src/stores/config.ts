@@ -1,13 +1,10 @@
 import { create } from 'zustand';
 import {
   fetchConfig,
-  upsertCommand,
-  deleteCommand as apiDeleteCommand,
   upsertPremiumCommand,
   deletePremiumCommand as apiDeletePremiumCommand,
   patchLocale,
   type UserConfig,
-  type CommandConfig,
   type LocaleConfig,
 } from '../services/configApi';
 
@@ -18,14 +15,12 @@ interface ConfigState {
 
   load: () => Promise<void>;
   patchConfig: (partial: Partial<UserConfig>) => void;
-  saveCommand: (key: string, cmd: CommandConfig) => Promise<void>;
-  removeCommand: (key: string) => Promise<void>;
   savePremiumCommand: (key: string, alias: string) => Promise<void>;
   removePremiumCommand: (key: string) => Promise<void>;
-  saveLocale: (locale: Partial<LocaleConfig>) => Promise<void>;
+  saveLocale: (locale: Partial<LocaleConfig>) => Promise<{ ok: boolean; error?: string }>;
 }
 
-export const useConfigStore = create<ConfigState>((set, get) => ({
+export const useConfigStore = create<ConfigState>((set) => ({
   config: null,
   loading: false,
   error: null,
@@ -48,30 +43,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     set((s) => {
       if (!s.config) return s;
       return { config: { ...s.config, ...partial } };
-    });
-  },
-
-  saveCommand: async (key, cmd) => {
-    await upsertCommand(key, cmd);
-    // optimistic update
-    set((s) => {
-      if (!s.config) return s;
-      return {
-        config: {
-          ...s.config,
-          commands: { ...s.config.commands, [key]: cmd },
-        },
-      };
-    });
-  },
-
-  removeCommand: async (key) => {
-    await apiDeleteCommand(key);
-    set((s) => {
-      if (!s.config) return s;
-      const copy = { ...s.config.commands };
-      delete copy[key];
-      return { config: { ...s.config, commands: copy } };
     });
   },
 
@@ -102,7 +73,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   },
 
   saveLocale: async (locale) => {
-    await patchLocale(locale);
+    const result = await patchLocale(locale);
     set((s) => {
       if (!s.config) return s;
       return {
@@ -112,5 +83,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         },
       };
     });
+    return result;
   },
 }));

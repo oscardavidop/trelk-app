@@ -12,6 +12,7 @@ import SubscriptionUsage from '../components/subscription/SubscriptionUsage';
 import SubscriptionBenefits from '../components/subscription/SubscriptionBenefits';
 import SubscriptionPlans from '../components/subscription/SubscriptionPlans';
 import StickyHeader from '@/components/StickyHeader';
+import { Loader2, Crown } from 'lucide-react';
 
 export const showConfirmPopup = (options: {
     title: string,
@@ -40,7 +41,7 @@ export const showConfirmPopup = (options: {
     });
 };
 
-// ── Confirm Modal ────────────────────────────────
+// ── Confirm Modal Premium Estilo iOS ────────────────────────────────
 export function ConfirmModal({
     title,
     message,
@@ -80,17 +81,17 @@ export function ConfirmModal({
     }, [onCancel]);
 
     const modalContent = (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-6 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md px-5 animate-fade-in">
             <div
                 ref={modalRef}
-                className="bg-tg-secondary border border-tg-border/20 rounded-[24px] p-6 max-w-sm w-full shadow-2xl animate-scale-in flex flex-col max-h-[80vh]"
+                className="bg-tg-secondary border border-tg-border/40 rounded-[24px] p-6 max-w-[400px] w-full shadow-2xl animate-scale-in flex flex-col max-h-[80vh]"
             >
-                <h3 className="text-[19px] font-bold text-tg-text mb-3 flex-shrink-0 ">
+                <h3 className="text-[20px] font-bold text-tg-text mb-3 flex-shrink-0 leading-tight">
                     {title}
                 </h3>
 
                 <div className="overflow-y-auto mb-6 pr-2 custom-scrollbar">
-                    <p className="text-[15px] text-tg-hint leading-relaxed">
+                    <p className="text-[14px] font-medium text-tg-hint leading-relaxed">
                         {message}
                     </p>
                 </div>
@@ -98,13 +99,13 @@ export function ConfirmModal({
                 <div className="flex gap-3 mt-auto flex-shrink-0">
                     <button
                         onClick={onCancel}
-                        className="flex-1 py-3 rounded-xl bg-tg-surface text-tg-text text-[15px] font-medium transition-colors hover:bg-tg-surface/80 active:bg-tg-surface/60"
+                        className="flex-1 py-3.5 rounded-[16px] bg-tg-surface text-tg-text text-[15px] font-semibold transition-colors hover:bg-tg-surface/80 active:bg-tg-surface/60"
                     >
-                        {t('common:cancel')}
+                        {t('common:cancel', 'Cancel')}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="flex-1 py-3 rounded-xl text-white text-[15px] font-semibold transition-transform active:scale-95 shadow-lg"
+                        className="flex-1 py-3.5 rounded-[16px] text-white text-[15px] font-bold transition-transform active:scale-95 shadow-sm"
                         style={{ background: confirmColor || 'var(--tg-accent)' }}
                     >
                         {confirmLabel}
@@ -214,8 +215,9 @@ export default function SubscriptionPage() {
     // ── Loading ───────────────────────────
     if (loading || !features) {
         return (
-            <div className="flex items-center justify-center min-h-[70vh]">
-                <div className="w-10 h-10 border-2 border-tg-accent border-t-transparent rounded-full animate-spin" />
+            <div className="flex flex-col items-center justify-center min-h-[70vh] gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-tg-accent" />
+                <span className="text-[13px] font-medium text-tg-hint animate-pulse">{t('common:loading', 'Loading...')}</span>
             </div>
         );
     }
@@ -225,8 +227,17 @@ export default function SubscriptionPage() {
     const pendingPlan = subscription.change?.status === 'pending' ? subscription.change.new_plan : undefined;
 
     return (
-        <div className="tm-main pb-12 animate-fade-in space-y-5">
-            <StickyHeader title={t('your_subscription')} subtitle={t('current_plan', { plan: TIER_META[tier].label })} />
+        <div className="pb-28 animate-fade-in relative  flex flex-col gap-6">
+            <StickyHeader 
+                title={t('your_subscription', 'Subscription')} 
+                subtitle={t('current_plan', { plan: TIER_META[tier]?.label || 'Free' })}
+                icon={
+                    <div className="w-[42px] h-[42px] rounded-[14px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Crown className="w-5 h-5 text-amber-500" />
+                    </div>
+                } 
+            />
+            
             {/* 1. Hero */}
             <SubscriptionHero features={features} />
 
@@ -251,7 +262,7 @@ export default function SubscriptionPage() {
                 onSelect={handlePlanSelect}
             />
 
-            <p className="mx-6 mt-4 mb-4 text-center text-[12px] text-tg-hint leading-relaxed opacity-70">
+            <p className="mx-6 mt-2 mb-6 text-center text-[12px] font-medium text-tg-hint leading-relaxed opacity-80">
                 {t('upgrade_note')}
             </p>
 

@@ -1,4 +1,4 @@
-const API_BASE = '/users/api';
+const API_BASE = '/api/users';
 
 interface ApiRequestBody {
   method: string;

@@ -21,8 +21,7 @@ import {
   Compass,
   Clock,
   Image as ImageIcon,
-  Star,
-  FlaskConical
+  Star
 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -45,161 +44,132 @@ export default function DashboardHome() {
       },
     });
     if (!loaded) loadGamification();
-    const timer = setTimeout(() => setShowGreeting(true), 100);
+    const timer = setTimeout(() => setShowGreeting(true), 150);
     return () => clearTimeout(timer);
   }, [loadFavs, loaded, loadGamification]);
 
   const recentFavs = items.slice(0, 6);
 
+  // Wrapper para navegación con Haptic Feedback (estilo nativo)
   const go = (path: string) => {
     haptic?.impactOccurred('light');
     navigate(`/users/ui/${userId}${path}`);
   };
 
   return (
-    <div className="pb-24 animate-fade-in relative overflow-x-hidden">
+    <div className="pb-28 animate-fade-in relative overflow-x-hidden max-w-[480px] mx-auto">
 
       {/* ── Saludo Hero ── */}
-      
-      <div className={`px-4 sticky pt-8 pb-3 transition-all duration-700 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} flex justify-between items-center`}>
-        {/* Bloque de la izquierda (Foto + Texto) */}
+      <div className={`px-5 sticky top-0 pt-6 pb-4 bg-tg-bg/80 backdrop-blur-lg z-10 transition-all duration-500 ease-out ${showGreeting ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'} flex justify-between items-center`}>
         <div className="flex items-center gap-3.5">
           {photoUrl ? (
-            <img src={photoUrl} alt="" className="w-[52px] h-[52px] rounded-full ring-[3px] ring-tg-accent/20 object-cover shadow-sm" />
+            <img src={photoUrl} alt="" className="w-12 h-12 rounded-full ring-[2px] ring-tg-border object-cover shadow-sm" />
           ) : (
-            <div className="w-[52px] h-[52px] rounded-full bg-gradient-to-br from-tg-accent to-blue-600 flex items-center justify-center text-white text-[22px] font-black ring-[3px] ring-tg-accent/20 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-tg-accent to-blue-600 flex items-center justify-center text-white text-[20px] font-bold shadow-sm">
               {firstName.charAt(0)}
             </div>
           )}
-          <div>
-            <h1 className="text-[26px] font-extrabold text-tg-text leading-none mb-1">
+          <div className="absolute inset-0 z-30 rounded-full" onContextMenu={(e) => e.preventDefault()} />
+
+          <div className="flex flex-col justify-center">
+            <h1 className="text-[22px] font-bold text-tg-text leading-tight tracking-tight">
               {t('greeting', { name: firstName })}
             </h1>
-            <p className="text-[14px] font-medium text-tg-hint/80 tracking-wide">{t('welcome_back')}</p>
+            <p className="text-[14px] text-tg-hint font-medium leading-tight">
+              {t('welcome_back')}
+            </p>
           </div>
         </div>
-
-        {/* Bloque de la derecha (Progreso) */}
-        {/* <XPProgress rounded /> */}
       </div>
 
-
       {/* ── Global Usage Counter ── */}
-      <div className="px-4 mt-3">
+      <div className="px-5 mt-2">
         <CommandUsageCounter />
       </div>
 
       {/* ── Mini Tarjeta XP + Racha ── */}
-      <div className="px-5 mt-6 mb-2">
+      <div className="px-7 mt-5 mb-2">
         <XPProgress compact />
       </div>
+
       {/* ── Grid de Accesos Directos (Bento Grid) ── */}
-      <section className="mt-4 px-4">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase  px-1 mb-2.5">{t('control_panel')}</h2>
+      <section className="mt-6 px-5">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-3 px-1">
+          {t('control_panel')}
+        </h2>
         <div className="grid grid-cols-2 gap-3">
-
-          <button onClick={() => go('/favorites')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
-            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-              <Heart size={20} className="text-white fill-white/20" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text  truncate">{t('favorites')}</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('your_gallery')}</div>
-            </div>
-          </button>
-
-          <button onClick={() => go('/premium')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
-            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-blue-500 to-tg-accent flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-              <Terminal size={20} className="text-white" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text  truncate">{t('commands')}</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('custom')}</div>
-            </div>
-          </button>
-
-          <button onClick={() => go('/subscription')} className="flex items-center gap-3.5 p-3 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
-            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-              <Crown size={20} className="text-white" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text  truncate">{t('subscription')}</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('manage_plan')}</div>
-            </div>
-          </button>
-
-          <button onClick={() => go('/payments')} className="flex items-center gap-3.5 p-3  rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left active:scale-[0.96] transition-all shadow-sm hover:bg-white/[0.02] group">
-            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-              <Receipt size={20} className="text-white" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[15px] font-bold text-tg-text  truncate">{t('payments')}</div>
-              <div className="text-[12px] font-medium text-tg-hint mt-0.5 truncate">{t('view_history')}</div>
-            </div>
-          </button>
-
+          {[
+            { id: 'favorites', path: '/favorites', icon: Heart, colors: 'from-rose-400 to-pink-500', title: t('favorites'), sub: t('your_gallery') },
+            { id: 'commands', path: '/premium', icon: Terminal, colors: 'from-blue-400 to-tg-accent', title: t('commands'), sub: t('custom') },
+            { id: 'subscription', path: '/subscription', icon: Crown, colors: 'from-amber-400 to-orange-500', title: t('subscription'), sub: t('manage_plan') },
+            { id: 'payments', path: '/payments', icon: Receipt, colors: 'from-emerald-400 to-teal-500', title: t('payments'), sub: t('view_history') },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => go(item.path)}
+              className="flex items-center gap-3 p-3.5 rounded-[20px] bg-tg-secondary border border-tg-border/40 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm group"
+            >
+              <div className={`w-[42px] h-[42px] rounded-2xl bg-gradient-to-br ${item.colors} flex items-center justify-center flex-shrink-0 shadow-inner group-active:scale-95 transition-transform duration-200`}>
+                <item.icon size={20} className="text-white drop-shadow-sm" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-semibold text-tg-text truncate leading-tight">{item.title}</div>
+                <div className="text-[12px] text-tg-hint truncate mt-0.5">{item.sub}</div>
+              </div>
+            </button>
+          ))}
         </div>
       </section>
 
-
       {/* ── Acciones Rápidas (Shortcuts) ── */}
-      <section className="mt-5">
+      <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase ">{t('quick_actions')}</h2>
-          <button onClick={() => go('/bot-commands')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider">{t('quick_actions')}</h2>
+          <button onClick={() => go('/bot-commands')} className="text-[13px] font-medium text-tg-accent active:opacity-70 transition-opacity">
             {t('view_catalog')}
           </button>
         </div>
-        {/* Este componente ya lo estilizamos antes con scroll nativo oculto */}
         <CommandShortcuts onRun={(cmd) => go(`/bot-commands/${cmdSlug(cmd)}`)} />
       </section>
 
-      {/* ── Franja de Gamificación (Logros y Descubrir) ── */}
-      <div className="px-4 mt-6">
+      {/* ── Franja de Gamificación ── */}
+      <div className="px-5 mt-8">
         <div className="grid grid-cols-2 gap-3">
-
-          <button
-            onClick={() => go('/achievements')}
-            className="relative flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left transition-all active:scale-[0.96] hover:bg-white/[0.02] shadow-sm group overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-[0_2px_12px_rgba(245,158,11,0.25)] border border-white/10 group-hover:scale-105 transition-transform">
-              <Trophy size={18} className="text-white drop-shadow-sm" />
+          <button onClick={() => go('/achievements')} className="relative flex items-center gap-3 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/40 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm group overflow-hidden">
+            <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-[42px] h-[42px] rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-sm border border-white/10 group-active:scale-95 transition-transform duration-200">
+              <Trophy size={20} className="text-white drop-shadow-sm" />
             </div>
             <div className="min-w-0 flex-1 relative z-10">
-              <div className="text-[15px] font-extrabold text-tg-text  truncate">{t('achievements_count', { count: unlockedCount })}</div>
-              <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">{t('remaining_count', { count: achievements.length - unlockedCount })}</div>
+              <div className="text-[15px] font-semibold text-tg-text truncate">{t('achievements_count', { count: unlockedCount })}</div>
+              <div className="text-[12px] text-tg-hint truncate mt-0.5">{t('remaining_count', { count: achievements.length - unlockedCount })}</div>
             </div>
           </button>
 
-          <button
-            onClick={() => go('/discover')}
-            className="relative flex items-center gap-3.5 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-left transition-all active:scale-[0.96] hover:bg-white/[0.02] shadow-sm group overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-[0_2px_12px_rgba(139,92,246,0.25)] border border-white/10 group-hover:scale-105 transition-transform">
-              <Compass size={18} className="text-white drop-shadow-sm" />
+          <button onClick={() => go('/discover')} className="relative flex items-center gap-3 p-4 rounded-[20px] bg-tg-secondary border border-tg-border/40 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm group overflow-hidden">
+            <div className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-[42px] h-[42px] rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm border border-white/10 group-active:scale-95 transition-transform duration-200">
+              <Compass size={20} className="text-white drop-shadow-sm" />
             </div>
             <div className="min-w-0 flex-1 relative z-10">
-              <div className="text-[15px] font-extrabold text-tg-text  truncate">{t('discover')}</div>
-              <div className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">{t('explore_more')}</div>
+              <div className="text-[15px] font-semibold text-tg-text truncate">{t('discover')}</div>
+              <div className="text-[12px] text-tg-hint truncate mt-0.5">{t('explore_more')}</div>
             </div>
           </button>
-
         </div>
       </div>
 
       {/* ── Comandos Usados Recientemente ── */}
       <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-1.5">
-            <Clock size={14} className="text-tg-hint" /> {t('recent')}
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider flex items-center gap-1.5">
+            <Clock size={14} /> {t('recent')}
           </h2>
-          <button onClick={() => go('/activity')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
+          <button onClick={() => go('/activity')} className="text-[13px] font-medium text-tg-accent active:opacity-70 transition-opacity">
             {t('view_history')}
           </button>
         </div>
-        <div className="px-4">
+        <div className="px-5">
           <RecentCommands onTap={(cmd) => {
             const slug = cmd.replace('/', '');
             go(`/bot-commands/${slug}`);
@@ -210,32 +180,33 @@ export default function DashboardHome() {
       {/* ── Favoritos Recientes (Carrusel) ── */}
       <section className="mt-8">
         <div className="flex items-center justify-between px-6 mb-3">
-          <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-1.5">
-            <Heart size={14} className="text-tg-hint" /> {t('your_favorites')}
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider flex items-center gap-1.5">
+            <Heart size={14} /> {t('your_favorites')}
           </h2>
-          <button onClick={() => go('/favorites')} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-colors">
+          <button onClick={() => go('/favorites')} className="text-[13px] font-medium text-tg-accent active:opacity-70 transition-opacity">
             {t('common:view_gallery')}
           </button>
         </div>
 
         {favsLoading && recentFavs.length === 0 ? (
-          /* Esqueleto de Carga */
-          <div className="flex gap-3 overflow-x-auto px-4 pb-2 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          /* Skeleton Profesional estilo Telegram */
+          <div className="flex gap-3 overflow-x-auto px-5 pb-4 -mx-5 pl-5 pr-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="w-28 h-28 flex-shrink-0 rounded-[20px] bg-tg-secondary border border-tg-border/50 animate-pulse shadow-sm" />
+              <div key={i} className="w-[110px] h-[110px] flex-shrink-0 rounded-[20px] bg-tg-secondary border border-tg-border/40 animate-pulse shadow-sm flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-tg-hint/20" />
+              </div>
             ))}
           </div>
         ) : recentFavs.length > 0 ? (
           /* Lista Real */
-          <div className="flex gap-3 overflow-x-auto px-4 pb-3 -mx-5 pl-10 pr-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex gap-3 overflow-x-auto px-5 pb-4 -mx-5 pl-5 pr-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {recentFavs.map((fav) => {
               const thumb = (fav.data?.media_type === 'photo' && fav.data.photo) ? fileUrl(fav.data.photo[0].file_id) : null;
-
               return (
                 <button
                   key={fav._id}
                   onClick={() => go('/favorites')}
-                  className="flex-shrink-0 relative group active:scale-[0.94] transition-transform duration-200 overflow-hidden rounded-[20px] shadow-sm border border-tg-border/50 bg-tg-secondary w-28 h-28"
+                  className="flex-shrink-0 relative group active:scale-[0.96] transition-transform duration-200 overflow-hidden rounded-[20px] shadow-sm border border-tg-border/40 bg-tg-secondary w-[110px] h-[110px]"
                 >
                   {thumb ? (
                     <img
@@ -245,67 +216,60 @@ export default function DashboardHome() {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
-                    /* Tarjeta de Fallback si no hay imagen */
-                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-black/10">
-                      <ImageIcon size={22} className="text-tg-hint/30 mb-2" />
-                      <span className="text-[10px] font-medium text-tg-hint leading-snug line-clamp-2 w-full break-words">
+                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-black/5 dark:bg-white/5">
+                      <ImageIcon size={24} className="text-tg-hint/40 mb-2" />
+                      <span className="text-[11px] font-medium text-tg-hint leading-snug line-clamp-2 w-full break-words">
                         {fav.data?.caption || fav.context || t('no_title')}
                       </span>
                     </div>
                   )}
-                  {/* Gradiente oscuro inferior para legibilidad si agregaras texto encima */}
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                 </button>
               );
             })}
           </div>
         ) : (
-          /* Estado Vacío */
-          <div className="mx-5 p-6 rounded-[20px] bg-tg-secondary border border-tg-border/50 text-center shadow-sm">
-            <div className="w-12 h-12 mx-auto bg-black/20 border border-white/5 rounded-full flex items-center justify-center mb-3">
-              <Sparkles size={24} className="text-tg-hint/40" />
-            </div>
-            <div className="text-[14px] font-medium text-tg-hint leading-relaxed">
-              {t('no_favorites_yet')}<br />
-              <button onClick={() => go('/favorites')} className="text-tg-accent font-bold mt-1.5 active:scale-95 transition-transform hover:brightness-110">
-                {t('start_exploring')}
-              </button>
-            </div>
+          /* Empty State Elegante */
+          <div className="mx-5 p-6 rounded-[24px] bg-tg-secondary border border-tg-border/40 text-center shadow-sm flex flex-col items-center justify-center">
+            <Star size={28} className="text-tg-hint/40 mb-3" />
+            <h3 className="text-[15px] font-semibold text-tg-text mb-1">No favorites yet</h3>
+            <p className="text-[13px] text-tg-hint mb-4">Start saving your favorite commands.</p>
+            <button
+              onClick={() => go('/favorites')}
+              className="px-5 py-2 rounded-xl bg-tg-accent/10 text-tg-accent font-medium text-[14px] active:scale-95 transition-all"
+            >
+              Explore Commands
+            </button>
           </div>
         )}
       </section>
 
-      {/* ── Tarjeta de Inspiración (Glassmorphism Prominente) ── */}
-      <section className="mt-8 px-4 pb-4">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">{t('inspiration_day')}</h2>
-
+      {/* ── Tarjeta de Inspiración (Glassmorphism Premium) ── */}
+      <section className="mt-6 px-5 pb-6">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-3">{t('inspiration_day')}</h2>
         <button
           onClick={() => go('/favorites/inspiration')}
-          className="w-full relative overflow-hidden rounded-[24px] active:scale-[0.98] transition-transform duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.12)] group text-left block"
+          className="w-full relative overflow-hidden rounded-[24px] active:scale-[0.98] transition-transform duration-200 shadow-md group text-left block"
         >
-          {/* Fondo colorido base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 transition-transform duration-700 group-hover:scale-105" />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-md" />
 
-          {/* Efecto Cristal (Blur Oscuro) */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" />
-
-          {/* Contenido (Sobre el cristal) */}
-          <div className="relative p-6 border border-white/15 rounded-[24px] h-full flex flex-col justify-between">
+          <div className="relative p-6 h-full flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={16} className="text-amber-300 fill-amber-300/30" />
-                <span className="text-[11px] font-extrabold uppercase  text-amber-300">
+                <Sparkles size={16} className="text-amber-300" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
                   {t('featured_prompt')}
                 </span>
               </div>
-              <p className="text-[16px] text-white leading-snug font-semibold drop-shadow-sm">
+              <p className="text-[16px] text-white leading-relaxed font-medium drop-shadow-sm">
                 "A dreamy landscape with floating islands at sunset, digital art masterpiece"
               </p>
             </div>
 
-            <div className="mt-6 flex items-center gap-1.5 text-white font-extrabold text-[12px] uppercase tracking-wider bg-white/10 border border-white/10 w-max px-4 py-2.5 rounded-full backdrop-blur-md group-hover:bg-white/20 transition-colors">
+            <div className="mt-6 flex items-center gap-1.5 text-white font-bold text-[13px] bg-white/10 border border-white/20 w-max px-4 py-2 rounded-xl backdrop-blur-lg group-active:bg-white/20 transition-colors">
               <span>{t('explore_gallery')}</span>
-              <ChevronRight size={14} strokeWidth={3} />
+              <ChevronRight size={16} strokeWidth={2.5} />
             </div>
           </div>
         </button>

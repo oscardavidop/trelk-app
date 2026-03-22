@@ -1,9 +1,10 @@
 // src/modules/users/user.service.ts
 
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument, PlanTier, IUserProFeatures, getPlanTemplate, FREE_PLAN_DEFAULTS } from './schemas/user.schema';
 import { Model } from 'mongoose';
+import { BOT_COMMANDS } from 'src/data/commands';
 
 /** Datos del usuario extraídos de initData de Telegram */
 export interface TelegramUserData {
@@ -47,7 +48,7 @@ export class UserService {
       existing.lastName = tgUser.last_name ?? '';
       existing.username = tgUser.username ?? '';
       existing.photoUrl = tgUser.photo_url ?? '';
-      existing.languageCode = tgUser.language_code ?? '';
+      // existing.languageCode = tgUser.language_code ?? '';
       existing.isPremium = tgUser.is_premium ?? false;
       existing.lastLoginAt = new Date();
       return existing.save();
@@ -61,7 +62,7 @@ export class UserService {
       lastName: tgUser.last_name ?? '',
       username: tgUser.username ?? '',
       photoUrl: tgUser.photo_url ?? '',
-      languageCode: tgUser.language_code ?? '',
+      // languageCode: tgUser.language_code ?? '',
       isPremium: tgUser.is_premium ?? false,
       lang: tgUser.language_code ?? 'es',
       lastLoginAt: new Date(),
@@ -95,23 +96,27 @@ export class UserService {
    * Solo permite campos de whitelist para evitar MongoDB injection.
    */
   async updateConfig(userId: number, config: any) {
-    const ALLOWED_CONFIG_KEYS = ['tz', 'lang', 'bid'];
-    const sanitized: Record<string, any> = {};
+    // deprecated: ahora cada config tiene su endpoint dedicado (updateLocale, patchCommandConfig, etc)
+    return { modifiedCount: 0 };
+    // Sanitizar: solo permitir claves de config conocidas y a un nivel de profundidad máximo
+    // const ALLOWED_CONFIG_KEYS = ['config.locale.tz', 'config.locale.lang', 'bid'];
+    // const sanitized: Record<string, any> = {};
 
-    for (const key of Object.keys(config || {})) {
-      if (ALLOWED_CONFIG_KEYS.includes(key)) {
-        sanitized[key] = config[key];
-      }
-    }
+    // for (const key of Object.keys(config || {})) {
+    //   if (ALLOWED_CONFIG_KEYS.includes(key)) {
 
-    if (Object.keys(sanitized).length === 0) {
-      return { modifiedCount: 0 };
-    }
+    //     sanitized[key] = config[key];
+    //   }
+    // }
 
-    return this.userModel.updateOne(
-      { id: userId },
-      { $set: sanitized }
-    ).exec();
+    // if (Object.keys(sanitized).length === 0) {
+    //   return { modifiedCount: 0 };
+    // }
+
+    // return this.userModel.updateOne(
+    //   { id: userId },
+    //   { $set: sanitized }
+    // ).exec();
   }
 
   /** 
@@ -131,13 +136,15 @@ export class UserService {
 
     return this.userModel.updateOne(
       { id: userId },
-      { $set: {
-        data: {
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          email: profileData.email,
+      {
+        $set: {
+          data: {
+            first_name: profileData.firstName,
+            last_name: profileData.lastName,
+            email: profileData.email,
+          }
         }
-      } }
+      }
     ).exec();
   }
 
@@ -168,7 +175,7 @@ export class UserService {
   // ============================================================
 
   async getFullConfig(telegramId: number) {
-    const user = await this.userModel.findOne({ telegramId }).select('config preferences lang tz').exec();
+    const user = await this.userModel.findOne({ id: telegramId }).select('config preferences lang tz').exec();
     if (!user) return null;
     return {
       config: user.config || { commands: {}, premium_commands: {}, locale: {} },
@@ -178,47 +185,197 @@ export class UserService {
     };
   }
 
-  async upsertCommand(telegramId: number, key: string, command: { engine: string; inline?: { results_per_page?: number; show_url?: boolean } }) {
+  async patchCommandConfig(telegramId: number, key: string, patch: Record<string, any>) {
     const sanitizedKey = key.replace(/[.$]/g, '_').toLowerCase().slice(0, 32);
+    if (!['apk', 'shorten', 'tiktok'].includes(sanitizedKey)) {
+      throw new BadRequestException('Unsupported command config key');
+    }
+
+    if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).length === 0) {
+      throw new BadRequestException('Patch payload is required');
+    }
+
+    const user = await this.userModel
+      .findOne({ telegramId })
+      .select(`config.commands.${sanitizedKey}`)
+      .lean()
+      .exec();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const current = ((user as any)?.config?.commands?.[sanitizedKey] ?? {}) as Record<string, any>;
+    const next = this.deepMerge(current, patch);
+
+    this.validateCommandConfig(sanitizedKey, next);
+
     return this.userModel.updateOne(
       { telegramId },
-      { $set: { [`config.commands.${sanitizedKey}`]: { engine: command.engine, inline: command.inline || { results_per_page: 10, show_url: true } } } },
+      { $set: { [`config.commands.${sanitizedKey}`]: next } },
     ).exec();
   }
 
-  async deleteCommand(telegramId: number, key: string) {
-    const sanitizedKey = key.replace(/[.$]/g, '_').toLowerCase();
+  private deepMerge(base: Record<string, any>, patch: Record<string, any>): Record<string, any> {
+    const out: Record<string, any> = { ...base };
+    for (const [k, v] of Object.entries(patch)) {
+      if (
+        v &&
+        typeof v === 'object' &&
+        !Array.isArray(v) &&
+        base[k] &&
+        typeof base[k] === 'object' &&
+        !Array.isArray(base[k])
+      ) {
+        out[k] = this.deepMerge(base[k], v);
+      } else {
+        out[k] = v;
+      }
+    }
+    return out;
+  }
+
+  private validateCommandConfig(command: string, cfg: Record<string, any>) {
+    if (command === 'apk') {
+      if (!['aptoide', 'gplay'].includes(cfg.engine)) {
+        throw new BadRequestException('apk.engine must be aptoide|gplay');
+      }
+
+      if (cfg.inline !== undefined) {
+        if (typeof cfg.inline !== 'object' || Array.isArray(cfg.inline) || cfg.inline === null) {
+          throw new BadRequestException('apk.inline must be an object');
+        }
+
+        if (cfg.inline.results_per_page !== undefined) {
+          const n = cfg.inline.results_per_page;
+          if (!Number.isInteger(n) || n < 1 || n > 50) {
+            throw new BadRequestException('apk.inline.results_per_page must be integer 1-50');
+          }
+        }
+
+        if (cfg.inline.show_url !== undefined && typeof cfg.inline.show_url !== 'boolean') {
+          throw new BadRequestException('apk.inline.show_url must be boolean');
+        }
+      }
+      return;
+    }
+
+    if (command === 'shorten') {
+      if (!['tinyurl', 'bitly'].includes(cfg.engine)) {
+        throw new BadRequestException('shorten.engine must be tinyurl|bitly');
+      }
+      return;
+    }
+
+    if (command === 'tiktok') {
+      if (!['direct', 'callback'].includes(cfg.mode)) {
+        throw new BadRequestException('tiktok.mode must be direct|callback');
+      }
+    }
+  }
+
+  async upsertPremiumCommand(
+    telegramId: number,
+    key: string, // Ejemplo: "menucustom" (El nuevo comando del usuario)
+    alias: string, // Ejemplo: "menu" (El comando oficial de destino)
+    proFeatures: IUserProFeatures,
+    userCustomCommands: any
+  ) {
+    const sanitizedKey = key.replace(/[.$]/g, '_').toLowerCase().slice(0, 32);
+    const targetAlias = alias.toLowerCase().trim();
+
+    if (proFeatures.custom_commands.used_commands >= proFeatures.custom_commands.max_commands) {
+      throw new ForbiddenException({
+        ok: false,
+        message: 'Custom command limit reached for your current plan.',
+        error_code: 'LIMIT_REACHED_PREMIUM'
+      });
+    }
+
+    const keyIsOfficial = BOT_COMMANDS.find(cmd =>
+      cmd.uniqueName === sanitizedKey ||
+      (cmd.alias && cmd.alias.some((a: string) => a.toLowerCase() === sanitizedKey))
+    );
+
+    if (keyIsOfficial) {
+      throw new BadRequestException({
+        ok: false,
+        message: `The name '${sanitizedKey}' already exists as an official command.`,
+        error_code: 'COMMAND_KEY_OFFICIAL'
+      });
+    }
+
+    const officialTarget = BOT_COMMANDS.find(cmd =>
+      cmd.uniqueName === targetAlias ||
+      (cmd.alias && cmd.alias.some((a: string) => a.toLowerCase() === targetAlias))
+    );
+
+    if (!officialTarget) {
+      throw new BadRequestException({
+        ok: false,
+        message: `The target command '${targetAlias}' does not exist.`,
+        error_code: 'TARGET_COMMAND_NOT_FOUND'
+      });
+    }
+
+    if (officialTarget.protected) {
+      throw new BadRequestException({
+        ok: false,
+        message: `Cannot create an alias for the protected command '${targetAlias}'.`,
+        error_code: 'TARGET_PROTECTED'
+      });
+    }
+
+    if (userCustomCommands && userCustomCommands[sanitizedKey]) {
+      throw new BadRequestException({
+        ok: false,
+        message: `You already have a custom command named '${sanitizedKey}'.`,
+        error_code: 'COMMAND_KEY_DUPLICATED'
+      });
+    }
+
     return this.userModel.updateOne(
       { telegramId },
-      { $unset: { [`config.commands.${sanitizedKey}`]: '' } },
+      {
+        $set: {
+          [`config.premium_commands.${sanitizedKey}`]: {
+            alias: targetAlias,
+            created_at: new Date().toISOString()
+          },
+        },
+        $inc: { 'pro_features.custom_commands.used_commands': 1 }
+      },
     ).exec();
   }
 
-  async upsertPremiumCommand(telegramId: number, key: string, alias: string) {
-    const sanitizedKey = key.replace(/[.$]/g, '_').toLowerCase().slice(0, 32);
-    return this.userModel.updateOne(
-      { telegramId },
-      { $set: { [`config.premium_commands.${sanitizedKey}`]: { alias, created_at: new Date().toISOString() } } },
-    ).exec();
-  }
+
+
 
   async deletePremiumCommand(telegramId: number, key: string) {
     const sanitizedKey = key.replace(/[.$]/g, '_').toLowerCase();
+
     return this.userModel.updateOne(
-      { telegramId },
-      { $unset: { [`config.premium_commands.${sanitizedKey}`]: '' } },
+      {
+        telegramId,
+        [`config.premium_commands.${sanitizedKey}`]: { $exists: true },
+        'pro_features.custom_commands.used_commands': { $gt: 0 }
+      },
+      {
+        $unset: { [`config.premium_commands.${sanitizedKey}`]: '' },
+        $inc: { 'pro_features.custom_commands.used_commands': -1 }
+      },
     ).exec();
   }
 
+
   async updateLocale(telegramId: number, locale: Record<string, any>) {
+
     const setFields: Record<string, any> = {};
     if (locale.lang) {
       setFields['config.locale.lang'] = locale.lang;
-      setFields['lang'] = locale.lang; // sync top-level
     }
     if (locale.tz) {
       setFields['config.locale.tz'] = locale.tz;
-      setFields['tz'] = locale.tz; // sync top-level
     }
     if (locale.country) setFields['config.locale.country'] = locale.country;
     if (locale.datetime_format) {
@@ -227,7 +384,7 @@ export class UserService {
       }
     }
     if (Object.keys(setFields).length === 0) return { modifiedCount: 0 };
-    return this.userModel.updateOne({ telegramId }, { $set: setFields }).exec();
+    return this.userModel.updateOne({ id: telegramId }, { $set: setFields }).exec();
   }
 
   // ============================================================

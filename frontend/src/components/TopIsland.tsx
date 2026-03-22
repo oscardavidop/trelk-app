@@ -21,7 +21,7 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
       return;
     } else {
       document.documentElement.style.setProperty('--tg-top-offset', `0px`);
-      document.documentElement.style.setProperty('--tg-top2-offset', `3.5rem`); // Aseguramos que --tg-top2-offset siempre tenga un valor
+      document.documentElement.style.setProperty('--tg-top2-offset', `3.5rem`);
     }
 
     const update = () => {
@@ -56,29 +56,30 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
 
   return (
     <div
-      className={`fixed left-0 right-0 z-[200] flex justify-center pointer-events-none transition-all duration-500 ease-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
-        }`}
-      // Añadimos 8px de margen para que flote como una píldora y no choque con el Notch/Header
-      style={{ top: topPx > 0 ? topPx + 8 : 8 }}
+      className={`fixed left-0 right-0 z-[200] flex justify-center pointer-events-none transition-all duration-500 ease-out ${
+        isVisible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'
+      }`}
+      // Si Telegram no reporta safeArea, usamos la variable de entorno nativa de iOS como fallback
+      style={{ top: topPx > 0 ? topPx + 8 : 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
     >
-      {/* ── Diseño de Isla Premium (Glassmorphism) ── */}
-      <div className="flex items-center gap-2 px-2 py-1 bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.3)] rounded-full pointer-events-auto">
+      {/* ── Diseño de Isla Premium Adaptativa ── */}
+      <div className="flex items-center gap-2.5 px-2.5 py-1.5 bg-tg-secondary/85 backdrop-blur-xl border border-tg-border/40 shadow-sm rounded-full pointer-events-auto transition-colors">
 
         {avatarUrl ? (
           <img
             src={avatarUrl}
             alt={name}
-            className="w-4 h-4 rounded-full object-cover ring-1 ring-white/20"
+            className="w-5 h-5 rounded-full object-cover ring-1 ring-tg-border/50 shadow-sm"
           />
         ) : (
-          <div className="w-4 h-4 rounded-full bg-gradient-to-br from-tg-accent to-blue-600 flex items-center justify-center ring-1 ring-white/20 shadow-inner">
-            <span className="text-[10px] font-bold text-white ">
+          <div className="w-5 h-5 rounded-full bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center shadow-inner">
+            <span className="text-[9px] font-bold text-tg-accent tracking-wider">
               {initials}
             </span>
           </div>
         )}
 
-        <span className="text-[13px] font-semibold text-white/95 truncate max-w-[130px] tracking-wide pr-1">
+        <span className="text-[13px] font-semibold text-tg-text truncate max-w-[140px] tracking-wide pr-1.5">
           {name}
         </span>
       </div>
@@ -86,8 +87,9 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
   );
 }
 
-export function HidenTopIsland() {
+// Nota: Corregí el nombre de 'Hiden' a 'Hidden'. Asegúrate de actualizar la importación donde lo uses.
+export function HiddenTopIsland() {
   return (
-    <div className="h-10" />
+    <div className="h-10 w-full flex-shrink-0" aria-hidden="true" />
   );
 }

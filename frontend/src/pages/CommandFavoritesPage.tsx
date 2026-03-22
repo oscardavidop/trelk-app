@@ -101,7 +101,7 @@ export default function CommandFavoritesPage() {
     await remove(slug);
     setItems((prev) => prev.filter((i) => i.command !== slug));
     setTotal((t) => Math.max(0, t - 1));
-    showToast(t('removed_from_favorites'), 'info');
+    showToast(t('removed_from_favorites', 'Removed from favorites'), 'info');
   };
 
   const handlePin = async (slug: string) => {
@@ -110,7 +110,7 @@ export default function CommandFavoritesPage() {
     setItems((prev) =>
       prev.map((i) => (i.command === slug ? { ...i, pinned } : i)),
     );
-    showToast(pinned ? t('pinned') : t('unpinned'), 'info');
+    showToast(pinned ? t('pinned', 'Pinned') : t('unpinned', 'Unpinned'), 'info');
   };
 
   // Apply client-side sort
@@ -126,20 +126,28 @@ export default function CommandFavoritesPage() {
   }, [items, sort]);
 
   return (
-    <div className="pb-24 animate-fade-in relative">
-      <StickyHeader title={t('favorites:title')} subtitle={t('commands_saved', { count: total })} icon={<Star className="h-6 w-6 text-pink-500 fill-pink-500/20" />} />
+    <div className="pb-28 animate-fade-in relative max-w-[480px] mx-auto min-h-screen">
+      <StickyHeader 
+        title={t('favorites:title', 'Favorites')} 
+        subtitle={t('commands_saved', { count: total, defaultValue: `${total} Commands Saved` })} 
+        icon={
+          <div className="w-[42px] h-[42px] rounded-[14px] bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Star className="h-5 w-5 text-pink-500 fill-pink-500" />
+          </div>
+        } 
+      />
 
-      {/* ── Buscador + Ordenamiento (Corregido) ── */}
-      <div className="px-5 mt-2 flex gap-2.5 h-[48px]"> {/* 👈 Altura fija para igualarlos */}
+      {/* ── Buscador + Ordenamiento ── */}
+      <div className="px-5 mt-4 flex gap-3 h-[42px]">
         
         <div className="flex-1 relative h-full">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tg-hint/50" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tg-hint" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('search_favorites')}
-            className="w-full h-full bg-tg-text/[0.03] border-2 border-tg-border/40 rounded-[16px] pl-10 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors shadow-inner"
+            placeholder={t('search_favorites', 'Search favorites...')}
+            className="w-full h-full bg-tg-bg border border-tg-border/40 rounded-[14px] pl-10 pr-4 text-[15px] text-tg-text placeholder:text-tg-hint/70 outline-none focus:border-tg-accent/50 focus:ring-1 focus:ring-tg-accent/20 transition-all shadow-sm"
           />
         </div>
 
@@ -148,37 +156,36 @@ export default function CommandFavoritesPage() {
             haptic?.impactOccurred('light');
             setSort((s) => SORT_OPTIONS[(SORT_OPTIONS.findIndex((o) => o.key === s) + 1) % SORT_OPTIONS.length].key);
           }}
-          className="h-full px-4 bg-tg-secondary border border-tg-border/50 rounded-[16px] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm hover:bg-tg-text/[0.02] flex-shrink-0"
+          className="h-full px-4 bg-tg-secondary border border-tg-border/40 rounded-[14px] flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm hover:bg-tg-hint/5 flex-shrink-0"
         >
-          <ArrowUpDown size={15} className="text-tg-accent" />
-          <span className="text-[13px] font-bold text-tg-text">{t(SORT_OPTIONS.find((o) => o.key === sort)?.labelKey ?? 'recent')}</span>
+          <ArrowUpDown size={16} className="text-tg-accent" />
+          <span className="text-[13px] font-bold text-tg-text">{t(SORT_OPTIONS.find((o) => o.key === sort)?.labelKey ?? 'recent', sort === 'recent' ? 'Recent' : 'A-Z')}</span>
         </button>
       </div>
 
       {/* ── Trending Commands ── */}
       {trending.length > 0 && !search && (
         <section className="mt-6">
-          <div className="flex items-center gap-2 px-6 mb-3">
-            <TrendingUp size={14} className="text-orange-400" />
-            <h2 className="text-[13px] font-bold text-tg-hint uppercase ">{t('trending_week')}</h2>
+          <div className="flex items-center gap-2 px-6 mb-2.5">
+            <TrendingUp size={16} className="text-orange-500" />
+            <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider">{t('trending_week', 'Trending This Week')}</h2>
           </div>
 
-          <div className="flex gap-2.5 overflow-x-auto pb-3 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {trending.map((t, i) => {
-              const cmd = findCommand(t.command);
-              // const cat = cmd ? CATEGORY_META[cmd.category] : undefined; // unused
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {trending.map((t_, i) => {
+              const cmd = findCommand(t_.command);
               return (
                 <button
-                  key={t.command}
-                  onClick={() => go(t.command)}
-                  className="flex-shrink-0 bg-tg-secondary border border-tg-border/50 rounded-[16px] px-4 py-3 min-w-[120px] text-left active:scale-[0.96] transition-transform shadow-sm hover:bg-tg-text/[0.02] group"
+                  key={t_.command}
+                  onClick={() => go(t_.command)}
+                  className="flex-shrink-0 bg-tg-secondary border border-tg-border/40 rounded-[16px] px-4 py-3.5 min-w-[130px] text-left active:scale-95 transition-transform shadow-sm hover:bg-tg-hint/5 flex flex-col"
                 >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[11px] font-black text-orange-400">#{i + 1}</span>
-                    <Flame size={12} className="text-orange-400/60" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[12px] font-black text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded-md">#{i + 1}</span>
+                    <Flame size={14} className="text-orange-500" />
                   </div>
-                  <div className="text-[14px] font-bold text-tg-text font-mono  truncate">/{t.command}</div>
-                  <div className="text-[11px] font-medium text-tg-hint mt-0.5">{t.count} favs</div>
+                  <div className="text-[15px] font-bold text-tg-text font-mono truncate leading-tight">/{t_.command}</div>
+                  <div className="text-[12px] font-medium text-tg-hint mt-1 truncate">{t_.count} {t('common:favs', 'favs')}</div>
                 </button>
               );
             })}
@@ -188,21 +195,22 @@ export default function CommandFavoritesPage() {
 
       {/* ── Loading state ── */}
       {initialLoading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 size={24} className="animate-spin text-tg-accent" />
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 size={28} className="animate-spin text-tg-accent" />
+          <span className="text-[13px] font-medium text-tg-hint animate-pulse">{t('common:loading', 'Loading...')}</span>
         </div>
       )}
 
       {/* ── Lista de Comandos ── */}
       {!initialLoading && (
-        <section className="mt-6 px-5">
-          <h2 className="text-[13px] font-bold text-tg-hint uppercase  mb-3 px-1">
-            {t('all')} ({total})
+        <section className="mt-4 px-5">
+          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 px-1">
+            {t('all', 'All Favorites')} ({total})
           </h2>
 
           {sorted.length > 0 ? (
-            <div className="bg-tg-secondary rounded-[20px] border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
-              <div className="divide-y divide-tg-border/50">
+            <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm animate-slide-up">
+              <div className="flex flex-col">
                 {sorted.map((fav) => {
                   const cmd = findCommand(fav.command);
                   if (!cmd) return null;
@@ -212,7 +220,7 @@ export default function CommandFavoritesPage() {
                   const isComponent = typeof CatIcon !== 'string';
 
                   return (
-                    <div key={slug} className="flex items-center justify-between p-4 transition-colors hover:bg-tg-text/[0.02] group">
+                    <div key={slug} className="flex items-center justify-between p-3.5 border-b border-tg-border/20 last:border-0 transition-colors hover:bg-tg-hint/5 group">
 
                       {/* Área clickeable principal */}
                       <button
@@ -220,7 +228,7 @@ export default function CommandFavoritesPage() {
                         className="flex items-center gap-3.5 flex-1 min-w-0 text-left"
                       >
                         <div
-                          className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner transition-transform group-hover:scale-105"
+                          className="w-[38px] h-[38px] rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-95"
                           style={{ backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
                         >
                           {isComponent && CatIcon ? (
@@ -232,33 +240,33 @@ export default function CommandFavoritesPage() {
                         </div>
                         <div className="min-w-0 flex-1 pt-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-bold text-tg-text font-mono  truncate">/{slug}</span>
-                            {fav.pinned && <Pin size={12} className="text-tg-accent flex-shrink-0" />}
+                            <span className="text-[15px] font-semibold text-tg-text font-mono truncate leading-tight">/{slug}</span>
+                            {fav.pinned && <Pin size={12} className="text-tg-accent flex-shrink-0 fill-tg-accent/20" />}
                           </div>
                           <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5">{cmd.description}</div>
                         </div>
                       </button>
 
                       {/* Acciones */}
-                      <div className="flex items-center gap-1.5 flex-shrink-0 pl-3">
+                      <div className="flex items-center gap-2 flex-shrink-0 pl-3">
                         <button
                           onClick={() => handlePin(slug)}
-                          className={`w-8 h-8 rounded-[10px] border flex items-center justify-center active:scale-90 transition-all ${
+                          className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center active:scale-90 transition-all shadow-sm border ${
                             fav.pinned
-                              ? 'bg-tg-accent/10 border-tg-accent/30'
-                              : 'bg-tg-text/[0.04] border-tg-border/30 hover:bg-tg-text/[0.08]'
+                              ? 'bg-tg-accent/10 border-tg-accent/20 text-tg-accent'
+                              : 'bg-tg-bg border-tg-border/40 text-tg-hint hover:text-tg-text hover:bg-tg-hint/5'
                           }`}
-                          title={fav.pinned ? t('unpin') : t('pin')}
+                          title={fav.pinned ? t('unpin', 'Unpin') : t('pin', 'Pin')}
                         >
-                          <Pin size={14} className={fav.pinned ? 'text-tg-accent' : 'text-tg-hint/70'} />
+                          <Pin size={16} className={fav.pinned ? 'fill-tg-accent/20' : ''} />
                         </button>
 
                         <button
                           onClick={() => handleRemove(slug)}
-                          className="w-8 h-8 rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center active:scale-90 transition-all hover:bg-red-500/20"
-                          title={t('remove_favorite')}
+                          className="w-[34px] h-[34px] rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center active:scale-90 transition-all hover:bg-red-500/20 text-red-500 shadow-sm"
+                          title={t('remove_favorite', 'Remove')}
                         >
-                          <HeartOff size={14} className="text-red-400" />
+                          <HeartOff size={16} />
                         </button>
                       </div>
 
@@ -269,22 +277,25 @@ export default function CommandFavoritesPage() {
             </div>
           ) : (
             /* ── Estado Vacío ── */
-            <div className="text-center py-16 bg-tg-secondary border border-tg-border/50 rounded-[20px] shadow-sm px-5">
-              <div className="w-16 h-16 mx-auto bg-tg-text/[0.03] border border-tg-border/30 rounded-full flex items-center justify-center mb-4 shadow-inner">
-                <Star size={32} className="text-tg-hint/30" />
+            <div className="text-center py-12 bg-tg-secondary border border-tg-border/40 rounded-[24px] shadow-sm px-5 mt-2">
+              <div className="w-[56px] h-[56px] mx-auto bg-tg-hint/10 rounded-[16px] flex items-center justify-center mb-4 shadow-inner">
+                <Star size={28} className="text-tg-hint/40" />
               </div>
-              <p className="text-[16px] font-extrabold text-tg-text ">{t('no_results')}</p>
-              <p className="text-[13px] font-medium text-tg-hint/80 mt-1.5 leading-relaxed max-w-[200px] mx-auto">
-                {search ? t('no_search_match') : t('no_favorites_yet')}
+              <p className="text-[18px] font-bold text-tg-text leading-tight mb-1">{t('no_results', 'No results found')}</p>
+              <p className="text-[13px] font-medium text-tg-hint mt-1 leading-relaxed max-w-[220px] mx-auto">
+                {search ? t('no_search_match', 'Try adjusting your search terms.') : t('no_favorites_yet', 'Save your favorite commands to see them here.')}
               </p>
             </div>
           )}
 
           {/* Infinite scroll sentinel */}
-          <div ref={sentinelRef} className="h-1" />
+          <div ref={sentinelRef} className="h-4" />
           {loadingMore && (
-            <div className="flex justify-center py-4">
-              <Loader2 size={20} className="animate-spin text-tg-accent" />
+            <div className="flex justify-center py-6">
+              <div className="flex items-center gap-2.5 bg-tg-secondary border border-tg-border/40 shadow-sm px-4 py-2.5 rounded-full">
+                <div className="w-4 h-4 border-2 border-tg-accent border-t-transparent rounded-full animate-spin" />
+                <span className="text-[13px] font-semibold text-tg-text">{t('common:loading', 'Loading...')}</span>
+              </div>
             </div>
           )}
         </section>

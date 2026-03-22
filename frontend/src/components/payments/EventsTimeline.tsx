@@ -3,10 +3,10 @@ import { Inbox, AlertTriangle } from 'lucide-react';
 import type { PaymentEventItem } from '../../services/paymentsApi';
 
 const TIMELINE_COLORS: Record<string, string> = {
-  'BILLING.SUBSCRIPTION.CREATED': 'bg-blue-500',
+  'BILLING.SUBSCRIPTION.CREATED': 'bg-sky-500',
   'BILLING.SUBSCRIPTION.ACTIVATED': 'bg-emerald-500',
   'BILLING.SUBSCRIPTION.CANCELLED': 'bg-red-500',
-  'BILLING.SUBSCRIPTION.SUSPENDED': 'bg-amber-500', // Cambiado a amber-500 para unificación
+  'BILLING.SUBSCRIPTION.SUSPENDED': 'bg-orange-500',
   'BILLING.SUBSCRIPTION.RE-ACTIVATED': 'bg-emerald-500',
   'BILLING.SUBSCRIPTION.EXPIRED': 'bg-zinc-500',
   'PAYMENT.SALE.COMPLETED': 'bg-emerald-500',
@@ -45,12 +45,12 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
         {[...Array(4)].map((_, i) => (
           <div key={i} className="flex gap-4 animate-pulse relative">
             <div className="flex flex-col items-center">
-              <div className="w-3 h-3 rounded-full bg-white/10 shrink-0 mt-1.5" />
-              {i < 3 && <div className="w-[2px] h-12 bg-white/5 mt-1" />}
+              <div className="w-3 h-3 rounded-full bg-tg-hint/20 shrink-0 mt-1.5" />
+              {i < 3 && <div className="w-[2px] h-12 bg-tg-border/30 mt-1" />}
             </div>
             <div className="flex-1 pb-6">
-              <div className="h-3.5 bg-white/10 rounded-full w-1/3 mb-2" />
-              <div className="h-2.5 bg-white/5 rounded-full w-1/2" />
+              <div className="h-3.5 bg-tg-hint/10 rounded-full w-1/3 mb-2" />
+              <div className="h-2.5 bg-tg-hint/5 rounded-full w-1/2" />
             </div>
           </div>
         ))}
@@ -61,34 +61,34 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
   // ── ESTADO: VACÍO ──
   if (events.length === 0) {
     return (
-      <div className="flex flex-col items-center text-center py-10 px-4">
-        <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/5">
-          <Inbox size={24} className="text-tg-hint/40" />
+      <div className="flex flex-col items-center text-center py-10 px-4 animate-fade-in">
+        <div className="w-14 h-14 rounded-full bg-tg-hint/10 flex items-center justify-center mb-4 shadow-inner">
+          <Inbox size={28} className="text-tg-hint/40" />
         </div>
-        <p className="text-[15px] font-bold text-tg-text">{t('no_events')}</p>
-        <p className="text-[13px] text-tg-hint mt-1 leading-relaxed">{t('no_activity_sub')}</p>
-        <p className="text-[11px] text-tg-hint/60 mt-3 font-mono bg-black/20 px-2 py-1 rounded-md">{subscriptionId}</p>
+        <p className="text-[16px] font-bold text-tg-text">{t('no_events', 'No events found')}</p>
+        <p className="text-[13px] text-tg-hint mt-1.5 leading-relaxed max-w-[220px]">{t('no_activity_sub', 'There is no activity for this subscription yet.')}</p>
+        <p className="text-[11px] font-semibold text-tg-hint/70 mt-4 font-mono bg-tg-hint/10 px-2.5 py-1 rounded-md border border-tg-border/30">{subscriptionId}</p>
       </div>
     );
   }
 
   // ── TIMELINE ──
   return (
-    <div className="py-2">
+    <div className="py-2 animate-fade-in">
       {/* Header Info */}
-      <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/5">
-        <span className="text-[11px] text-tg-hint/80 font-mono bg-black/20 px-2.5 py-1 rounded-md border border-white/5 truncate max-w-[70%]">
+      <div className="flex items-center justify-between mb-6 pb-3 border-b border-tg-border/20">
+        <span className="text-[11px] font-semibold text-tg-hint font-mono bg-tg-hint/10 px-2.5 py-1 rounded-md border border-tg-border/30 truncate max-w-[70%]">
           {subscriptionId}
         </span>
-        <span className="text-[12px] font-semibold text-tg-hint bg-white/[0.04] px-2.5 py-1 rounded-full">
-          {t('events_count', { count: events.length })}
+        <span className="text-[11px] font-bold text-tg-text/80 bg-tg-hint/10 border border-tg-border/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
+          {t('events_count', { count: events.length, defaultValue: `${events.length} Events` })}
         </span>
       </div>
 
       <div className="relative">
         {events.map((event, i) => {
           const isLast = i === events.length - 1;
-          const dotColor = TIMELINE_COLORS[event.eventType] || 'bg-zinc-400';
+          const dotColor = TIMELINE_COLORS[event.eventType] || 'bg-zinc-500';
           const label = TIMELINE_LABEL_KEYS[event.eventType] ? t(TIMELINE_LABEL_KEYS[event.eventType]) : event.eventType.split('.').pop();
           
           const date = new Date(event.create_time || event.createdAt);
@@ -102,12 +102,12 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
             <button
               key={event._id}
               onClick={() => onEventClick(event)}
-              className="flex gap-4 w-full text-left group hover:bg-white/[0.02] active:bg-white/[0.04] -mx-3 px-3 py-1.5 rounded-2xl transition-colors relative"
+              className="flex gap-4 w-full text-left group hover:bg-tg-hint/5 active:bg-tg-hint/10 -mx-3 px-3 py-1.5 rounded-[16px] transition-colors relative"
             >
               {/* Línea vertical y punto */}
               <div className="flex flex-col items-center mt-1">
-                <div className={`w-3 h-3 rounded-full ${dotColor} ring-[4px] ring-tg-secondary shrink-0 z-10 shadow-sm`} />
-                {!isLast && <div className="w-[2px] flex-1 bg-white/10 -my-1 group-hover:bg-white/20 transition-colors" />}
+                <div className={`w-[14px] h-[14px] rounded-full ${dotColor} ring-[4px] ring-tg-secondary shrink-0 z-10 shadow-sm`} />
+                {!isLast && <div className="w-[2px] flex-1 bg-tg-border/40 -my-1 group-hover:bg-tg-border transition-colors" />}
               </div>
 
               {/* Contenido del evento */}
@@ -116,14 +116,14 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
                   
                   {/* Lado izquierdo (Info principal) */}
                   <div className="min-w-0">
-                    <p className="text-[14px] font-bold text-tg-text group-active:text-tg-accent transition-colors  truncate">
+                    <p className="text-[14px] font-bold text-tg-text leading-tight group-active:text-tg-accent transition-colors truncate">
                       {label}
                     </p>
                     <p className="text-[12px] font-medium text-tg-hint mt-0.5">
                       {dateStr} <span className="text-[10px] opacity-50 mx-0.5">•</span> {timeStr}
                     </p>
                     {event.summary && (
-                      <p className="text-[12px] text-tg-hint/70 mt-1.5 leading-snug line-clamp-2">
+                      <p className="text-[12px] font-medium text-tg-hint/80 mt-1.5 leading-snug line-clamp-2">
                         {event.summary}
                       </p>
                     )}
@@ -132,19 +132,19 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
                   {/* Lado derecho (Montos y Alertas) */}
                   <div className="flex flex-col items-end shrink-0 text-right">
                     {amount && (
-                      <p className="text-[15px] font-extrabold text-tg-text tabular-nums ">
+                      <p className="text-[16px] font-black text-tg-text tabular-nums tracking-tight">
                         ${amount}
                       </p>
                     )}
                     {fee && (
-                      <p className="text-[10px] font-medium text-tg-hint mt-0.5">
+                      <p className="text-[10px] font-semibold text-tg-hint mt-0.5 uppercase tracking-wide">
                         Fee: ${fee}
                       </p>
                     )}
                     {event.invalid_signature && (
-                      <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-[6px] bg-amber-500/10 border border-amber-500/20">
-                        <AlertTriangle size={10} className="text-amber-500" />
-                        <span className="text-[9px] font-bold text-amber-500 uppercase ">Firma</span>
+                      <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-[6px] bg-red-500/10 border border-red-500/20 shadow-sm">
+                        <AlertTriangle size={10} className="text-red-500" strokeWidth={2.5} />
+                        <span className="text-[9px] font-extrabold text-red-500 uppercase tracking-wider">Invalid</span>
                       </div>
                     )}
                   </div>
@@ -152,18 +152,18 @@ export default function EventsTimeline({ events, loading, subscriptionId, onEven
 
                 {/* Previsualización de Facturación (Si aplica) */}
                 {event.billing_info?.next_billing_time && (
-                  <div className="mt-3 rounded-[12px] bg-black/20 border border-white/5 px-3.5 py-2.5 flex flex-wrap gap-4 items-center">
+                  <div className="mt-3.5 rounded-[14px] bg-tg-hint/5 border border-tg-border/30 px-4 py-3 flex flex-wrap gap-4 items-center shadow-sm">
                     {event.billing_info.last_payment && (
                       <div>
-                        <p className="text-[10px] font-bold text-tg-hint/70 uppercase  mb-0.5">{t('last_payment')}</p>
-                        <p className="text-[13px] font-semibold text-tg-text tabular-nums">
-                          ${event.billing_info.last_payment.amount.value} <span className="text-[11px] text-tg-hint">{event.billing_info.last_payment.amount.currency_code}</span>
+                        <p className="text-[10px] font-bold text-tg-hint uppercase tracking-wider mb-1">{t('last_payment', 'Last Payment')}</p>
+                        <p className="text-[14px] font-bold text-tg-text tabular-nums leading-none">
+                          ${event.billing_info.last_payment.amount.value} <span className="text-[11px] font-semibold text-tg-hint">{event.billing_info.last_payment.amount.currency_code}</span>
                         </p>
                       </div>
                     )}
                     <div>
-                      <p className="text-[10px] font-bold text-tg-hint/70 uppercase  mb-0.5">{t('next_billing')}</p>
-                      <p className="text-[13px] font-bold text-tg-accent tabular-nums">
+                      <p className="text-[10px] font-bold text-tg-hint uppercase tracking-wider mb-1">{t('next_billing', 'Next Billing')}</p>
+                      <p className="text-[14px] font-bold text-tg-accent tabular-nums leading-none">
                         {new Date(event.billing_info.next_billing_time).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
