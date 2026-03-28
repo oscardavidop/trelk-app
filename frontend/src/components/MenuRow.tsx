@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useTelegram } from '../hooks/useTelegram';
 import type { LucideIcon } from 'lucide-react';
 
@@ -28,7 +29,8 @@ export default function MenuRow({ label, description, to, onClick, rightContent,
   };
 
   return (
-    <div
+    <motion.div
+      whileTap={{ scale: 0.98 }}
       className={`tm-row ${to ? 'tm-row-link' : ''} cursor-pointer z-10`}
       onClick={handleClick}
     >
@@ -50,6 +52,6 @@ export default function MenuRow({ label, description, to, onClick, rightContent,
           <div className="text-[13px] text-tg-hint mt-0.5">{value}</div>
         )}
       {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
-    </div>
+    </motion.div>
   );
 }

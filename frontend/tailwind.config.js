@@ -22,13 +22,37 @@ export default {
         'tg-success': 'rgb(var(--tg-success-rgb, 80 184 93) / <alpha-value>)',
         'tg-border': 'rgb(var(--tg-border-rgb, 41 53 64) / <alpha-value>)',
       },
+      borderRadius: {
+        'brand-xs': '8px',
+        'brand-sm': '12px',
+        'brand-md': '16px',
+        'brand-lg': '20px',
+        'brand-xl': '24px',
+        'brand-2xl': '28px',
+        'brand-pill': '999px',
+      },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-out',
         'slide-up': 'slideUp 0.25s ease-out',
+        'shimmer': 'shimmer 2s infinite',
+        'glow-pulse': 'glowPulse 3s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
         slideUp: { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        glowPulse: {
+          '0%, 100%': { opacity: '0.15' },
+          '50%': { opacity: '0.3' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
       },
     },
   },

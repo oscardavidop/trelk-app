@@ -122,14 +122,25 @@ for (const [path, json] of Object.entries(legacyModules)) {
   }
 }
 
+// ─── Persist / restore language ──────────────────────────────────────
+const LANG_KEY = 'app_lang';
+const savedLang = (() => {
+  try { return localStorage.getItem(LANG_KEY); } catch { return null; }
+})();
+
 // ─── Init i18next ────────────────────────────────────────────────────
 i18n.use(initReactI18next).init({
   resources: i18nResources,
   ns: NS,
   defaultNS: 'translation',
-  lng: 'en',
+  lng: savedLang || 'en',
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
+});
+
+// Persist language changes to localStorage
+i18n.on('languageChanged', (lng) => {
+  try { localStorage.setItem(LANG_KEY, lng); } catch { /* ignore */ }
 });
 
 export default i18n;

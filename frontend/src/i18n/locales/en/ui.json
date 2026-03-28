@@ -21,5 +21,21 @@
   "transfer_ownership": "Transfer ownership",
   "delete_bot": "Delete bot",
   "plan": "Plan",
-  "your_plan_limits": "Your plan limits"
+  "your_plan_limits": "Your plan limits",
+  "status_online": "Online",
+  "status_degraded": "Degraded",
+  "status_down": "Down",
+  "status_latency": "Latency",
+  "status_error_rate": "Error rate",
+  "banner_degraded": "The bot is experiencing intermittent issues",
+  "banner_down": "The bot is currently unavailable",
+  "command_status_warning": "The bot may not respond properly right now",
+  "onboarding_welcome_title": "Welcome to Trelk!",
+  "onboarding_welcome_desc": "Discover everything you can do with your personal Telegram assistant.",
+  "onboarding_commands_title": "Powerful Commands",
+  "onboarding_commands_desc": "Search APKs, shorten URLs, download videos and much more.",
+  "onboarding_features_title": "Ready to Go",
+  "onboarding_features_desc": "Customize your experience, save favorites and track your usage.",
+  "onboarding_next": "Continue",
+  "onboarding_start": "Get Started"
 }

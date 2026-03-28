@@ -23,6 +23,7 @@ export const useToastStore = create<ToastState>((set) => ({
 interface UserState {
   user: {
     id: string;
+    isAdmin?: boolean;
     authTelegram: {
       id: number;
       first_name: string;

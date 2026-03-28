@@ -7,7 +7,11 @@ import {
   Bot,
   MessageCircle,
   Settings,
-  Box
+  Box,
+  SmilePlus,
+  Download,
+  Globe,
+  Info,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -26,7 +30,7 @@ export interface BotCommand {
   photos?: string[];
 }
 
-export type CommandCategory = 'all' | 'utilities' | 'music' | 'entertainment' | 'media' | 'ai' | 'social' | 'tools';
+export type CommandCategory = 'all' | 'utilities' | 'music' | 'entertainment' | 'media' | 'ai' | 'social' | 'tools' | 'fun' | 'downloader' | 'general' | 'information';
 
 
 export const CATEGORY_META: Record<
@@ -67,6 +71,26 @@ export const CATEGORY_META: Record<
     label: "Herramientas",
     color: "#ef4444",
     icon: Settings,
+  },
+  fun: {
+    label: "Entretenimiento",
+    color: "#f97316",
+    icon: SmilePlus,
+  },
+  downloader: {
+    label: "Descargas",
+    color: "#0ea5e9",
+    icon: Download,
+  },
+  general: {
+    label: "General",
+    color: "#8b5cf6",
+    icon: Globe,
+  },
+  information: {
+    label: "Información",
+    color: "#14b8a6",
+    icon: Info,
   },
   'uncategorized': {
     label: "Sin categoría",

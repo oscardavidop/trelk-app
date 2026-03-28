@@ -7,6 +7,7 @@ import fastifyStatic from '@fastify/static';
 import fastifyCompress from '@fastify/compress';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
+import fastifyMultipart from '@fastify/multipart';
 import cookie from '@fastify/cookie';
 import { join } from 'path';
 import * as qs from 'qs';
@@ -76,6 +77,15 @@ async function bootstrap() {
 
   // === Cookie parser ===
   await fastify.register(cookie as any);
+
+  // === Multipart (file uploads) ===
+  await fastify.register(fastifyMultipart as any, {
+    limits: {
+      fileSize: 2 * 1024 * 1024, // 2MB max per file
+      files: 3,                   // max 3 files
+      fields: 10,
+    },
+  });
 
   // === Static files: React SPA build ===
   await fastify.register(fastifyStatic as any, {

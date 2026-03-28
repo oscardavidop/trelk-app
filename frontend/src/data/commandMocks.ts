@@ -14,6 +14,14 @@ export interface CommandExample {
   description?: string;
 }
 
+const COMMANDS = [
+  "menu","akinator","dog","cat","mydogs","mycats","apk","tts","xnx","tiktok",
+  "fb","xdl","news","feedback","help","img","mail","play","lyrics","ipinfo",
+  "whois","dns","qr","quiz","roman","settings","ssweb","md5","password",
+  "myid","mayus","minus","reverse","capitalize","shorten","t","ttt","wiki",
+  "alerta","dalert","listalert"
+];
+
 export const COMMAND_EXAMPLES: Record<string, CommandExample[]> = {
   play:      [{ text: '/play Linkin Park - Numb' }, { text: '/play lo-fi beats' }, { text: '/play spotify:track:4cOdK2wGLETKBW3PvgPWqT', description: 'Spotify track' }],
   chatgpt:   [{ text: '/chatgpt Explica la relatividad general' }, { text: '/chatgpt Write a poem about the sea' }],
@@ -33,6 +41,54 @@ export const COMMAND_EXAMPLES: Record<string, CommandExample[]> = {
   apk:       [{ text: '/apk Spotify' }, { text: '/apk com.whatsapp' }],
   alert:     [{ text: '/alert 30m check oven' }, { text: '/alert 2h call mom' }],
   ping:      [{ text: '/ping' }],
+  mayus:     [{ text: '/mayus hola mundo' }, { text: '/mayus make this uppercase' }],
+  md5:      [{ text: '/md5 mysecretpassword' }, { text: '/md5 Hello World' }],
+  dns:     [{ text: '/dns example.com' }, { text: '/dns google.com' }],
+  whois:   [{ text: '/whois example.com' }, { text: '/whois google.com' }],
+  news:    [{ text: '/news' }, { text: '/news technology' }],
+  feedback: [{ text: '/feedback I love this bot!' }, { text: '/feedback It would be great to have a dark mode' }],
+  t:       [{ text: '/t Hello world' }, { text: '/t Hola amigos' }],
+  ttt:     [{ text: '/ttt' }, { text: '/ttt hard' }],
+  settings: [{ text: '/settings' }, { text: '/settings notifications' }],
+  myid:     [{ text: '/myid' }],
+  minus:    [{ text: '/minus MAKE THIS LOWERCASE' }],
+  reverse:  [{ text: '/reverse Hello world' }],
+  capitalize: [{ text: '/capitalize make this capitalized' }],
+
+};
+
+export const COMMAND_WORKS_STEPS: Record<string, string[]> = {
+  play: ['User sends /play command', 'Bot processes the request', 'Bot returns the audio file or stream link'],
+  chatgpt: ['User sends /chatgpt command with a question', 'Bot forwards the question to the GPT API', 'Bot receives the response and sends it back to the user'],
+  dl: ['User sends /dl command with a media URL', 'Bot validates the URL and fetches the media', 'Bot sends the media file to the user'],
+  img: ['User sends /img command with a prompt', 'Bot generates an image using an AI model', 'Bot sends the generated image to the user'],
+  translate: ['User sends /translate command with target language and text', 'Bot translates the text using a translation API', 'Bot sends the translated text back to the user'],
+  ssweb: ['User sends /ssweb command with a URL', 'Bot takes a screenshot of the webpage', 'Bot sends the screenshot image to the user'],
+  akinator: ['User sends /akinator command', 'Bot starts a guessing game', 'Bot asks questions and tries to guess the character the user is thinking of'],
+  weather: ['User sends /weather command with a location', 'Bot fetches the weather information from an API', 'Bot sends the weather details back to the user'],
+  tts: ['User sends /tts command with text', 'Bot converts the text to speech using a TTS API', 'Bot sends the audio file to the user'],
+  lyrics: ['User sends /lyrics command with a song name or artist', 'Bot searches for the song lyrics', 'Bot sends the lyrics back to the user'],
+  wiki: ['User sends /wiki command with a search term', 'Bot queries Wikipedia for the term', 'Bot sends a summary of the Wikipedia article back to the user'],
+  meme: ['User sends /meme command', 'Bot generates or fetches a random meme', 'Bot sends the meme image to the user'],
+  qr: ['User sends /qr command with text or URL', 'Bot generates a QR code image', 'Bot sends the QR code back to the user'],
+  sticker: ['User sends /sticker command with a prompt', 'Bot generates a sticker image based on the prompt', 'Bot sends the sticker to the user'],
+  shorten: ['User sends /shorten command with a long URL', 'Bot shortens the URL using a URL shortening service', 'Bot sends the shortened URL back to the user'],
+  apk: ['User sends /apk command with an app name or package', 'Bot searches for the APK file of the app', 'Bot sends the APK file or download link to the user'],
+  alert: ['User sends /alert command with time and message', 'Bot sets a timer for the alert', 'When time is up, bot sends the alert message to the user'],
+  ping: ['User sends /ping command', 'Bot responds with "Pong!" and latency information'],
+  mayus: ['User sends /mayus command with text', 'Bot converts the text to uppercase', 'Bot sends the uppercase text back to the user'],
+  md5: ['User sends /md5 command with text', 'Bot computes the MD5 hash of the text', 'Bot sends the MD5 hash back to the user'],
+  dns: ['User sends /dns command with a domain name', 'Bot performs a DNS lookup for the domain', 'Bot sends the DNS records back to the user'],
+  whois: ['User sends /whois command with a domain name', 'Bot performs a WHOIS lookup for the domain', 'Bot sends the WHOIS information back to the user'],
+  news: ['User sends /news command with an optional topic', 'Bot fetches the latest news articles related to the topic', 'Bot sends a list of news headlines and links back to the user'],
+  feedback: ['User sends /feedback command with a message', 'Bot receives the feedback and stores it for review', 'Bot sends a thank you message back to the user'],
+  t: ['User sends /t command with text', 'Bot translates the text to English', 'Bot sends the translated text back to the user'],
+  ttt: ['User sends /ttt command', 'Bot starts a tic-tac-toe game', 'User plays against the bot until the game ends'],
+  settings: ['User sends /settings command', 'Bot shows the user their current settings', 'User can update settings through follow-up commands or buttons'],
+  myid: ['User sends /myid command', 'Bot retrieves the user\'s Telegram ID and other relevant information', 'Bot sends this information back to the user'],
+  minus: ['User sends /minus command with text', 'Bot converts the text to lowercase', 'Bot sends the lowercase text back to the user'],
+  reverse: ['User sends /reverse command with text', 'Bot reverses the text string', 'Bot sends the reversed text back to the user'],
+  capitalize: ['User sends /capitalize command with text', 'Bot capitalizes the first letter of each word in the text', 'Bot sends the capitalized text back to the user'],
 };
 
 export function getExamples(slug: string): CommandExample[] {

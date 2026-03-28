@@ -83,6 +83,32 @@ services:
     networks:
       - trelk-network
 
+  # === Moderation Worker Microservice (BullMQ) ===
+  moderation-worker:
+    build:
+      context: ../moderation-worker
+      dockerfile: Dockerfile
+    container_name: trelk-moderation-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+    networks:
+      - trelk-network
+
 volumes:
   redis-data:
     driver: local

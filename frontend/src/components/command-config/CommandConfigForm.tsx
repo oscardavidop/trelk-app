@@ -1,8 +1,10 @@
-import type { CommandConfigFieldSchema } from '../../config/commandConfigSchema';
+import { useTranslation } from 'react-i18next';
+import type { CommandConfigGroup, CommandConfigFieldSchema } from '../../config/commandConfigSchema';
 import CommandConfigField, { type FieldSaveState } from './CommandConfigField';
+import CommandConfigSection from './CommandConfigSection';
 
 interface CommandConfigFormProps {
-  fields: CommandConfigFieldSchema[];
+  groups: CommandConfigGroup[];
   commandConfig: Record<string, unknown>;
   statuses: Record<string, FieldSaveState>;
   errors: Record<string, string | null>;
@@ -19,24 +21,30 @@ function getValueByPath(obj: Record<string, unknown>, path: string): unknown {
 }
 
 export default function CommandConfigForm({
-  fields,
+  groups,
   commandConfig,
   statuses,
   errors,
   onFieldChange,
 }: CommandConfigFormProps) {
+  const { t } = useTranslation('commands');
+
   return (
-    <>
-      {fields.map((field) => (
-        <CommandConfigField
-          key={field.key}
-          field={field}
-          value={getValueByPath(commandConfig, field.key)}
-          status={statuses[field.key] ?? 'idle'}
-          error={errors[field.key] ?? null}
-          onChange={(value) => onFieldChange(field, value)}
-        />
+    <div className="space-y-5">
+      {groups.map((group) => (
+        <CommandConfigSection key={group.titleKey} title={t(group.titleKey)}>
+          {group.fields.map((field) => (
+            <CommandConfigField
+              key={field.key}
+              field={field}
+              value={getValueByPath(commandConfig, field.key)}
+              status={statuses[field.key] ?? 'idle'}
+              error={errors[field.key] ?? null}
+              onChange={(value) => onFieldChange(field, value)}
+            />
+          ))}
+        </CommandConfigSection>
       ))}
-    </>
+    </div>
   );
 }

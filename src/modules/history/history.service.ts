@@ -63,11 +63,15 @@ export class HistoryService {
     todayStart.setHours(0, 0, 0, 0);
     const todayTs = todayStart.getTime();
 
-    const [commandsToday, favoritesTotal, achievementsTotal] = await Promise.all([
+    const [commandsToday, commandsTotal, favoritesTotal, achievementsTotal] = await Promise.all([
       this.historyModel.countDocuments({
         userId,
         type: 'command',
         timestamp: { $gte: todayTs },
+      }).exec(),
+      this.historyModel.countDocuments({
+        userId,
+        type: 'command',
       }).exec(),
       this.historyModel.countDocuments({
         userId,
@@ -81,6 +85,7 @@ export class HistoryService {
 
     const stats: ActivityStats = {
       commandsToday,
+      commandsTotal,
       favoritesTotal,
       achievementsTotal,
     };
@@ -127,10 +132,68 @@ export class HistoryService {
 
     return stats;
   }
+
+  /**
+   * Weekly recap: stats for the last 7 days vs the previous 7 days.
+   */
+  async getWeeklyRecap(userId: number): Promise<WeeklyRecap> {
+    const cacheKey = `history:weekly:${userId}`;
+    const cached = await this.redis.get<WeeklyRecap>(cacheKey);
+    if (cached) return cached;
+
+    const now = Date.now();
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const twoWeeksAgo = now - 14 * 24 * 60 * 60 * 1000;
+
+    const [
+      commandsThisWeek,
+      commandsLastWeek,
+      favoritesThisWeek,
+      achievementsThisWeek,
+      topCommands,
+      uniqueCommandsThisWeek,
+    ] = await Promise.all([
+      this.historyModel.countDocuments({ userId, type: 'command', timestamp: { $gte: weekAgo } }).exec(),
+      this.historyModel.countDocuments({ userId, type: 'command', timestamp: { $gte: twoWeeksAgo, $lt: weekAgo } }).exec(),
+      this.historyModel.countDocuments({ userId, type: 'favorite_added', timestamp: { $gte: weekAgo } }).exec(),
+      this.historyModel.countDocuments({ userId, type: 'achievement', timestamp: { $gte: weekAgo } }).exec(),
+      this.historyModel.aggregate([
+        { $match: { userId, type: 'command', timestamp: { $gte: weekAgo } } },
+        { $group: { _id: '$command', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 3 },
+      ]).exec(),
+      this.historyModel.aggregate([
+        { $match: { userId, type: 'command', timestamp: { $gte: weekAgo } } },
+        { $group: { _id: '$command' } },
+        { $count: 'total' },
+      ]).exec(),
+    ]);
+
+    const commandsTrend = commandsLastWeek > 0
+      ? Math.round(((commandsThisWeek - commandsLastWeek) / commandsLastWeek) * 100)
+      : commandsThisWeek > 0 ? 100 : 0;
+
+    const recap: WeeklyRecap = {
+      commandsThisWeek,
+      commandsLastWeek,
+      commandsTrend,
+      favoritesAdded: favoritesThisWeek,
+      achievementsUnlocked: achievementsThisWeek,
+      topCommands: topCommands.map((t) => ({ command: t._id, count: t.count })),
+      uniqueCommandsUsed: uniqueCommandsThisWeek[0]?.total ?? 0,
+      weekStart: weekAgo,
+      weekEnd: now,
+    };
+
+    await this.redis.set(cacheKey, recap, 300); // 5 min cache
+    return recap;
+  }
 }
 
 export interface ActivityStats {
   commandsToday: number;
+  commandsTotal: number;
   favoritesTotal: number;
   achievementsTotal: number;
 }
@@ -138,4 +201,16 @@ export interface ActivityStats {
 export interface GlobalStats {
   commandsToday: number;
   commandsYesterday: number;
+}
+
+export interface WeeklyRecap {
+  commandsThisWeek: number;
+  commandsLastWeek: number;
+  commandsTrend: number;
+  favoritesAdded: number;
+  achievementsUnlocked: number;
+  topCommands: { command: string; count: number }[];
+  uniqueCommandsUsed: number;
+  weekStart: number;
+  weekEnd: number;
 }

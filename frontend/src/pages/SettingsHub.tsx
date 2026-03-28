@@ -14,7 +14,8 @@ import {
   MessageSquare,
   Palette,
   Crown,
-  CreditCard
+  CreditCard,
+  Flag
 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
@@ -33,10 +34,8 @@ export default function SettingsHub() {
 
   const go = (path: string) => {
     haptic?.impactOccurred('light');
-    navigate(`/users/ui/${userId}${path}`);
+    navigate(`/users/ui/${userId}${path}`, { state: { from: `/users/ui/${userId}/settings-hub` } });
   };
-
-  console.log('User Config:', (user as any)?.authUser?.config);
 
   const themeLabel = themeMode === 'dark' ? t('dark') : themeMode === 'light' ? t('light') : t('system');
 
@@ -194,6 +193,17 @@ export default function SettingsHub() {
               <div className="flex-1 min-w-0">
                 <div className="text-[15px] font-bold text-tg-text ">{t('appearance')}</div>
                 <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('appearance_desc')}</div>
+              </div>
+              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
+            </button>
+
+            <button onClick={() => go('/my-reports')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
+              <div className="w-9 h-9 rounded-[10px] bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <Flag size={18} className="text-orange-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-bold text-tg-text ">{t('my_reports')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('my_reports_desc')}</div>
               </div>
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>

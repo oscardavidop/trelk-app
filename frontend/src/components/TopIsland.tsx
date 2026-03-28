@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useIslandStore } from '../stores/islandStore';
+import BotStatusIndicator from './status/BotStatusIndicator';
 
 interface TopIslandProps {
   name: string;
@@ -63,7 +64,8 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
       style={{ top: topPx > 0 ? topPx + 8 : 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
     >
       {/* ── Diseño de Isla Premium Adaptativa ── */}
-      <div className="flex items-center gap-2.5 px-2.5 py-1.5 bg-tg-secondary/85 backdrop-blur-xl border border-tg-border/40 shadow-sm rounded-full pointer-events-auto transition-colors">
+      <div className="flex items-center gap-2.5 px-2.5 py-1.5 bg-tg-secondary/80 backdrop-blur-xl border border-tg-border/30 shadow-sm rounded-full pointer-events-auto transition-colors relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-tg-accent/[0.03] to-transparent pointer-events-none rounded-full" />
 
         {avatarUrl ? (
           <img
@@ -82,6 +84,7 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
         <span className="text-[13px] font-semibold text-tg-text truncate max-w-[140px] tracking-wide pr-1.5">
           {name}
         </span>
+        <BotStatusIndicator />
       </div>
     </div>
   );

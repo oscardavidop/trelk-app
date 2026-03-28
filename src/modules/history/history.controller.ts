@@ -42,6 +42,16 @@ export class HistoryController {
     return this.svc.getGlobalStats();
   }
 
+  /**
+   * GET /api/v1/ui/history/weekly-recap
+   * Weekly activity recap for the authenticated user.
+   */
+  @Get('weekly-recap')
+  async weeklyRecap(@Req() req: any) {
+    const data = await this.svc.getWeeklyRecap(this.uid(req));
+    return { ok: true, data };
+  }
+
   private uid(req: any): number {
     const u = req.user;
     return u.authTelegram?.id || u.authUser?.telegramId || u.authUser?.id;

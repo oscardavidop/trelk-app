@@ -274,7 +274,7 @@
       "facebookdownload"
     ],
     "group": "fb",
-    "category": "uncategorized",
+    "category": "downloader",
     "usage": "",
     "requireArgs": true,
     "description": "Descarga contenido de Facebook.",
@@ -296,7 +296,7 @@
       "twitterdownload"
     ],
     "group": "xdl",
-    "category": "uncategorized",
+    "category": "downloader",
     "usage": "",
     "requireArgs": true,
     "description": "Descarga contenido de Twitter.",
@@ -312,7 +312,7 @@
   {
     "name": [],
     "group": "news",
-    "category": "uncategorized",
+    "category": "information",
     "usage": "",
     "requireArgs": false,
     "maxLengthArgs": 15,
@@ -434,7 +434,7 @@
       "lyric"
     ],
     "group": "lyrics",
-    "category": "uncategorized",
+    "category": "music",
     "usage": "",
     "requireArgs": false,
     "description": "Obtiene las letras de una canción.",

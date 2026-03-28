@@ -33,6 +33,10 @@ interface SettingsState {
     downtime_alerts: boolean;
     feature_announcements: boolean;
     security_alerts: boolean;
+    achievements: boolean;
+    reviews: boolean;
+    system: boolean;
+    ai_updates: boolean;
   };
   notify_semanal_stats: boolean;
   large_text: boolean;
@@ -94,6 +98,10 @@ function SettingsForm({ config }: { config: UserConfig }) {
       downtime_alerts: config.notifications?.downtime_alerts ?? true,
       feature_announcements: config.notifications?.feature_announcements ?? true,
       security_alerts: config.notifications?.security_alerts ?? true,
+      achievements: config.notifications?.achievements ?? true,
+      reviews: config.notifications?.reviews ?? true,
+      system: config.notifications?.system ?? true,
+      ai_updates: config.notifications?.ai_updates ?? true,
     },
     notify_semanal_stats: config.notify_semanal_stats ?? false,
     large_text: false,
@@ -412,6 +420,31 @@ function SettingsForm({ config }: { config: UserConfig }) {
             label={t('security_alerts')}
             checked={settings.notifications.security_alerts}
             onChange={(v) => handleNotification('security_alerts', v)}
+          />
+          
+          <div className="px-4 pt-4 pb-2 bg-tg-hint/5">
+            <h3 className="text-[12px] font-bold text-tg-hint uppercase tracking-wider">{t('in_app_notifications', 'In-App Notifications')}</h3>
+          </div>
+          
+          <Checkbox
+            label={t('achievements_notif', 'Achievements')}
+            checked={settings.notifications.achievements}
+            onChange={(v) => handleNotification('achievements', v)}
+          />
+          <Checkbox
+            label={t('reviews_notif', 'Reviews')}
+            checked={settings.notifications.reviews}
+            onChange={(v) => handleNotification('reviews', v)}
+          />
+          <Checkbox
+            label={t('system_notif', 'System alerts')}
+            checked={settings.notifications.system}
+            onChange={(v) => handleNotification('system', v)}
+          />
+          <Checkbox
+            label={t('ai_updates_notif', 'AI updates')}
+            checked={settings.notifications.ai_updates}
+            onChange={(v) => handleNotification('ai_updates', v)}
           />
           
           <div className="bg-tg-secondary border-t border-tg-border/20">

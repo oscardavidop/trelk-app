@@ -11,6 +11,7 @@ interface StickyHeaderProps {
 
 export default function StickyHeader({ title, subtitle, children, icon, border }: StickyHeaderProps) {
     return (
+        // <div className="min-h-[160px]">
         <div
             className={`sticky z-30 bg-tg-bg backdrop-blur-md ${border ? 'border-b border-tg-border/50' : ''} pb-4`}
             style={{
@@ -21,7 +22,7 @@ export default function StickyHeader({ title, subtitle, children, icon, border }
             <div className="px-4 pt-4 flex items-center gap-3">
                 {
                     icon && (
-                        icon 
+                        icon
                     )
                 }
 
@@ -32,6 +33,7 @@ export default function StickyHeader({ title, subtitle, children, icon, border }
             </div>
             {children && children}
         </div>
+        // </div>
     );
 
 }
@@ -41,11 +43,15 @@ interface StickySectionHeaderProps {
     subtitle?: string;
     icon?: ReactNode;
     children?: ReactNode;
+    bgClass?: string; // Para controlar el fondo específico de cada sección (útil para diferenciar visualmente)
+    catColor?: string; // Color específico para el gradiente de relleno, si se quiere usar
 }
 
-export function StickySectionHeader({ icon, children, className }: StickySectionHeaderProps) {
+
+
+export function StickySectionHeader({ icon, children, className, bgClass }: StickySectionHeaderProps) {
     return (
-        <div className={`sticky-header sticky z-30 ${className || 'bg-tg-bg'} backdrop-blur-md border-b border-tg-border/50 pb-3 transition-all duration-300`}
+        <div className={`sticky-header sticky z-30 ${bgClass || className || 'bg-tg-bg'} backdrop-blur-md border-b border-tg-border/50 transition-[border-color,background-color] duration-200`}
             style={{
                 top: 'var(--tg-top-offset, var(--tg-top-offset, env(--tg-top2-offset, 0px)))'
             }}>

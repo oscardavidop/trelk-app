@@ -7,6 +7,7 @@ import { useToastStore } from '../stores';
 import { BOT_COMMANDS, CATEGORY_META, cmdSlug, findCommand } from '../data/botCommands';
 import { useCommandFavoritesStore } from '../stores/commandFavorites';
 import { fetchCommandFavorites, type CommandFavoriteItem, type TrendingCommand } from '../services/commandFavoritesApi';
+import SmartEmptyState from '../components/SmartEmptyState';
 import {
   Star, Pin, HeartOff, ArrowUpDown,
   Search, TrendingUp, Flame, Loader2,
@@ -275,17 +276,19 @@ export default function CommandFavoritesPage() {
                 })}
               </div>
             </div>
-          ) : (
-            /* ── Estado Vacío ── */
+          ) : search ? (
+            /* ── No search results ── */
             <div className="text-center py-12 bg-tg-secondary border border-tg-border/40 rounded-[24px] shadow-sm px-5 mt-2">
               <div className="w-[56px] h-[56px] mx-auto bg-tg-hint/10 rounded-[16px] flex items-center justify-center mb-4 shadow-inner">
                 <Star size={28} className="text-tg-hint/40" />
               </div>
               <p className="text-[18px] font-bold text-tg-text leading-tight mb-1">{t('no_results', 'No results found')}</p>
               <p className="text-[13px] font-medium text-tg-hint mt-1 leading-relaxed max-w-[220px] mx-auto">
-                {search ? t('no_search_match', 'Try adjusting your search terms.') : t('no_favorites_yet', 'Save your favorite commands to see them here.')}
+                {t('no_search_match', 'Try adjusting your search terms.')}
               </p>
             </div>
+          ) : (
+            <SmartEmptyState context="favorites" title={t('no_favorites_yet', 'No favorites yet')} description={t('no_favorites_desc', 'Save your favorite commands to see them here.')} />
           )}
 
           {/* Infinite scroll sentinel */}

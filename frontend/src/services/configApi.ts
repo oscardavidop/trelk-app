@@ -63,6 +63,10 @@ export interface UserConfig {
     downtime_alerts: boolean;
     security_alerts: boolean;
     semanal_stats: boolean;
+    achievements: boolean;
+    reviews: boolean;
+    system: boolean;
+    ai_updates: boolean;
   };
   notify_semanal_stats: boolean,
   time_format?: '12h' | '24h';

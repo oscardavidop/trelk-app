@@ -40,5 +40,14 @@
   "country_updated": "Country updated",
   "error_saving_country": "Error saving country",
   "lang_title": "Language",
-  "lang_subtitle": "Choose your preferred language"
+  "lang_subtitle": "Choose your preferred language",
+  "my_reports": "My Reports",
+  "my_reports_desc": "View your submitted bug reports",
+  "animation_intensity": "Animation intensity",
+  "intensity_low": "Subtle",
+  "intensity_low_desc": "Minimal animations and effects",
+  "intensity_medium": "Balanced",
+  "intensity_medium_desc": "Recommended experience",
+  "intensity_high": "Vivid",
+  "intensity_high_desc": "Full animations and glow effects"
 }

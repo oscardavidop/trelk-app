@@ -1,72 +1,257 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useCallback, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTelegram } from '../hooks/useTelegram';
-import { useToastStore } from '../stores';
-import { BOT_COMMANDS, findCommand, cmdSlug, CATEGORY_META } from '../data/botCommands';
-import { getExamples, getChangelog, getComments } from '../data/commandMocks';
-import { fetchCommandStats, fetchMyRating, submitRating, type CommandStatsData } from '../services/commandStatsApi';
-import CommandStats from '../components/commands/CommandStats';
-import CommandExamples from '../components/commands/CommandExamples';
-import CommandChangelog from '../components/commands/CommandChangelog';
-import CommandComments from '../components/commands/CommandComments';
-import RelatedCommands from '../components/commands/RelatedCommands';
+import { useToastStore, useUserStore } from '../stores';
+import { useBotStatus } from '../hooks/useBotStatus';
+import { BOT_COMMANDS, findCommand, cmdSlug } from '../data/botCommands';
+import { getExamples, getComments } from '../data/commandMocks';
+import {
+  fetchCommandStats, fetchMyRating, submitRating, fetchMyReportStatus,
+  fetchReviewsSummary, fetchReviews, fetchMyReview, toggleReviewHelpful,
+  deleteMyReview, reportReview, fetchCommandSignals, fetchCommandKnowledge,
+  type CommandStatsData, type ReviewsSummary, type Review, type MyReview,
+} from '../services/commandStatsApi';
 import ReportErrorModal from '../components/commands/ReportErrorModal';
+import CommandFeedback from '@/components/commands/CommandFeedback';
+import { AlertTriangle, Send } from 'lucide-react';
+import { getCategoryBrand } from '../design';
+import { StickySectionHeader } from '@/components/StickyHeader';
+// useScrollCollapse hooks available if needed
+// import { useScrollEnd, useScrollHeader, useScrollHeaderDebounced } from '@/hooks/useScrollCollapse';
+import { useCommandFavoritesStore } from '../stores/commandFavorites';
+import { ReviewSummaryCard, WriteReview, ReviewPreview, ReviewSummarySkeleton, ReviewAISummary } from '../components/commands/reviews';
 
 import {
-  Heart, Copy, Share, Send, AlertTriangle,
-  Hash, MessageSquare, Lock, Settings2,
-  Flag, ArrowLeft, ArrowRight, CheckCircle2,
-  Star
-} from 'lucide-react';
-import { StickySectionHeader } from '@/components/StickyHeader';
-import { useScrollHeader } from '@/hooks/useScrollCollapse';
-import { useCommandFavoritesStore } from '../stores/commandFavorites';
-import CommandFeedback from '@/components/commands/CommandFeedback';
+  CommandHero,
+  CommandStatsRow,
+  CommandExamplesEnhanced,
+  CommandParams,
+  CommandChangelogEnhanced,
+  CommandCommentsEnhanced,
+  CommandRelatedEnhanced,
+  CommandHowItWorks,
+  CommandAliases,
+  CommandScreenshots,
+  CommandNavigation,
+  BottomActionBar,
+  CommandDetailSkeleton,
+  CommandLivePreview,
+  CommandSignals,
+  CommandKnowledge,
+} from '../components/commands/detail';
 
-/* ─── Mock screenshots for preview ─── */
-const MOCK_SCREENSHOTS = [
-  'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+1',
-  'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+2',
-  'https://placehold.co/280x500/1a2026/7d8b97?text=Preview+3',
-];
+/* ─── Page animation variants ─── */
+const pageVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
+} as const;
+
+const staggerContainer = {
+  animate: { transition: { staggerChildren: 0.06 } },
+} as const;
+
+const sectionVariant = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' as const } },
+} as const;
 
 export default function BotCommandDetailPage() {
   const { command: slug, userId } = useParams();
   const navigate = useNavigate();
   const { haptic, webApp } = useTelegram();
   const { t } = useTranslation('commandDetail');
+  const { t: tUi } = useTranslation('ui');
+  const { t: tReports } = useTranslation('reports');
   const showToast = useToastStore((s) => s.show);
+  const { status: botStatus } = useBotStatus();
+  const { user: appUser } = useUserStore();
+  const currentUserId = appUser?.authTelegram?.id;
 
   const cmd = slug ? findCommand(slug) : undefined;
-  const [rating, setRating] = useState(0);
-  const [hasRated, setHasRated] = useState(false);
-  const [ratingLoading, setRatingLoading] = useState(false);
-  const [review, setReview] = useState('');
   const [stats, setStats] = useState<CommandStatsData | null>(null);
   const [reported, setReported] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { isFavorite, toggle: toggleFav, loaded: favLoaded, loadFavorites } = useCommandFavoritesStore();
   const mainSlug = cmd ? cmdSlug(cmd) : '';
   const isFav = favLoaded && isFavorite(mainSlug);
-  const [copied, setCopied] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const collapsed = useScrollHeader(110);
+  const [heroCollapsed, setHeroCollapsed] = useState(false);
+  const [showArgsInput, setShowArgsInput] = useState(false);
+  const [argsValue, setArgsValue] = useState('');
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
+  const [highlightReview, setHighlightReview] = useState(false);
+  const location = useLocation();
 
-  // Load favorites set if not loaded
+  useEffect(() => {
+    if (location.state?.scrollY) {
+      window.scrollTo(0, location.state.scrollY);
+    }
+  }, []);
+
   useEffect(() => { if (!favLoaded) loadFavorites(); }, [favLoaded, loadFavorites]);
 
-  // Load real stats + user's own rating
+  /* ── Scroll to review section when highlight=review ── */
+  useEffect(() => {
+    if (searchParams.get('highlight') !== 'review') return;
+    // Wait for content to render
+    const timer = setTimeout(() => {
+      reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightReview(true);
+      setTimeout(() => setHighlightReview(false), 2500);
+      searchParams.delete('highlight');
+      setSearchParams(searchParams, { replace: true });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     if (!mainSlug) return;
-    fetchCommandStats(mainSlug).then(setStats).catch(() => { });
-    fetchMyRating(mainSlug).then((data) => {
-      if (data.rating != null) {
-        setRating(data.rating);
-        setHasRated(true);
-        if (data.review) setReview(data.review);
+    setLoading(true);
+    Promise.allSettled([
+      fetchCommandStats(mainSlug).then(setStats),
+      fetchMyReportStatus(mainSlug).then((data) => {
+        if (data.reported) setReported(true);
+      }),
+    ]).finally(() => setLoading(false));
+
+    // Prefetch signals & knowledge
+    queryClient.prefetchQuery({ queryKey: ['command-signals', mainSlug], queryFn: () => fetchCommandSignals(mainSlug), staleTime: 30_000 });
+    queryClient.prefetchQuery({ queryKey: ['command-knowledge', mainSlug], queryFn: () => fetchCommandKnowledge(mainSlug), staleTime: 300_000 });
+  }, [mainSlug, queryClient]);
+
+  /* ── Reviews data (React Query) ── */
+  const { data: reviewsSummary, isLoading: summaryLoading } = useQuery<ReviewsSummary>({
+    queryKey: ['reviews-summary', mainSlug],
+    queryFn: () => fetchReviewsSummary(mainSlug),
+    enabled: !!mainSlug,
+    staleTime: 30_000,
+  });
+
+  const { data: previewReviewsData } = useQuery({
+    queryKey: ['reviews', mainSlug, 'preview'],
+    queryFn: () => fetchReviews(mainSlug, 4, 0, 'relevant'),
+    enabled: !!mainSlug,
+    staleTime: 30_000,
+  });
+  const previewReviews: Review[] = previewReviewsData?.items ?? [];
+  const totalReviewCount = previewReviewsData?.total ?? 0;
+
+  const { data: myReviewData } = useQuery<{ review: MyReview | null }>({
+    queryKey: ['my-review', mainSlug],
+    queryFn: () => fetchMyReview(mainSlug),
+    enabled: !!mainSlug,
+    staleTime: 60_0000, // 
+    // enable cache for my review since it's used in multiple places (mainly to avoid refetching when going to full reviews page)
+    
+  });
+  const myReview = myReviewData?.review ?? null;
+
+  /* ── Helpful toggle mutation ── */
+  const helpfulMutation = useMutation({
+    mutationFn: toggleReviewHelpful,
+    onMutate: async (reviewId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['reviews', mainSlug, 'preview'] });
+      queryClient.setQueryData(['reviews', mainSlug, 'preview'], (old: any) => {
+        if (!old?.items) return old;
+        return {
+          ...old,
+          items: old.items.map((r: Review) =>
+            r.id === reviewId
+              ? { ...r, myHelpful: !r.myHelpful, helpfulCount: r.helpfulCount + (r.myHelpful ? -1 : 1) }
+              : r,
+          ),
+        };
+      });
+    },
+    onError: () => showToast(t('error_system'), 'error'),
+    onSuccess: (data) => {
+      showToast(data.helpful ? t('reviews_helpful_thanks') : t('reviews_helpful_removed'), 'info');
+    },
+  });
+
+  const handleToggleHelpful = useCallback((reviewId: string) => {
+    helpfulMutation.mutate(reviewId);
+  }, [helpfulMutation]);
+
+  /* ── Delete review ── */
+  const handleDeleteReview = useCallback(async () => {
+    try {
+      await deleteMyReview(mainSlug);
+      haptic?.notificationOccurred('success');
+      showToast(t('reviews_deleted'), 'success');
+      queryClient.invalidateQueries({ queryKey: ['reviews-summary', mainSlug] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', mainSlug] });
+      queryClient.invalidateQueries({ queryKey: ['my-review', mainSlug] });
+      fetchCommandStats(mainSlug).then(setStats).catch(() => { });
+    } catch {
+      showToast(t('error_system'), 'error');
+    }
+  }, [mainSlug, haptic, showToast, t, queryClient]);
+
+  /* ── Report review ── */
+  const handleReportReview = useCallback(async (reviewId: string) => {
+    try {
+      await reportReview(reviewId);
+      haptic?.notificationOccurred('success');
+      showToast(t('reviews_reported'), 'success');
+    } catch {
+      showToast(t('error_system'), 'error');
+    }
+  }, [haptic, showToast, t]);
+
+  /* ── Submit/edit review ── */
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const handleSubmitReview = useCallback(async (rating: number, comment: string): Promise<any> => {
+    setReviewSubmitting(true);
+    try {
+      const result = await submitRating(mainSlug, rating, comment);
+      haptic?.notificationOccurred('success');
+      if (result?.status === 'pending') {
+        showToast(t('reviews_pending_toast'), 'info');
+      } else {
+        showToast(myReview ? t('reviews_updated') : t('reviews_published'), 'success');
       }
-    }).catch(() => { });
-  }, [mainSlug]);
+      queryClient.invalidateQueries({ queryKey: ['reviews-summary', mainSlug] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', mainSlug] });
+      queryClient.invalidateQueries({ queryKey: ['my-review', mainSlug] });
+      // Also refresh stats since rating changed
+      fetchCommandStats(mainSlug).then(setStats).catch(() => { });
+      return true;
+    } catch (error: any) {
+      const key = error.error_key;
+      showToast(key ? t(key) : t('error_system'), 'error');
+      throw error;
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }, [mainSlug, haptic, showToast, t, myReview, queryClient]);
+
+  const handleRunInTelegram = useCallback(() => {
+    if (!slug) return;
+
+    // Si requiere argumentos y aún no hemos mostrado el input
+    if (cmd?.requireArgs && !showArgsInput) {
+      setShowArgsInput(true);
+      haptic?.impactOccurred('light');
+      return;
+    }
+
+    // Si no requiere args O ya tenemos el input visible y queremos enviar
+    const finalArgs = argsValue.trim() ? `_${argsValue.trim().replace(/\s+/g, '_')}` : '';
+    webApp?.openTelegramLink(`https://t.me/TrelkBot?start=${slug}${finalArgs}`);
+    haptic?.impactOccurred('medium');
+
+    // Opcional: limpiar después de enviar
+    if (showArgsInput) setShowArgsInput(false);
+  }, [slug, webApp, haptic, cmd?.requireArgs, showArgsInput, argsValue]);
+
+
 
   /* ─── Navigation helpers ─── */
   const currentIdx = cmd ? BOT_COMMANDS.findIndex((c) => cmdSlug(c) === cmdSlug(cmd)) : -1;
@@ -78,448 +263,295 @@ export default function BotCommandDetailPage() {
     navigate(`/users/ui/${userId}/bot-commands/${s}`, { replace: true });
   }, [navigate, userId, haptic]);
 
-  const copyText = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      haptic?.notificationOccurred('success');
-      showToast(t('copied_clipboard'), 'success');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      haptic?.notificationOccurred('error');
-    }
-  }, [haptic, showToast]);
+  const handleToggleFav = useCallback(async () => {
+    haptic?.impactOccurred('light');
+    const added = await toggleFav(mainSlug);
+    showToast(added ? t('added_to_favorites') : t('removed_from_favorites'), 'info');
+  }, [haptic, toggleFav, mainSlug, showToast, t]);
 
-  /* ─── Estado: No Encontrado ─── */
+  const handleSeeAllReviews = useCallback(() => {
+    navigate(`/users/ui/${userId}/bot-commands/${slug}/reviews`);
+    haptic?.impactOccurred('light');
+  }, [navigate, userId, slug, haptic]);
+
+  const examples = useMemo(() => (mainSlug ? getExamples(mainSlug) : []), [mainSlug]);
+
+  /* ─── Not found state ─── */
   if (!cmd) {
     return (
-      <div className="flex flex-col items-center justify-center pt-24 px-5 text-center animate-fade-in pb-28 max-w-[480px] mx-auto">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center pt-24 px-5 text-center pb-28 max-w-[480px] mx-auto"
+      >
         <div className="w-[72px] h-[72px] rounded-[24px] bg-tg-secondary border border-tg-border/40 flex items-center justify-center mb-5 shadow-sm">
           <AlertTriangle size={32} className="text-tg-hint/50" />
         </div>
         <h1 className="text-[20px] font-bold text-tg-text mb-2">{t('command_not_found')}</h1>
         <p className="text-tg-hint text-[14px] leading-relaxed">{t('command_not_registered', { slug })}</p>
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           onClick={() => navigate(`/users/ui/${userId}/bot-commands`, { replace: true })}
-          className="mt-8 px-6 py-3.5 rounded-[16px] bg-tg-accent/10 text-tg-accent font-bold text-[15px] active:scale-95 transition-transform shadow-sm"
+          className="mt-8 px-6 py-3.5 rounded-[16px] bg-tg-accent/10 text-tg-accent font-bold text-[15px] shadow-sm"
         >
           {t('back_to_directory')}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     );
   }
 
-  const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: '📦' };
-  
+  /* ─── Loading skeleton ─── */
+  if (loading && !stats) {
+    return <CommandDetailSkeleton />;
+  }
+
   return (
-    <div className="pb-28 animate-fade-in relative max-w-[480px] mx-auto">
-
-      <StickySectionHeader>
-        <section
-          className={`relative px-5 transition-all duration-300 ${
-            collapsed ? 'pt-2 pb-2' : 'pt-4 pb-2'
-          }`}
-        >
-          <div className="flex items-center gap-4">
-            {/* Icon */}
-            <div
-              className={`flex items-center justify-center transition-all duration-300 shadow-sm flex-shrink-0 ${
-                collapsed ? 'w-[42px] h-[42px] rounded-[12px] text-[20px]' : 'w-[72px] h-[72px] rounded-[20px] text-[32px]'
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={mainSlug}
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        className="pb-28 relative max-w-[480px] mx-auto"
+      >
+        {/* ── Bot status warning ── */}
+        {botStatus && botStatus !== 'online' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mx-5 mt-3 mb-1 px-4 py-3 rounded-[16px] flex items-center gap-3 text-[13px] font-medium ${botStatus === 'degraded'
+              ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+              : 'bg-red-500/10 text-red-500 border border-red-500/20'
               }`}
-              style={{
-                backgroundColor: `${cat.color}15`,
-                border: `1px solid ${cat.color}30`
-              }}
-            >
-              {typeof cat.icon !== 'string'
-                ? <cat.icon className={collapsed ? "w-5 h-5" : "w-8 h-8"} style={{ color: cat.color }} />
-                : cat.icon}
-            </div>
-
-            {/* Text */}
-            <div className="flex-1 pr-10 min-w-0">
-              <h1
-                className={`font-bold font-mono text-tg-text truncate transition-all duration-300 leading-tight ${
-                  collapsed ? 'text-[18px]' : 'text-[24px]'
-                }`}
-              >
-                /{mainSlug}
-              </h1>
-
-              {/* description */}
-              <p
-                className={`text-tg-hint font-medium transition-all duration-300 overflow-hidden text-[13px] mt-1 leading-snug ${
-                  collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-[60px] opacity-100'
-                }`}
-              >
-                {cmd.description}
-              </p>
-
-              {/* badges */}
-              <div
-                className={`flex flex-wrap gap-2 transition-all duration-300 ${
-                  collapsed ? 'max-h-0 opacity-0 mt-0 overflow-hidden' : 'max-h-[50px] opacity-100 mt-2.5'
-                }`}
-              >
-                <span
-                  className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-sm"
-                  style={{
-                    color: cat.color,
-                    backgroundColor: `${cat.color}10`,
-                    border: `1px solid ${cat.color}30`
-                  }}
-                >
-                  {cat.label}
-                </span>
-
-                {cmd.supportsInline && (
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full text-sky-500 bg-sky-500/10 border border-sky-500/20 uppercase tracking-wider shadow-sm">
-                    Inline
-                  </span>
-                )}
-
-                {cmd.requireArgs && (
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-500 bg-amber-500/10 border border-amber-500/20 uppercase tracking-wider shadow-sm">
-                    Args*
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Fav Button */}
-          <button
-            onClick={async () => {
-              haptic?.impactOccurred('light');
-              const added = await toggleFav(mainSlug);
-              showToast(added ? t('added_to_favorites') : t('removed_from_favorites'), 'info');
-            }}
-            className={`absolute right-5 transition-all duration-300 flex items-center justify-center rounded-full bg-tg-secondary border border-tg-border/40 shadow-sm active:scale-90 ${
-              collapsed ? 'top-2.5 w-[38px] h-[38px]' : 'top-6 w-[42px] h-[42px]'
-            }`}
           >
-            <Heart
-              size={18}
-              className={`transition-all ${
-                isFav ? 'text-pink-500 fill-pink-500 scale-110' : 'text-tg-hint/60'
-              }`}
-            />
-          </button>
-        </section>
-      </StickySectionHeader>
+            <AlertTriangle size={16} className="flex-shrink-0" />
+            <span>{tUi('command_status_warning')}</span>
+          </motion.div>
+        )}
 
-      {/* ── Stats Strip ── */}
-      {stats && <div className="mt-4"><CommandStats stats={stats} /></div>}
-
-      {/* ── Botón de Acción Rápida (Ejecutar) ── */}
-      <section className="px-5 mt-6">
-        <button
-          onClick={() => {
-            // window.open(`https://t.me/TrelkBot?start=${mainSlug}`, '_blank');
-            webApp?.openTelegramLink(`https://t.me/TrelkBot?start=${mainSlug}`);
-            haptic?.impactOccurred('medium');
-          }}
-          className="w-full py-3.5 rounded-[20px] bg-tg-accent text-white text-[16px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform duration-200 shadow-md"
+        <CommandHero
+          cmd={cmd}
+          stats={stats}
+          isFav={isFav}
+          onToggleFav={handleToggleFav}
+          onCollapseChange={setHeroCollapsed}
+        />
+        <div
+          className="px-5 overflow-hidden will-change-[max-height,opacity] transition-[max-height,opacity] duration-150 ease-out"
+          style={{ maxHeight: heroCollapsed ? 0 : 200, opacity: heroCollapsed ? 0 : 1 }}
         >
-          <Send size={18} className="fill-white/20" />
-          {t('run_in_telegram', 'Run in Telegram')}
-        </button>
-      </section>
-
-      {/* ── Bloque de Uso (Usage) ── */}
-      <section className="px-5 mt-8">
-        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('command_usage', 'Usage')}</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm">
-          <div className="flex items-center justify-between p-4">
-            <code className="text-[15px] font-mono font-bold text-tg-text truncate">{cmd.usage}</code>
-            <button
-              onClick={() => copyText(cmd.usage)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-[12px] font-bold transition-all active:scale-95 flex-shrink-0 ml-3 ${
-                copied ? 'bg-emerald-500/15 text-emerald-500' : 'bg-tg-hint/10 text-tg-text hover:bg-tg-hint/20'
-              }`}
-            >
-              {copied ? <CheckCircle2 size={14} /> : <Copy size={14} className="text-tg-hint" />}
-              {copied ? t('copied', 'Copied') : t('copy', 'Copy')}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Aliases ── */}
-      {cmd.name.length > 1 && (
-        <section className="px-5 mt-8">
-          <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5 flex items-center gap-1.5">
-            <Hash size={14} className="text-tg-hint/60" /> {t('allowed_aliases', 'Aliases')}
-          </h2>
-
-          <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 shadow-sm">
-            <div className="flex flex-wrap gap-2.5">
-              {cmd.name.map((alias) => (
-                <button
-                  key={alias}
-                  onClick={() => copyText(`/${alias}`)}
-                  title="Copiar alias"
-                  className="px-3 py-1.5 rounded-[12px] bg-tg-hint/10 border border-tg-border/20 text-[14px] font-mono font-semibold text-tg-text active:scale-95 transition-transform shadow-sm"
-                >
-                  /{alias}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── Parámetros (Ajustes Estilo iOS) ── */}
-      <section className="px-5 mt-8">
-        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('technical_details', 'Technical Details')}</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 overflow-hidden shadow-sm">
-          <div className="flex flex-col">
-
-            {/* Row: Argumentos */}
-            <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
-              <div className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center flex-shrink-0 shadow-sm ${cmd.requireArgs ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}`}>
-                <Hash size={18} className={cmd.requireArgs ? 'text-amber-500' : 'text-emerald-500'} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-semibold text-tg-text leading-tight">
-                  {cmd.requireArgs ? t('args_required', 'Arguments Required') : t('no_args', 'No Arguments')}
-                </div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">
-                  {cmd.requireArgs ? t('args_required_desc') : t('no_args_desc')}
-                </div>
-              </div>
-            </div>
-
-            {/* Row: Inline */}
-            {cmd.supportsInline && (
-              <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
-                <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <MessageSquare size={18} className="text-sky-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-semibold text-tg-text leading-tight">{t('supports_inline', 'Supports Inline')}</div>
-                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('inline_desc', { slug: mainSlug })}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Row: Solo Privado */}
-            {cmd.supportInGroups === false && (
-              <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
-                <div className="w-[34px] h-[34px] rounded-[10px] bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <Lock size={18} className="text-red-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-semibold text-tg-text leading-tight">{t('private_only', 'Private Only')}</div>
-                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('private_only_desc')}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Row: Max Length */}
-            {cmd.maxLengthArgs != null && (
-              <div className="flex items-center gap-3.5 p-3.5 active:bg-tg-hint/10 transition-colors border-b border-tg-border/20 last:border-0">
-                <div className="w-[34px] h-[34px] rounded-[10px] bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <Settings2 size={18} className="text-violet-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-semibold text-tg-text leading-tight">{t('char_limit', { count: cmd.maxLengthArgs, defaultValue: `${cmd.maxLengthArgs} Char Limit` })}</div>
-                  <div className="text-[12px] font-medium text-tg-hint mt-0.5 leading-snug">{t('char_limit_desc')}</div>
-                </div>
-              </div>
-            )}
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── Screenshots ── */}
-      <section className="px-5 mt-8">
-        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-3">{t('preview', 'Preview')}</h2>
-        <div className="flex gap-3 overflow-x-auto pb-4 -mx-5 px-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {
-            cmd.photos && cmd.photos.length > 0 ? (
-              cmd.photos.map((url, i) => (
-                <img
-                  key={i}
-                  src={`https://cdn.trelk.site/assets/img/commands/md5/1.jpg`}
-                  alt={`Screenshot ${i + 1}`}
-                  className="w-[180px] h-[320px] rounded-[20px] object-cover border border-tg-border/40 shadow-sm flex-shrink-0"
-                />
-              ))
-            ) : (
-              MOCK_SCREENSHOTS.map((src, i) => (
-                <div key={i} className="flex-shrink-0 w-[180px] h-[320px] rounded-[20px] overflow-hidden bg-tg-hint/5 border border-tg-border/40 shadow-sm">
-                  <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover opacity-80" loading="lazy" />
-                </div>
-              ))
-            )
-          }
-        </div>
-      </section>
-
-      {/* ── Cómo funciona ── */}
-      <section className="px-5 mt-4">
-        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-2.5">{t('how_it_works', 'How it works')}</h2>
-        <div className="bg-tg-secondary rounded-[20px] border border-tg-border/40 p-5 shadow-sm">
-          <div className="space-y-6">
-            {[
-              { step: '1', text: t('step_1', { cmd: cmd.usage.split(' ')[0], defaultValue: `Send ${cmd.usage.split(' ')[0]}` }) },
-              { step: '2', text: t('step_2', 'Wait for processing') },
-              { step: '3', text: t('step_3', 'Get your result') },
-            ].map(({ step, text }, i, arr) => (
-              <div key={step} className="flex items-start gap-4 relative">
-                {/* Línea conectora adaptada al tema */}
-                {i !== arr.length - 1 && <div className="absolute left-[13px] top-8 bottom-[-24px] w-[2px] bg-tg-border/50" />}
-
-                <div className="w-[28px] h-[28px] rounded-[8px] bg-tg-accent/15 flex items-center justify-center flex-shrink-0 mt-0.5 z-10 shadow-sm">
-                  <span className="text-[13px] font-bold text-tg-accent">{step}</span>
-                </div>
-                <p className="text-[14px] font-medium text-tg-text leading-relaxed pt-1">{text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Ejemplos de Uso, Changelog, Comentarios, etc. ── */}
-      {getExamples(mainSlug).length > 0 && <CommandExamples examples={getExamples(mainSlug)} />}
-      {getChangelog(mainSlug).length > 0 && <CommandChangelog entries={getChangelog(mainSlug)} />}
-      {/* {getComments(mainSlug).length > 0 && <CommandComments comments={getComments(mainSlug)} />} */}
-
-      {mainSlug && <RelatedCommands slug={mainSlug} />}
-
-      {/* ── Calificar Comando ── */}
-      <section className="px-5 mt-8 mb-8">
-        <div className="bg-tg-secondary rounded-[24px] border border-tg-border/40 p-5 text-center shadow-sm relative overflow-hidden">
-          
-          {hasRated ? (
-            /* ── Estado: Calificado (Éxito) ── */
-            <div className="py-2 animate-fade-in relative z-10">
-              <div className="w-[52px] h-[52px] mx-auto bg-amber-500/10 rounded-[16px] flex items-center justify-center mb-3 shadow-sm">
-                <Star size={28} className="text-amber-500 fill-amber-500 drop-shadow-sm" />
-              </div>
-              <p className="text-[16px] font-bold text-tg-text leading-tight mb-1">{t('thanks_rating', 'Thanks for your feedback!')}</p>
-              <p className="text-[13px] font-medium text-tg-hint">
-                {t('you_rated', { count: rating, defaultValue: `You rated this ${rating} stars` })}
-              </p>
+          {!showArgsInput ? (
+            /* BOTÓN PRINCIPAL */
+            <div className="mt-4">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleRunInTelegram}
+                className="w-full py-3.5 rounded-[18px] bg-tg-accent text-white text-[16px] font-bold flex items-center justify-center gap-2.5 shadow-lg shadow-tg-accent/25 relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/[0.08] to-white/0 pointer-events-none" />
+                <Send size={18} className="fill-white/20 relative z-10" />
+                <span className="relative z-10">{t('run_in_telegram')}</span>
+              </motion.button>
             </div>
           ) : (
-            /* ── Estado: Sin Calificar ── */
-            <div className="relative z-10">
-              <p className="text-[15px] font-semibold text-tg-text mb-4">{t('rate_question', 'Rate this command')}</p>
-              <div className="flex justify-center gap-2">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    disabled={ratingLoading}
-                    onClick={async () => {
-                      setRatingLoading(true);
-                      try {
-                        await submitRating(mainSlug, n);
-                        setRating(n);
-                        setHasRated(true);
-                        haptic?.notificationOccurred('success');
-                        fetchCommandStats(mainSlug).then(setStats).catch(() => { });
-                      } catch {
-                        showToast(t('common:error'), 'error');
-                      } finally {
-                        setRatingLoading(false);
-                      }
-                    }}
-                    className="w-11 h-11 rounded-[12px] bg-tg-hint/5 border border-tg-border/30 flex items-center justify-center active:scale-90 transition-all hover:bg-amber-500/10 hover:border-amber-500/30 group shadow-sm disabled:opacity-50"
-                    title={t('rate_stars', { count: n })}
-                  >
-                    <Star
-                      size={24}
-                      className={`transition-colors duration-200 ${
-                        n <= rating
-                          ? 'text-amber-500 fill-amber-500 drop-shadow-sm'
-                          : 'text-tg-hint/40 group-hover:text-amber-500/50'
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
+            /* INPUT DE ARGUMENTOS + BOTÓN SEND */
+            <div className="mt-4 flex gap-2 items-center bg-tg-secondary/50 p-1.5 rounded-[20px] border border-tg-border/50 backdrop-blur-md">
+              <input
+                autoFocus
+                type="text"
+                value={argsValue}
+                onChange={(e) => setArgsValue(e.target.value)}
+                placeholder={cmd.usage.split(/\s/).slice(1).join(' ')}
+                className="flex-1 bg-transparent border-none outline-none px-4 py-2 text-tg-text text-[15px] focus:ring-0 placeholder:text-tg-hint/50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleRunInTelegram();
+                  if (e.key === 'Escape') setShowArgsInput(false);
+                }}
+              />
+              <motion.button
+                disabled={!argsValue.trim()}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleRunInTelegram}
+                className={`bg-tg-accent text-white p-2.5 rounded-[14px] shadow-md shadow-tg-accent/30 ${!argsValue.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Send size={20} />
+              </motion.button>
+              <button
+                onClick={() => setShowArgsInput(false)}
+                className="pr-2 text-tg-hint text-[12px] uppercase font-bold tracking-wider transition-colors hover:text-tg-hint/80"
+              >
+                {t('cancel', 'X')}
+              </button>
             </div>
           )}
         </div>
-      </section>
+        {/* ── Content sections with staggered entry ── */}
+        <motion.div variants={staggerContainer} initial="initial" animate="animate" className="[overflow-x:clip]">
+          {/* Stats Row */}
+          {stats && (
+            <motion.div variants={sectionVariant} className="mt-5">
+              <CommandStatsRow stats={stats} />
+            </motion.div>
+          )}
 
-      {/* ── Share & Report ── */}
-      <section className="px-5 mt-6 grid grid-cols-2 gap-3">
-        <button
-          onClick={() => {
-            const text = encodeURIComponent(t('share_command_text', { slug: mainSlug }));
-            window.open(`https://t.me/share/url?url=https://t.me/TrelkBot&text=${text}`, '_blank');
-            haptic?.impactOccurred('light');
+          {/* Community Signals */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandSignals slug={mainSlug} />
+            </motion.div>
+          )}
+
+          {/* Aliases */}
+          <motion.div variants={sectionVariant}>
+            <CommandAliases aliases={cmd.name} />
+          </motion.div>
+
+          {/* Technical Details / Params */}
+          <motion.div variants={sectionVariant}>
+            <CommandParams cmd={cmd} />
+          </motion.div>
+
+          {/* Screenshots */}
+          <motion.div variants={sectionVariant}>
+            <CommandScreenshots photos={cmd.photos} />
+          </motion.div>
+
+          {/* How it works */}
+          <motion.div variants={sectionVariant}>
+            <CommandHowItWorks slug={mainSlug} usage={cmd.usage} />
+          </motion.div>
+
+          {/* Live Preview */}
+          {/* {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandLivePreview slug={mainSlug} supportsPreview={!!cmd.usage} />
+            </motion.div>
+          )} */}
+
+          {/* Examples */}
+          {examples.length > 0 && (
+            <motion.div variants={sectionVariant}>
+              <CommandExamplesEnhanced examples={examples} />
+            </motion.div>
+          )}
+
+          {/* Changelog */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandChangelogEnhanced slug={mainSlug} />
+            </motion.div>
+          )}
+
+          {/* Knowledge Base
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandKnowledge slug={mainSlug} />
+            </motion.div>
+          )} */}
+
+          {/* Related Commands */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandRelatedEnhanced slug={mainSlug} />
+            </motion.div>
+          )}
+
+          {/* ── Reviews System (Google Play style) ── */}
+          <motion.div variants={sectionVariant}>
+            {summaryLoading ? (
+              <ReviewSummarySkeleton />
+            ) : reviewsSummary ? (
+              <ReviewSummaryCard summary={reviewsSummary} />
+            ) : null}
+          </motion.div>
+
+          {/* AI Summary */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <ReviewAISummary command={mainSlug} />
+            </motion.div>
+          )}
+
+          <motion.div variants={sectionVariant}>
+            <WriteReview
+              initialRating={myReview?.rating}
+              initialComment={myReview?.review}
+              isEditing={!!myReview}
+              loading={reviewSubmitting}
+              disabled={myReview?.status === 'pending'}
+              disabledReason={t('reviews_edit_blocked_pending')}
+              onSubmit={handleSubmitReview}
+              onDelete={handleDeleteReview}
+            />
+          </motion.div>
+
+          <motion.div variants={sectionVariant} ref={reviewSectionRef} className={`transition-all duration-500 rounded-[20px] ${highlightReview ? 'ring-2 ring-tg-accent/40 bg-tg-accent/5' : ''}`}>
+            <ReviewPreview
+              isAdmin={appUser?.isAdmin}
+              reviews={previewReviews}
+              totalReviews={totalReviewCount}
+              onSeeAll={handleSeeAllReviews}
+              onToggleHelpful={handleToggleHelpful}
+              currentUserId={currentUserId}
+              onDelete={handleDeleteReview}
+              onReport={handleReportReview}
+            />
+          </motion.div>
+
+          {/* Feedback */}
+          <motion.div variants={sectionVariant} className="px-5 mt-10">
+            <div className="w-full h-px bg-tg-border/40 mb-8" />
+            <CommandFeedback command={cmd.uniqueName!} />
+          </motion.div>
+
+          {/* Navigation */}
+          <motion.div variants={sectionVariant}>
+            <CommandNavigation prevCmd={prevCmd} nextCmd={nextCmd} onNavigate={goTo} />
+          </motion.div>
+        </motion.div>
+
+        {/* ── Bottom Action Bar ── */}
+        {/* Animation on scroll */}
+        <AnimatePresence>
+          {heroCollapsed && (
+            <motion.div
+              key="bottom-bar" // Key necesaria para AnimatePresence
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              className={`fixed bottom-0 left-0 right-0 z-[100] sm:hidden pointer-events-none`}
+            >
+              <div className="pointer-events-auto"> {/* Reactivamos clicks aquí */}
+                <BottomActionBar
+                  slug={mainSlug}
+                  isFav={isFav}
+                  reported={reported}
+                  description={cmd.description}
+                  onToggleFav={handleToggleFav}
+                  onReport={() => {
+                    setShowReportModal(true);
+                    haptic?.impactOccurred('light');
+                  }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Report Modal ── */}
+        <ReportErrorModal
+          commandSlug={mainSlug}
+          open={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          onSubmit={() => {
+            setReported(true);
+            haptic?.notificationOccurred('success');
+            showToast(tReports('report_sent'), 'success');
           }}
-          className="w-full py-3.5 rounded-[16px] bg-tg-secondary border border-tg-border/40 text-tg-text text-[15px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm"
-        >
-          <Share size={18} className="text-tg-hint/80" />
-          {t('common:share', 'Share')}
-        </button>
-
-        <button
-          onClick={() => { setShowReportModal(true); haptic?.impactOccurred('light'); }}
-          disabled={reported}
-          className={`w-full py-3.5 rounded-[16px] border text-[15px] font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm ${
-            reported
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-              : 'bg-tg-secondary border-tg-border/40 text-tg-text'
-          }`}
-        >
-          {reported ? <CheckCircle2 size={18} /> : <Flag size={18} className="text-tg-hint/80" />}
-          {reported ? t('reported', 'Reported') : t('report_error', 'Report')}
-        </button>
-      </section>
-
-      <div className="px-5 mt-10 animate-fade-in">
-        <div className="w-full h-px bg-tg-border/40 mb-8" />
-        <CommandFeedback command={cmd.uniqueName!} />
-      </div>
-
-      {/* ── Navigation (Anterior / Siguiente) ── */}
-      <section className="px-5 mt-8">
-        <div className="flex gap-3">
-          {prevCmd ? (
-            <button
-              onClick={() => goTo(cmdSlug(prevCmd))}
-              className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 text-left active:scale-[0.98] transition-transform shadow-sm group"
-            >
-              <div className="flex items-center gap-1 text-[11px] font-bold text-tg-hint uppercase tracking-wider mb-1.5">
-                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> {t('previous', 'Prev')}
-              </div>
-              <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(prevCmd)}</div>
-            </button>
-          ) : <div className="flex-1" />}
-
-          {nextCmd ? (
-            <button
-              onClick={() => goTo(cmdSlug(nextCmd))}
-              className="flex-1 bg-tg-secondary rounded-[20px] border border-tg-border/40 p-4 text-right active:scale-[0.98] transition-transform shadow-sm group"
-            >
-              <div className="flex items-center justify-end gap-1 text-[11px] font-bold text-tg-hint uppercase tracking-wider mb-1.5">
-                {t('next', 'Next')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </div>
-              <div className="text-[15px] font-bold text-tg-text font-mono truncate">/{cmdSlug(nextCmd)}</div>
-            </button>
-          ) : <div className="flex-1" />}
-        </div>
-      </section>
-
-      {/* ── Report Modal ── */}
-      <ReportErrorModal
-        commandSlug={mainSlug}
-        open={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        onSubmit={() => {
-          setReported(true);
-          haptic?.notificationOccurred('success');
-          showToast(t('report_sent'), 'success');
-        }}
-      />
-
-    </div>
+        />
+      </motion.div>
+    </AnimatePresence>
   );
 }

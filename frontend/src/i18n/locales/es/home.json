@@ -23,5 +23,17 @@
   "recent": "Recientes",
   "achievements_count": "{{count}} logros",
   "greeting": "¡Hola, {{name}}!",
-  "remaining_count": "{{count}} restantes"
+  "remaining_count": "{{count}} restantes",
+
+  "for_you": "Para Ti",
+  "rec_reason_category": "Similar a tus favoritos",
+  "rec_reason_co_usage": "Usuarios como tú lo disfrutan",
+  "rec_reason_popular": "Popular ahora",
+  "rec_reason_trending": "Nuevo y en tendencia",
+
+  "this_week": "Esta Semana",
+  "week_commands": "comandos",
+  "week_unique": "Únicos",
+  "week_favorites": "Favoritos",
+  "week_achievements": "Logros"
 }

@@ -48,6 +48,24 @@ export const envValidationSchema = Joi.object({
   TWILIO_ACCOUNT_SID: Joi.string().allow('').optional(),
   TWILIO_AUTH_TOKEN: Joi.string().allow('').optional(),
   EPAYCO_P_KEY: Joi.string().allow('').optional(),
+
+  // === Report System ===
+  ENABLE_GITHUB_REPORTS: Joi.boolean().default(false),
+  ENABLE_SENTRY_REPORTS: Joi.boolean().default(false),
+  GITHUB_TOKEN: Joi.string().allow('').optional(),
+  GITHUB_REPO: Joi.string().allow('').optional(), // owner/repo
+  GITHUB_WEBHOOK_SECRET: Joi.string().allow('').optional(),
+  SENTRY_DSN: Joi.string().allow('').optional(),
+  UPLOAD_DIR: Joi.string().default('uploads/reports'),
+
+  // === Moderation System ===
+  MODERATION_ENABLED: Joi.boolean().default(false),
+  MODAPI_SECRET_KEY: Joi.string().allow('').optional(),
+  MODAPI_WEBHOOK_SECRET: Joi.string().allow('').optional(),
+  MODERATION_THRESHOLD_REJECT: Joi.number().min(0).max(1).default(0.8),
+  MODERATION_THRESHOLD_REVIEW: Joi.number().min(0).max(1).default(0.5),
+  MAX_REJECTED_REVIEWS: Joi.number().integer().min(1).default(5),
+  USER_BLOCK_DAYS: Joi.number().integer().min(1).default(7),
 }).unknown(true); // Permite variables extra sin fallar
 
 /**

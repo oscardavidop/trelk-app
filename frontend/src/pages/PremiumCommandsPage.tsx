@@ -1,13 +1,15 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Star, Plus, Trash2, Search, Zap, Loader2 } from 'lucide-react';
+import { Star, Plus, Trash2, Search, Zap, Loader2, Shield, Crown, Gauge } from 'lucide-react';
 import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
 import Select from '@/components/Select';
 import { useHideIsland } from '@/hooks/useHideIsland';
 import { BOT_COMMANDS } from '@/data/botCommands';
+import { fetchSubscription, type ProFeatures } from '@/services/subscriptionApi';
+import { useNoSafeProps } from '@/hooks/useNoSafeProps';
 
 const ALLOWED_ALIAS = BOT_COMMANDS.map((cmd) => cmd.uniqueName).filter(Boolean) as string[]; // Solo comandos con descripción definida pueden ser alias
 
@@ -18,14 +20,18 @@ export default function PremiumCommandsPage() {
   const showToast = useToastStore((s) => s.show);
   const { config, loading, load, savePremiumCommand, removePremiumCommand } = useConfigStore();
   useHideIsland();
-
+  useNoSafeProps();
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [newKey, setNewKey] = useState('');
   const [newAlias, setNewAlias] = useState('');
+  const [proFeatures, setProFeatures] = useState<ProFeatures | null>(null);
 
   useEffect(() => {
     if (!config) load();
+    fetchSubscription().then((res) => {
+      if (res.ok) setProFeatures(res.pro_features);
+    }).catch(() => { });
   }, [config, load]);
 
   const premiumCmds = config?.premium_commands ?? {};
@@ -69,10 +75,9 @@ export default function PremiumCommandsPage() {
   }
 
   return (
-    <main className="pb-12 animate-fade-in relative">
-
+    <main className="pb-15 animate-fade-in relative" >
       {/* ── Intro Premium (Estilo Hero) ── */}
-      <div className="relative pt-8 pb-6 px-6 text-center bg-gradient-to-b from-amber-500/10 to-transparent border-b border-white/5">
+      <div className="relative pt-14 pb-6 px-6 text-center bg-gradient-to-b from-amber-500/10 to-transparent border-b border-white/5">
         <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(245,158,11,0.3)] ring-4 ring-amber-500/20">
           <Star className="w-10 h-10 text-white fill-white/20" strokeWidth={2} />
         </div>
@@ -81,6 +86,36 @@ export default function PremiumCommandsPage() {
           {t('premium_desc')}
         </p>
       </div>
+
+      {/* ── Custom Commands Limit ── */}
+      {proFeatures && (
+        <div className="px-4 mt-5 space-y-3">
+          <LimitCard
+            icon={Crown}
+            label={t('custom_commands_label', { defaultValue: 'Custom Commands' })}
+            used={proFeatures.custom_commands.used_commands ?? 0}
+            max={proFeatures.custom_commands.max_commands}
+            color="emerald"
+          />
+
+          {/* Plan badge */}
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <div className={`px-3 py-1.5 rounded-full text-[12px] font-bold uppercase tracking-wider ${proFeatures.subscription.tier === 'ultra' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' :
+              proFeatures.subscription.tier === 'pro' ? 'bg-tg-accent/15 text-tg-accent' :
+                'bg-tg-hint/10 text-tg-hint'
+              }`}>
+              <div className="flex items-center gap-1.5">
+                {proFeatures.subscription.tier !== 'free' && <Shield size={12} />}
+                {proFeatures.subscription.tier}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] text-tg-hint">
+              <Gauge size={12} />
+              <span>{proFeatures.performance.queue_priority} priority</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Buscador Pegajoso (Sticky) ── */}
       <div className="sticky top-0 z-20 px-4 py-3 bg-tg-bg/90 backdrop-blur-xl border-b border-tg-border/30">
@@ -227,5 +262,42 @@ export default function PremiumCommandsPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/* ── Limit Card Component ── */
+function LimitCard({ icon: Icon, label, used, max, color }: {
+  icon: React.ElementType;
+  label: string;
+  used: number;
+  max: number;
+  color: 'sky' | 'purple' | 'amber' | 'emerald';
+}) {
+  const pct = max > 0 ? Math.min((used / max) * 100, 100) : 0;
+  const barColor =
+    pct >= 90 ? 'bg-red-500' :
+      pct >= 70 ? 'bg-amber-500' :
+        `bg-${color}-500`;
+  const iconColor = `text-${color}-400`;
+  const bgColor = `bg-${color}-500/10`;
+
+  return (
+    <div className="rounded-[16px] bg-tg-secondary border border-tg-border/30 p-3.5 shadow-sm active:scale-[0.97] transition-transform">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`w-7 h-7 rounded-[8px] ${bgColor} flex items-center justify-center`}>
+          <Icon size={14} className={iconColor} />
+        </div>
+        <span className="text-[11px] font-semibold text-tg-hint uppercase tracking-wide truncate">{label}</span>
+      </div>
+      <div className="text-[20px] font-extrabold text-tg-text leading-none">
+        {used}<span className="text-[13px] font-semibold text-tg-hint">/{max}</span>
+      </div>
+      <div className="mt-2 h-[4px] rounded-full bg-tg-border/30 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   );
 }

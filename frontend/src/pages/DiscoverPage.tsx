@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
 import { BOT_COMMANDS, CATEGORY_META, cmdSlug } from '../data/botCommands';
 import type { BotCommand } from '../data/botCommands';
 import { ChevronRight, Search, TrendingUp, Star, Sparkles } from 'lucide-react';
 import { fetchCommandRankings } from '../services/commandStatsApi';
+import { getCategoryBrand, MOTION, staggerContainer, staggerItem } from '../design';
 
 // "New" commands: ones that don't appear in the popular list (recently added heuristic)
 const NEW_SLUGS = ['apk', 'alert', 'tts', 'shorten'];
@@ -90,31 +92,42 @@ export default function DiscoverPage() {
   ];
 
   return (
-    <div className="pb-24 animate-fade-in relative">
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="pb-24 relative"
+    >
       
-      {/* ── Header ── */}
-      <div className="px-5 pt-8 pb-3">
-        <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{t('title')}</h1>
-        <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('subtitle')}</p>
-      </div>
+      {/* -- Hero Header -- */}
+      <motion.div variants={staggerItem} className="relative px-5 pt-8 pb-5 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-pink-500/5" />
+        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-violet-500/10 blur-3xl animate-glow-pulse" />
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-pink-500/8 blur-3xl animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="relative z-10">
+          <h1 className="text-[26px] font-extrabold text-tg-text leading-none">{t('title')}</h1>
+          <p className="text-[14px] font-medium text-tg-hint/80 mt-1.5 tracking-wide">{t('subtitle')}</p>
+        </div>
+      </motion.div>
 
-      {/* ── Search Banner (Glass Style) ── */}
-      <div className="px-5 mt-2 mb-4">
-        <button
+      {/* -- Search Banner (Glass) -- */}
+      <motion.div variants={staggerItem} className="px-5 mt-1 mb-4">
+        <motion.button
+          whileTap={MOTION.tapLight}
           onClick={goList}
-          className="w-full flex items-center gap-3 bg-black/20 rounded-[16px] border border-white/5 px-4 py-3.5 active:scale-[0.98] transition-colors shadow-inner hover:bg-white/[0.02]"
+          className="w-full flex items-center gap-3 bg-tg-secondary/60 backdrop-blur-xl rounded-[16px] border border-tg-border/30 px-4 py-3.5 transition-colors shadow-sm"
         >
           <Search size={18} className="text-tg-hint/50" />
           <span className="text-[14px] font-medium text-tg-hint/80">{t('search_all')}</span>
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      {/* ── Sections (Carruseles) ── */}
+      {/* -- Sections (Carousels) -- */}
       {sections.map(({ title, icon: SectionIcon, iconClass, commands, accent }) => {
         return (
-          <section key={title} className="mt-6">
+          <motion.section key={title} variants={staggerItem} className="mt-6">
             <div className="flex items-center justify-between px-5 mb-3">
-              <h2 className="text-[14px] font-bold text-tg-hint uppercase  flex items-center gap-2">
+              <h2 className="text-[14px] font-bold text-tg-hint uppercase flex items-center gap-2">
                 <SectionIcon size={15} className={iconClass} /> {title}
               </h2>
               <button onClick={goList} className="text-[12px] font-bold text-tg-accent hover:brightness-125 transition-all">
@@ -126,67 +139,78 @@ export default function DiscoverPage() {
               {commands.map((cmd) => {
                 const slug = cmdSlug(cmd);
                 const cat = CATEGORY_META[cmd.category];
-                // Validamos que el icono sea un componente válido antes de renderizarlo
+                const brand = getCategoryBrand(cmd.category);
                 const CatIcon = typeof cat?.icon !== 'string' ? cat?.icon : undefined;
                 
                 return (
-                  <button
+                  <motion.button
                     key={slug}
+                    whileTap={MOTION.tap}
                     onClick={() => go(slug)}
-                    className="flex-shrink-0 w-[150px] bg-tg-secondary border border-tg-border/50 rounded-[20px] p-4 text-left active:scale-[0.96] transition-all hover:bg-white/[0.02] shadow-sm flex flex-col h-full group"
+                    className="flex-shrink-0 w-[150px] relative bg-tg-secondary border border-tg-border/30 rounded-[24px] p-4 text-left overflow-hidden shadow-sm flex flex-col h-full group"
                   >
-                    <div className="flex items-start justify-between mb-3">
+                    {/* Gradient overlay */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${brand.gradient} opacity-[0.06] transition-opacity group-hover:opacity-[0.1]`} />
+                    {/* Glow */}
+                    <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-20" style={{ background: brand.glow }} />
+                    {/* Shine */}
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+
+                    <div className="relative z-10 flex items-start justify-between mb-3">
                       <div
                         className={`w-10 h-10 rounded-[12px] bg-gradient-to-br ${accent} flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform`}
                       >
                         {CatIcon ? (
                           <CatIcon size={18} className="text-white" />
                         ) : (
-                          <span className="text-lg"></span>
+                          <span className="text-lg" />
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex-1">
-                      <div className="text-[15px] font-extrabold text-tg-text font-mono  truncate mb-0.5">/{slug}</div>
+                    <div className="relative z-10 flex-1">
+                      <div className="text-[15px] font-extrabold text-tg-text font-mono truncate mb-0.5">/{slug}</div>
                       <div className="text-[12px] font-medium text-tg-hint leading-snug line-clamp-2">{cmd.description}</div>
                     </div>
                     
-                    <div className="mt-3.5 flex items-center gap-1">
+                    <div className="relative z-10 mt-3.5 flex items-center gap-1">
                       <span
-                        className="text-[9px] font-extrabold uppercase  px-2.5 py-1 rounded-full shadow-sm"
-                        style={{ color: cat?.color, backgroundColor: `${cat?.color}15`, border: `1px solid ${cat?.color}20` }}
+                        className="text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full"
+                        style={{ color: cat?.color, backgroundColor: `${cat?.color}12`, border: `1px solid ${cat?.color}25` }}
                       >
                         {cat?.label}
                       </span>
                     </div>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
-          </section>
+          </motion.section>
         );
       })}
 
-      {/* ── Categories Grid ── */}
-      <section className="px-5 mt-8">
-        <h2 className="text-[14px] font-bold text-tg-hint uppercase  mb-3">{t('categories')}</h2>
+      {/* -- Categories Grid -- */}
+      <motion.section variants={staggerItem} className="px-5 mt-8">
+        <h2 className="text-[14px] font-bold text-tg-hint uppercase mb-3">{t('categories')}</h2>
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(CATEGORY_META).map(([key, meta]) => {
             const count = BOT_COMMANDS.filter((c) => c.category === key).length;
             const CatIcon = typeof meta.icon !== 'string' ? meta.icon : undefined;
+            const brand = getCategoryBrand(key);
             
             return (
-              <button
+              <motion.button
                 key={key}
+                whileTap={MOTION.tap}
                 onClick={() => {
                   haptic?.impactOccurred('light');
                   navigate(`/users/ui/${userId}/bot-commands/list?cat=${key}`);
                 }}
-                className="flex items-center gap-3.5 bg-tg-secondary border border-tg-border/50 rounded-[18px] p-3.5 text-left active:scale-[0.97] transition-all hover:bg-white/[0.02] shadow-sm group"
+                className="relative flex items-center gap-3.5 bg-tg-secondary border border-tg-border/30 rounded-[20px] p-3.5 text-left overflow-hidden shadow-sm group"
               >
+                <div className={`absolute inset-0 bg-gradient-to-br ${brand.gradient} opacity-[0.04] transition-opacity group-hover:opacity-[0.08]`} />
                 <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform"
+                  className="relative z-10 w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform"
                   style={{ backgroundColor: `${meta.color}15` }}
                 >
                   {CatIcon ? (
@@ -197,27 +221,28 @@ export default function DiscoverPage() {
                     </span>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[14px] font-bold text-tg-text  truncate">{meta.label}</div>
+                <div className="relative z-10 min-w-0">
+                  <div className="text-[14px] font-bold text-tg-text truncate">{meta.label}</div>
                   <div className="text-[11px] font-medium text-tg-hint mt-0.5">{t('common:commands_count', { count })}</div>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
         </div>
-      </section>
+      </motion.section>
 
-      {/* ── Browse all Button ── */}
-      <div className="px-5 mt-8 pb-4">
-        <button
+      {/* -- Browse all Button -- */}
+      <motion.div variants={staggerItem} className="px-5 mt-8 pb-4">
+        <motion.button
+          whileTap={MOTION.tap}
           onClick={goList}
-          className="w-full py-4 rounded-[16px] bg-tg-accent/10 border border-tg-accent/20 text-tg-accent text-[15px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] hover:bg-tg-accent/15 transition-all shadow-sm"
+          className="w-full py-4 rounded-[16px] bg-tg-accent/10 border border-tg-accent/20 text-tg-accent text-[15px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
         >
           {t('explore_all')}
           <ChevronRight size={18} strokeWidth={2.5} />
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }

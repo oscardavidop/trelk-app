@@ -40,5 +40,14 @@
   "country_updated": "País actualizado",
   "error_saving_country": "Error al guardar el país",
   "lang_title": "Idioma",
-  "lang_subtitle": "Elige tu idioma preferido"
+  "lang_subtitle": "Elige tu idioma preferido",
+  "my_reports": "Mis Reportes",
+  "my_reports_desc": "Ver tus reportes de errores enviados",
+  "animation_intensity": "Intensidad de animaciones",
+  "intensity_low": "Sutil",
+  "intensity_low_desc": "Animaciones y efectos mínimos",
+  "intensity_medium": "Equilibrado",
+  "intensity_medium_desc": "Experiencia recomendada",
+  "intensity_high": "Intenso",
+  "intensity_high_desc": "Animaciones y efectos al máximo"
 }

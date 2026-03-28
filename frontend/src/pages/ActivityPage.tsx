@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useHideIsland } from '../hooks/useHideIsland';
 import ActivityItem from '../components/activity/ActivityItem';
 import XPProgress from '../components/XPProgress';
+import SmartEmptyState from '../components/SmartEmptyState';
 import { Activity, Clock, Flame, Star, Trophy, Loader2 } from 'lucide-react';
 import {
   fetchHistory,
@@ -205,15 +206,7 @@ export default function ActivityPage() {
           </>
         ) : (
           /* ── Empty state ── */
-          <div className="mx-5 p-8 rounded-[24px] bg-tg-secondary border border-tg-border/40 text-center shadow-sm flex flex-col items-center justify-center mt-4">
-            <div className="w-[52px] h-[52px] rounded-[16px] bg-tg-hint/10 flex items-center justify-center mb-4 shadow-inner">
-              <Clock size={28} className="text-tg-hint/40" />
-            </div>
-            <h3 className="text-[16px] font-bold text-tg-text mb-1">{t('no_activity')}</h3>
-            <p className="text-[13px] font-medium text-tg-hint leading-relaxed max-w-[220px] mx-auto">
-              {t('no_activity_desc')}
-            </p>
-          </div>
+          <SmartEmptyState context="activity" title={t('no_activity')} description={t('no_activity_desc')} />
         )}
       </div>
 

@@ -4,14 +4,26 @@ import { Controller, Get, Patch, Body, Param, Req, UseGuards, BadRequestExceptio
 import { UsersUiService } from './users-ui.service';
 import { UserService } from '../users/user.service';
 import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ConfigService } from '@nestjs/config';
+
+const ADMIN_IDS = new Set(
+    (process.env.ADMIN_IDS || '').split(',').map(Number).filter(Boolean),
+);
 
 @Controller('api/v1/ui')
 @UseGuards(CookieAuthGuard)
 export class AjaxUsersUiController {
+
+    private readonly ADMIN_IDS: Set<number>;
+
     constructor(
-        private readonly usersUiService: UsersUiService,
         private readonly userService: UserService,
-    ) { }
+        private readonly configService: ConfigService,
+    ) { 
+        this.ADMIN_IDS = new Set(
+            (this.configService.get<string>('ADMIN_IDS') || '').split(',').map(Number).filter(Boolean),
+        );
+    }
 
     @Get('me')
     async getMe(@Req() req: any) {
@@ -21,12 +33,15 @@ export class AjaxUsersUiController {
             || user.authUser?.telegramId
             || user.authUser?.id
             || user.authUser?._id;
+
+            console.log('[getMe] userId:', userId, this.ADMIN_IDS, 'isAdmin:', this.ADMIN_IDS.has(Number(userId)));
         return {
             ok: true,
             user: {
                 id: userId,
                 telegram: user.authTelegram,
                 profile: user.authUser,
+                isAdmin: this.ADMIN_IDS.has(Number(userId)),
             },
         };
     }

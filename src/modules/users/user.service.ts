@@ -393,7 +393,7 @@ export class UserService {
 
   /** Get subscription + pro features for the authenticated user */
   async getSubscription(telegramId: number) {
-    const user = await this.userModel.findOne({ telegramId })
+    const user = await this.userModel.findOne({ id: telegramId })
       .select('pro_features limits_reset_date firstName username isPremium')
       .lean()
       .exec();
@@ -420,7 +420,7 @@ export class UserService {
 
   /** Request a plan change (upgrade / downgrade) */
   async requestPlanChange(telegramId: number, newPlan: PlanTier) {
-    const user = await this.userModel.findOne({ telegramId }).exec();
+    const user = await this.userModel.findOne({ id: telegramId }).exec();
     if (!user) throw new BadRequestException('User not found');
 
     const features: IUserProFeatures = user.pro_features || JSON.parse(JSON.stringify(FREE_PLAN_DEFAULTS));

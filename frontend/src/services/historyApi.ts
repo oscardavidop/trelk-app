@@ -35,6 +35,7 @@ export interface HistoryPage {
 
 export interface ActivityStats {
   commandsToday: number;
+  commandsTotal: number;
   favoritesTotal: number;
   achievementsTotal: number;
 }
@@ -56,4 +57,21 @@ export function fetchActivityStats(): Promise<ActivityStats> {
 
 export function fetchGlobalStats(): Promise<GlobalStats> {
   return json(`${BASE}/global`);
+}
+
+export interface WeeklyRecap {
+  commandsThisWeek: number;
+  commandsLastWeek: number;
+  commandsTrend: number;
+  favoritesAdded: number;
+  achievementsUnlocked: number;
+  topCommands: { command: string; count: number }[];
+  uniqueCommandsUsed: number;
+  weekStart: number;
+  weekEnd: number;
+}
+
+export async function fetchWeeklyRecap(): Promise<WeeklyRecap> {
+  const res = await json<{ ok: boolean; data: WeeklyRecap }>(`${BASE}/weekly-recap`);
+  return res.data;
 }

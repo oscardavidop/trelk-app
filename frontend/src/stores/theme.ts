@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
+export type DynamicIntensity = 'low' | 'medium' | 'high';
 
 const STORAGE_KEY = 'trelk-theme';
+const INTENSITY_KEY = 'trelk-dynamic-intensity';
 
 // Hex-to-RGB triplet helper
 function hexToRgb(hex: string): string {
@@ -81,23 +83,47 @@ function loadSaved(): ThemeMode {
   return 'dark';
 }
 
+function loadIntensity(): DynamicIntensity {
+  try {
+    const saved = localStorage.getItem(INTENSITY_KEY);
+    if (saved === 'low' || saved === 'medium' || saved === 'high') return saved;
+  } catch {}
+  return 'medium';
+}
+
 interface ThemeState {
   mode: ThemeMode;
+  intensity: DynamicIntensity;
   setMode: (mode: ThemeMode) => void;
+  setIntensity: (intensity: DynamicIntensity) => void;
   init: () => void;
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
   mode: loadSaved(),
+  intensity: loadIntensity(),
   setMode: (mode) => {
     localStorage.setItem(STORAGE_KEY, mode);
     applyTheme(mode);
     set({ mode });
   },
+  setIntensity: (intensity) => {
+    localStorage.setItem(INTENSITY_KEY, intensity);
+    // Apply CSS custom property for intensity
+    const root = document.documentElement;
+    const scale = intensity === 'low' ? '0.4' : intensity === 'high' ? '1' : '0.7';
+    root.style.setProperty('--trelk-intensity', scale);
+    set({ intensity });
+  },
   init: () => {
     const mode = loadSaved();
+    const intensity = loadIntensity();
     applyTheme(mode);
-    set({ mode });
+    // Apply intensity on init
+    const root = document.documentElement;
+    const scale = intensity === 'low' ? '0.4' : intensity === 'high' ? '1' : '0.7';
+    root.style.setProperty('--trelk-intensity', scale);
+    set({ mode, intensity });
 
     // Escuchar cambios en system theme
     if (typeof window !== 'undefined' && window.matchMedia) {

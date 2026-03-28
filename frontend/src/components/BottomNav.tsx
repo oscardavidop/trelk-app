@@ -1,4 +1,5 @@
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { useTelegram } from '../hooks/useTelegram';
 import { useTranslation } from 'react-i18next';
 import { Home, LayoutGrid, Settings, User, Bell } from 'lucide-react';
@@ -55,6 +56,21 @@ export default function BottomNav() {
   const { haptic } = useTelegram();
   const { t } = useTranslation('navigation');
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
+  const refreshCount = useNotificationsStore((s) => s.refreshCount);
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
+
+  // Visibility-aware periodic polling for unread count
+  useEffect(() => {
+    refreshCount();
+    const poll = () => { if (!document.hidden) refreshCount(); };
+    intervalRef.current = setInterval(poll, 45_000);
+    const onVisibility = () => { if (!document.hidden) refreshCount(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   const basePath = `/users/ui/${userId}`;
 
@@ -72,7 +88,8 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-      <div className="w-full max-w-[480px] pointer-events-auto pb-[env(safe-area-inset-bottom)] bg-tg-bg/85 backdrop-blur-xl border-t border-tg-border/40 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+      <div className="w-full max-w-[480px] pointer-events-auto pb-[env(safe-area-inset-bottom)] bg-tg-bg/85 backdrop-blur-xl border-t border-tg-border/30 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] relative">
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
         <div className="flex items-center justify-around px-2 py-1.5 h-[64px]">
           {TAB_KEYS.map((tab) => {
             const isActive = activeTab === tab.key;

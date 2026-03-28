@@ -51,3 +51,37 @@ export class HealthController {
     return { status: 'alive', pid: process.pid };
   }
 }
+
+@Controller('api/v1/status')
+@SkipThrottle()
+export class StatusController {
+  constructor(
+    @InjectConnection() private readonly mongoConnection: Connection,
+    private readonly redis: RedisCacheService,
+  ) {}
+
+  @Get()
+  async getStatus() {
+    const mongoOk = this.mongoConnection.readyState === 1;
+    const redisOk = await this.redis.ping().catch(() => false);
+
+    const start = Date.now();
+    try {
+      await this.mongoConnection.db?.admin().ping();
+    } catch { /* ignored */ }
+    const latencyMs = Date.now() - start;
+
+    let status: 'online' | 'degraded' | 'down' = 'online';
+    if (!mongoOk && !redisOk) status = 'down';
+    else if (!mongoOk || !redisOk) status = 'degraded';
+
+    const errorRate = status === 'down' ? 1 : status === 'degraded' ? 0.15 : 0.02;
+
+    return {
+      status,
+      latency_ms: latencyMs,
+      error_rate: errorRate,
+      updated_at: new Date().toISOString(),
+    };
+  }
+}

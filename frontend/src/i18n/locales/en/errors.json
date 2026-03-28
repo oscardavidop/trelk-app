@@ -7,5 +7,10 @@
   "server_error": "Server error",
   "no_auth_data": "No authentication data",
   "not_connected": "Not connected",
-  "Close": "Close"
+  "Close": "Close",
+  "critical_error": "Something went wrong",
+  "dismiss": "Dismiss",
+  "retry": "Retry",
+  "request_failed": "The request failed. Please try again.",
+  "connection_lost": "Connection lost. Check your internet."
 }

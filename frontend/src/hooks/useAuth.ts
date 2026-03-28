@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { authenticate as apiAuth } from '../services/api';
 import { useCallback } from 'react';
 import { useUserStore } from '../stores';
+import i18n from '../i18n';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -28,11 +29,6 @@ export function useAuth() {
   const authenticate = useCallback(async () => {
     const tg = window.Telegram?.WebApp;
     const initData = tg?.initData;
-
-    console.log('[Auth] Telegram WebApp available:', !!tg);
-    console.log('[Auth] initData present:', !!initData, 'length:', initData?.length ?? 0);
-    console.log('[Auth] platform:', tg?.platform, 'version:', tg?.version);
-
     if (!initData) {
       console.warn('[Auth] No initData — not inside Telegram WebApp context');
       setAuthError('no-init-data');
@@ -41,10 +37,7 @@ export function useAuth() {
     }
 
     try {
-      console.log('[Auth] Sending auth request...');
       const res = await apiAuth(initData);
-      console.log('[Auth] Auth response:', JSON.stringify(res));
-
       if (res.ok) {
         setAuthError(null);
 
@@ -60,10 +53,16 @@ export function useAuth() {
             if (meData.ok && meData.user) {
               setUser({
                 id: meData.user.id,
+                isAdmin: meData.user.isAdmin === true,
                 authTelegram: meData.user.telegram,
                 authUser: meData.user.profile,
               });
-              console.log('[Auth] User profile loaded, id:', meData.user.id);
+
+              // Sync language from backend config if not already set locally
+              const serverLang = meData.user.profile?.config?.locale?.lang;
+              if (serverLang && serverLang !== i18n.language) {
+                i18n.changeLanguage(serverLang);
+              }
             }
           } else {
             console.warn('[Auth] /api/v1/ui/me returned:', meRes.status);

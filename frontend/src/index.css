@@ -6,6 +6,9 @@
 
   /* === CSS Variables — RGB triplets for Tailwind opacity modifier support === */
   :root {
+    /* Dynamic intensity multiplier (controlled by theme store) */
+    --trelk-intensity: 0.7;
+
     /* Legacy hex vars (kept for non-Tailwind CSS classes) */
     --tg-bg: #1a2026;
     --tg-secondary: #212a33;
@@ -100,11 +103,7 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    /* ── TWEAK NATIVO 1: Elimina el destello azul al hacer tap en botones en Android/iOS ── */
     -webkit-tap-highlight-color: transparent;
-
-    /* ── TWEAK NATIVO 2: Evita que el texto cambie de tamaño si el usuario rota el móvil ── */
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
@@ -560,4 +559,25 @@ body {
     padding 0.15s ease,
     height 0.15s ease,
     backdrop-filter 0.15s ease;
+}
+
+/* ── Delight glow effect ── */
+@keyframes delight-glow-pulse {
+  0% { box-shadow: 0 0 0 0 var(--tg-theme-accent-text-color, #3b82f6); }
+  50% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--tg-theme-accent-text-color, #3b82f6) 40%, transparent); }
+  100% { box-shadow: 0 0 0 0 var(--tg-theme-accent-text-color, #3b82f6); }
+}
+
+.delight-glow {
+  animation: delight-glow-pulse 0.8s ease-out;
+}
+
+/* ── Trending glow for command signals ── */
+@keyframes trending-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.trending-pulse {
+  animation: trending-glow 2s ease-in-out infinite;
 }

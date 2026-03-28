@@ -23,5 +23,17 @@
   "recent": "Recent",
   "achievements_count": "{{count}} achievements",
   "greeting": "Hello, {{name}}!",
-  "remaining_count": "{{count}} remaining"
+  "remaining_count": "{{count}} remaining",
+
+  "for_you": "For You",
+  "rec_reason_category": "Similar to your favorites",
+  "rec_reason_co_usage": "Users like you enjoy this",
+  "rec_reason_popular": "Popular right now",
+  "rec_reason_trending": "New & Trending",
+
+  "this_week": "This Week",
+  "week_commands": "commands",
+  "week_unique": "Unique",
+  "week_favorites": "Favorites",
+  "week_achievements": "Achievements"
 }

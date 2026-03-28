@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, SlidersHorizontal, ChevronRight, X, Settings2 } from 'lucide-react';
+import { Search, ChevronRight, X, Package, Link, Video, Settings2, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import StickyHeader from '../../components/StickyHeader';
 import { useTelegram } from '../../hooks/useTelegram';
@@ -9,6 +9,18 @@ import { commandConfigSchema } from '../../config/commandConfigSchema';
 import { fetchUserCommandConfig } from '../../services/commandConfigApi';
 
 const USER_COMMAND_CONFIG_QUERY_KEY = ['user-command-config'];
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  package: Package,
+  link: Link,
+  video: Video,
+};
+
+const COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = {
+  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
+  sky: { bg: 'bg-sky-500/10', text: 'text-sky-500', border: 'border-sky-500/20' },
+  rose: { bg: 'bg-rose-500/10', text: 'text-rose-500', border: 'border-rose-500/20' },
+};
 
 function getByPath(obj: Record<string, unknown>, path: string): unknown {
   return path.split('.').reduce<unknown>((acc, part) => {
@@ -37,7 +49,7 @@ export default function CommandsPage() {
   const filtered = entries.filter(([key, schema]) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    return key.includes(q) || schema.title.toLowerCase().includes(q) || schema.description.toLowerCase().includes(q);
+    return key.includes(q) || t(schema.titleKey).toLowerCase().includes(q);
   });
 
   return (
@@ -47,7 +59,7 @@ export default function CommandsPage() {
         subtitle={t('command_settings_subtitle')}
       />
 
-      {/* ── Buscador ── */}
+      {/* Search */}
       <div className="px-5 mt-4">
         <div className="flex items-center gap-2.5 px-4 py-3 bg-tg-text/[0.03] border border-tg-border/30 rounded-[16px] shadow-inner focus-within:border-tg-accent/40 focus-within:bg-tg-text/[0.01] transition-all">
           <Search size={18} className="text-tg-hint/70 shrink-0" />
@@ -61,8 +73,8 @@ export default function CommandsPage() {
             spellCheck={false}
           />
           {search && (
-            <button 
-              onClick={() => { setSearch(''); haptic?.impactOccurred('light'); }} 
+            <button
+              onClick={() => { setSearch(''); haptic?.impactOccurred('light'); }}
               className="w-6 h-6 rounded-full bg-tg-text/[0.08] flex items-center justify-center text-tg-text hover:bg-tg-text/[0.15] active:scale-90 transition-all shrink-0"
             >
               <X size={14} strokeWidth={3} />
@@ -71,101 +83,92 @@ export default function CommandsPage() {
         </div>
       </div>
 
-      {/* ── Lista de Comandos Configurables ── */}
-      <section className="px-5 mt-6">
-        <h2 className="text-[12px] font-extrabold text-tg-hint uppercase tracking-widest pl-1 mb-3 flex items-center gap-1.5">
-          <SlidersHorizontal size={14} className="text-tg-accent" />
-          {t('configurable_commands')}
-        </h2>
-
-        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/50 overflow-hidden shadow-sm animate-slide-up">
-          {isLoading ? (
-            /* ── Estado de Carga (Skeleton) ── */
-            <div className="divide-y divide-tg-border/20">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="p-4 flex items-center justify-between gap-3">
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-24 bg-tg-text/[0.05] rounded animate-pulse" />
-                    <div className="h-3 w-48 bg-tg-text/[0.04] rounded animate-pulse" />
-                    <div className="h-5 w-32 bg-tg-text/[0.03] rounded-[6px] animate-pulse mt-1" />
-                  </div>
-                  <div className="w-5 h-5 rounded-full bg-tg-text/[0.03] animate-pulse shrink-0" />
+      {/* Command cards */}
+      <section className="px-5 mt-6 space-y-3">
+        {isLoading ? (
+          [1, 2, 3].map((i) => (
+            <div key={i} className="rounded-[18px] bg-tg-secondary border border-tg-border/40 p-4 animate-pulse">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-[12px] bg-tg-text/[0.05]" />
+                <div className="space-y-1.5 flex-1">
+                  <div className="h-4 w-28 bg-tg-text/[0.05] rounded" />
+                  <div className="h-3 w-40 bg-tg-text/[0.04] rounded" />
                 </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            /* ── Estado Vacío ── */
-            <div className="p-8 text-center flex flex-col items-center">
-              <div className="w-14 h-14 rounded-full bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center mb-3 shadow-inner">
-                <Settings2 size={24} className="text-tg-hint/40" />
               </div>
-              <p className="text-[15px] font-extrabold text-tg-text tracking-tight">
-                {search ? 'Sin resultados' : t('no_configurable_commands')}
+              <div className="h-5 w-32 bg-tg-text/[0.03] rounded-[6px]" />
+            </div>
+          ))
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center flex flex-col items-center">
+            <div className="w-14 h-14 rounded-full bg-tg-text/[0.03] border border-tg-border/30 flex items-center justify-center mb-3 shadow-inner">
+              <Settings2 size={24} className="text-tg-hint/40" />
+            </div>
+            <p className="text-[15px] font-extrabold text-tg-text tracking-tight">
+              {search ? t('no_search_results') : t('no_configurable_commands')}
+            </p>
+            {search && (
+              <p className="text-[13px] font-medium text-tg-hint/80 mt-1">
+                {t('try_other_search')}
               </p>
-              {search && (
-                <p className="text-[13px] font-medium text-tg-hint/80 mt-1">
-                  Prueba buscando con otras palabras.
-                </p>
-              )}
-            </div>
-          ) : (
-            /* ── Lista Renderizada ── */
-            <div className="divide-y divide-tg-border/30">
-              {filtered.map(([commandKey, schema]) => {
-                const commandConfig = (data?.commands?.[commandKey] ?? {}) as Record<string, unknown>;
+            )}
+          </div>
+        ) : (
+          filtered.map(([commandKey, schema]) => {
+            const Icon = ICON_MAP[schema.icon] ?? Settings2;
+            const colors = COLOR_MAP[schema.color] ?? COLOR_MAP.emerald;
+            const commandConfig = (data?.commands?.[commandKey] ?? {}) as Record<string, unknown>;
 
-                const summary = schema.fields
-                  .map((field) => {
-                    const value = getByPath(commandConfig, field.key);
-                    if (value === undefined || value === null || value === '') return null;
-                    return `${field.label}: ${String(value)}`;
-                  })
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .join(' · ');
+            const allFields = schema.groups.flatMap((g) => g.fields);
+            const summary = allFields
+              .map((field) => {
+                const val = getByPath(commandConfig, field.key);
+                if (val === undefined || val === null || val === '') return null;
+                return `${t(field.labelKey)}: ${typeof val === 'boolean' ? (val ? '✓' : '✗') : String(val)}`;
+              })
+              .filter(Boolean)
+              .slice(0, 2)
+              .join(' · ');
 
-                return (
-                  <button
-                    key={commandKey}
-                    onClick={() => {
-                      haptic?.impactOccurred('light');
-                      navigate(`/users/ui/${userId}/commands/${commandKey}`);
-                    }}
-                    className="w-full text-left p-4 hover:bg-tg-text/[0.02] active:bg-tg-text/[0.04] transition-colors group flex items-center justify-between gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      {/* Título */}
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[15px] font-extrabold text-tg-text font-mono tracking-tight">
-                          /{commandKey}
-                        </span>
-                      </div>
-                      
-                      {/* Descripción */}
-                      <p className="text-[13px] font-medium text-tg-hint/90 leading-snug truncate">
-                        {schema.description}
-                      </p>
-                      
-                      {/* Resumen de configuración (Badge) */}
-                      <div className="mt-2.5">
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-[6px] inline-block max-w-full truncate ${
-                          summary 
-                            ? 'bg-tg-accent/10 text-tg-accent border border-tg-accent/20' 
-                            : 'bg-tg-text/[0.04] text-tg-hint border border-tg-border/30'
-                        }`}>
-                          {summary || t('no_current_config')}
-                        </span>
-                      </div>
+            return (
+              <button
+                key={commandKey}
+                onClick={() => {
+                  haptic?.impactOccurred('light');
+                  navigate(`/users/ui/${userId}/commands/${commandKey}`);
+                }}
+                className="w-full text-left rounded-[18px] bg-tg-secondary border border-tg-border/40 p-4 hover:bg-tg-text/[0.02] active:bg-tg-text/[0.04] transition-all group shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-2.5">
+                  <div className={`w-10 h-10 rounded-[12px] ${colors.bg} border ${colors.border} flex items-center justify-center shrink-0`}>
+                    <Icon size={20} className={colors.text} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[15px] font-extrabold text-tg-text tracking-tight">
+                        {t(schema.titleKey)}
+                      </span>
+                      <span className="text-[11px] font-bold font-mono text-tg-hint/60">
+                        /{commandKey}
+                      </span>
                     </div>
-                    
-                    {/* Flecha indicadora */}
-                    <ChevronRight size={18} className="text-tg-hint/40 shrink-0 transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                    <p className="text-[13px] text-tg-hint/80 truncate mt-0.5">
+                      {t(schema.descriptionKey)}
+                    </p>
+                  </div>
+                  <ChevronRight size={18} className="text-tg-hint/30 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                </div>
+
+                {summary && (
+                  <div className="ml-[52px]">
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-[6px] bg-tg-accent/10 text-tg-accent border border-tg-accent/20 inline-block max-w-full truncate">
+                      {summary}
+                    </span>
+                  </div>
+                )}
+              </button>
+            );
+          })
+        )}
       </section>
     </main>
   );

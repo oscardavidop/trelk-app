@@ -16,6 +16,10 @@ import { HistoryModule } from './modules/history/history.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { CommandFavoritesModule } from './modules/command-favorites/command-favorites.module';
 import { CommandStatsModule } from './modules/command-stats/command-stats.module';
+import { SuggestionsModule } from './modules/suggestions/suggestions.module';
+import { NotificationModule } from './modules/notifications/notification.module';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { GithubWebhookModule } from './modules/github-webhook/github-webhook.module';
 import { envValidationSchema } from './config/env.validation';
 
 @Global()
@@ -69,6 +73,10 @@ import { envValidationSchema } from './config/env.validation';
     GamificationModule,
     CommandFavoritesModule,
     CommandStatsModule,
+    SuggestionsModule,
+    NotificationModule,
+    RecommendationsModule,
+    GithubWebhookModule,
   ],
   controllers: [AppController],
   providers: [

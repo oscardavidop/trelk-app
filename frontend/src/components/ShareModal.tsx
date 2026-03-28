@@ -184,7 +184,7 @@ export default function ShareModal({
 
             {/* Modal */}
             <div
-                className="relative w-full sm:max-w-sm bg-tg-secondary rounded-t-[24px] sm:rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-tg-border/50 animate-slide-up"
+                className="relative w-full sm:max-w-sm bg-tg-secondary/90 backdrop-blur-xl rounded-t-[24px] sm:rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-tg-border/30 animate-slide-up"
                 onClick={(e) => e.stopPropagation()}
             >
 
