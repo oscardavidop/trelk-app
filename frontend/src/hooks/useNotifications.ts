@@ -75,6 +75,7 @@ export function useNotifications(isActive = false) {
 
     markRead: store.markRead,
     markAllRead: store.markAllRead,
+    deleteItem: store.deleteItem,
     loadMore: store.loadMore,
     reload,
     refreshCount: store.refreshCount,

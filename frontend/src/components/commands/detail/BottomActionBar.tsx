@@ -16,7 +16,6 @@ interface Props {
 
 function BottomActionBar({ slug, isFav, reported, description, className, onToggleFav, onReport }: Props) {
   const { t } = useTranslation('commandDetail');
-  const { t: tReports } = useTranslation('reports');
   const { haptic, webApp } = useTelegram();
 
   const runInTelegram = useCallback(() => {

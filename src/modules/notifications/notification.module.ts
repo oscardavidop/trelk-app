@@ -13,7 +13,7 @@ import { NotificationListeners } from './notification-listeners';
   imports: [
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
-    ]),
+    ], 'miniapp'),
   ],
   controllers: [NotificationController],
   providers: [NotificationService, NotificationEventBus, NotificationListeners],

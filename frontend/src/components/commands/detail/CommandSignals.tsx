@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Eye, Flame, MessageCircle } from 'lucide-react';
+import { Eye, Flame, MessageCircle, TrendingUp } from 'lucide-react';
 import { fetchCommandSignals } from '../../../services/commandStatsApi';
 
 interface Props {
@@ -23,8 +23,9 @@ function CommandSignals({ slug }: Props) {
 
   if (!data) return null;
 
-  const { activeUsersNow, trendingScore, regionTrend, discussionsCount } = data;
+  const { activeUsersNow, trendingScore, regionTrend, discussionsCount, trendDelta } = data;
   const showAnything = activeUsersNow > 0 || regionTrend || discussionsCount > 0;
+  const isHot = trendingScore > 2;
 
   if (!showAnything) return null;
 
@@ -41,11 +42,27 @@ function CommandSignals({ slug }: Props) {
           <span className="text-[11px] font-semibold text-tg-text/80">
             {t('users_using_now', '{{count}} using now', { count: activeUsersNow })}
           </span>
+          {trendDelta > 0 && (
+            <span className="text-[10px] font-bold text-emerald-500">+{trendDelta}</span>
+          )}
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
         </div>
+      )}
+
+      {isHot && (
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 rounded-full px-2.5 py-1"
+        >
+          <TrendingUp size={12} className="text-red-500" />
+          <span className="text-[11px] font-bold text-red-500">
+            {t('signals_hot')}
+          </span>
+        </motion.div>
       )}
 
       {regionTrend && (

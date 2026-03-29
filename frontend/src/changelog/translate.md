@@ -1,5 +1,6 @@
 # Changelog
 
+
 ## [2.1.0] - 2026-03-10
 ### Added
 - Detección automática de idioma de origen

@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
@@ -20,7 +20,14 @@ import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { NotificationModule } from './modules/notifications/notification.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { GithubWebhookModule } from './modules/github-webhook/github-webhook.module';
+import { AbuseModule } from './modules/abuse/abuse.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
+import { MetricsInterceptor } from './modules/metrics/metrics.interceptor';
+import { SanitizationInterceptor } from './common/interceptors/sanitization.interceptor';
+import { FeatureFlagsService } from './common/services/feature-flags.service';
 import { envValidationSchema } from './config/env.validation';
+import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config';
 
 @Global()
 @Module({
@@ -36,20 +43,20 @@ import { envValidationSchema } from './config/env.validation';
       },
     }),
 
-    // === MongoDB con URI desde env (sin hardcodear credentials) ===
+    // === MongoDB con configuración optimizada para +1M DAU ===
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('MONGODB_URI'),
-        // Connection pooling para +1M DAU
-        maxPoolSize: 50,
-        minPoolSize: 10,
-        socketTimeoutMS: 45000,
-        serverSelectionTimeoutMS: 5000,
-        retryWrites: true,
-      }),
+      useFactory: (config: ConfigService) => getMongoConfig(config),
       inject: [ConfigService],
+      // connectionName: 'mbot',
     }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => getMongoMiniAppConfig(config),
+      inject: [ConfigService],
+      connectionName: 'miniapp',
+    }),
+
 
     // === Rate Limiting global ===
     ThrottlerModule.forRootAsync({
@@ -77,18 +84,33 @@ import { envValidationSchema } from './config/env.validation';
     NotificationModule,
     RecommendationsModule,
     GithubWebhookModule,
+    AbuseModule,
+    MetricsModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    FeatureFlagsService,
     // Rate limiting global — aplica a todos los endpoints
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    // Observability — track every request latency/error
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor,
+    },
+    // Security — sanitize all inputs globally
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SanitizationInterceptor,
+    },
   ],
   exports: [
     AppService,
+    FeatureFlagsService,
   ],
 })
-export class AppModule {}
+export class AppModule { }

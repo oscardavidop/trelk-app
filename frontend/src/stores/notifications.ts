@@ -4,6 +4,7 @@ import {
   fetchUnreadCount,
   markNotificationRead,
   markAllNotificationsRead,
+  deleteNotification,
   type NotificationItem,
 } from '../services/notificationsApi';
 
@@ -24,6 +25,7 @@ interface NotificationsState {
   softRefresh: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -137,6 +139,21 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       await markAllNotificationsRead();
     } catch {
       // Revert on error — reload next time
+    }
+  },
+
+  deleteItem: async (id: string) => {
+    const prev = get().notifications;
+    const target = prev.find((n) => n._id === id);
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n._id !== id),
+      total: Math.max(0, state.total - 1),
+      unreadCount: target && !target.read ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+    }));
+    try {
+      await deleteNotification(id);
+    } catch {
+      set({ notifications: prev });
     }
   },
 

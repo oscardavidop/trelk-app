@@ -130,12 +130,7 @@ export default function CommandFavoritesPage() {
     <div className="pb-28 animate-fade-in relative max-w-[480px] mx-auto min-h-screen">
       <StickyHeader 
         title={t('favorites:title', 'Favorites')} 
-        subtitle={t('commands_saved', { count: total, defaultValue: `${total} Commands Saved` })} 
-        icon={
-          <div className="w-[42px] h-[42px] rounded-[14px] bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Star className="h-5 w-5 text-pink-500 fill-pink-500" />
-          </div>
-        } 
+        subtitle={t('commands_saved', { count: total, defaultValue: `${total} Commands Saved` })}
       />
 
       {/* ── Buscador + Ordenamiento ── */}

@@ -14,10 +14,10 @@ export class CommandFavoritesService {
   private readonly logger = new Logger(CommandFavoritesService.name);
 
   constructor(
-    @InjectModel(CommandFavorite.name) private readonly favModel: Model<CommandFavoriteDocument>,
+    @InjectModel(CommandFavorite.name, 'miniapp') private readonly favModel: Model<CommandFavoriteDocument>,
     @InjectModel(History.name) private readonly historyModel: Model<HistoryDocument>,
     private readonly redis: RedisCacheService,
-  ) {}
+  ) { }
 
   // ════════════════════════════════════════════════
   // FAVORITES CRUD

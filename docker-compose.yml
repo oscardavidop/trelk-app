@@ -38,6 +38,16 @@ services:
           cpus: '1.0'
         reservations:
           memory: 256M
+      # Rolling deploy: update one at a time with health check
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+    stop_grace_period: 30s
     networks:
       - trelk-network
 
@@ -48,7 +58,7 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --tcp-backlog 511 --hz 10
     volumes:
       - redis-data:/data
     healthcheck:
@@ -59,7 +69,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 384M
     networks:
       - trelk-network
 

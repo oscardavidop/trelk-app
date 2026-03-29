@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -28,16 +28,34 @@ export interface NotificationFilters {
 
 const CACHE_TTL = 45; // seconds
 const CACHE_PREFIX = 'notif:user:';
+const BATCH_INTERVAL_MS = 15_000; // 15s batch window
+const DEDUP_TTL = 300; // 5min dedup window
+const DEDUP_PREFIX = 'notif:dedup:';
+
+interface PendingNotification {
+  userId: string;
+  payload: CreateNotificationPayload;
+}
 
 @Injectable()
-export class NotificationService {
+export class NotificationService implements OnModuleDestroy {
   private readonly logger = new Logger(NotificationService.name);
+  private readonly batch: PendingNotification[] = [];
+  private batchTimer: NodeJS.Timeout | null = null;
 
   constructor(
-    @InjectModel(Notification.name)
+    @InjectModel(Notification.name, 'miniapp') 
     private readonly notificationModel: Model<NotificationDocument>,
     private readonly redis: RedisCacheService,
-  ) {}
+  ) {
+    // Start batch processor
+    this.batchTimer = setInterval(() => this.flushBatch(), BATCH_INTERVAL_MS);
+  }
+
+  async onModuleDestroy() {
+    if (this.batchTimer) clearInterval(this.batchTimer);
+    await this.flushBatch(); // Flush remaining
+  }
 
   async createNotification(
     userId: string,
@@ -116,6 +134,18 @@ export class NotificationService {
     return result.modifiedCount;
   }
 
+  async deleteNotification(notificationId: string, userId: string): Promise<boolean> {
+    const result = await this.notificationModel.deleteOne({
+      _id: notificationId,
+      userId,
+    });
+    if (result.deletedCount > 0) {
+      await this.invalidateCache(userId);
+      return true;
+    }
+    return false;
+  }
+
   async getUserNotifications(
     userId: string,
     filters: NotificationFilters = {},
@@ -171,6 +201,9 @@ export class NotificationService {
     try {
       // Delete known keys — count is always there
       await this.redis.del(`${CACHE_PREFIX}${userId}:count`);
+      // Also update the SSE-friendly unread key
+      const count = await this.notificationModel.countDocuments({ userId, read: false });
+      await this.redis.set(`notif:unread:${userId}`, count, 60);
       // Best-effort invalidate first few pages
       for (let p = 1; p <= 3; p++) {
         for (const unread of ['0', '1']) {
@@ -184,6 +217,68 @@ export class NotificationService {
       }
     } catch (err) {
       this.logger.warn(`Cache invalidation failed for ${userId}: ${err}`);
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // BATCHING — aggregate low-priority notifications
+  // ══════════════════════════════════════════
+
+  /**
+   * Queue a notification for batched delivery.
+   * High priority = immediate. Medium/Low = batched.
+   */
+  async queueNotification(userId: string, payload: CreateNotificationPayload): Promise<void> {
+    // Deduplication check
+    const dedupKey = `${DEDUP_PREFIX}${userId}:${payload.type}:${payload.groupId || ''}`;
+    const isDuplicate = await this.redis.exists(dedupKey);
+    if (isDuplicate) {
+      this.logger.debug(`Dedup: skipping ${payload.type} for ${userId}`);
+      return;
+    }
+    await this.redis.set(dedupKey, 1, DEDUP_TTL);
+
+    if (payload.priority === 'high') {
+      // High priority: deliver immediately
+      await this.createNotification(userId, payload);
+    } else {
+      // Batch for later
+      this.batch.push({ userId, payload });
+    }
+  }
+
+  /** Flush all pending batched notifications to DB */
+  private async flushBatch(): Promise<void> {
+    if (this.batch.length === 0) return;
+
+    const items = this.batch.splice(0, this.batch.length);
+    const now = Date.now();
+
+    try {
+      const docs = items.map(({ userId, payload }) => ({
+        userId,
+        type: payload.type,
+        titleKey: payload.titleKey,
+        messageKey: payload.messageKey,
+        titleParams: payload.titleParams,
+        messageParams: payload.messageParams,
+        data: payload.data,
+        priority: payload.priority || 'normal',
+        groupId: payload.groupId,
+        link: payload.link,
+        read: false,
+        createdAt: now,
+      }));
+
+      await this.notificationModel.insertMany(docs, { ordered: false });
+
+      // Invalidate cache for affected users
+      const userIds = [...new Set(items.map(i => i.userId))];
+      await Promise.all(userIds.map(id => this.invalidateCache(id)));
+
+      this.logger.debug(`Flushed ${items.length} batched notifications for ${userIds.length} users`);
+    } catch (err) {
+      this.logger.error(`Batch flush failed: ${(err as Error).message}`);
     }
   }
 }

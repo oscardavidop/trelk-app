@@ -101,7 +101,7 @@ export default function AppLayout() {
         </Suspense>
       </div>
       {isMainTab && <BottomNav />}
-      <NotificationDebugPanel />
+      {/* <NotificationDebugPanel /> */}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { CommandReport, CommandReportDocument } from '../command-stats/schemas/command-report.schema';
-import { ReportEvent, ReportEventDocument } from '../command-stats/schemas/report-event.schema';
+import { CommandReport, CommandReportDocument } from '../reports/schemas/command-report.schema';
+import { ReportEvent, ReportEventDocument } from '../reports/schemas/report-event.schema';
 import { NotificationEventBus } from '../notifications/notification-event-bus';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class GithubWebhookService {
     const issue = payload.issue;
     if (!issue?.number) return;
 
-    const report = await this.findReportByIssue(issue.number);
+    const report = await this.findReportByIssue(issue.number, issue.html_url);
     if (!report) {
       this.logger.debug(`No report found for issue #${issue.number}, ignoring`);
       return;
@@ -92,7 +92,7 @@ export class GithubWebhookService {
     const comment = payload.comment;
     if (!issue?.number || !comment) return;
 
-    const report = await this.findReportByIssue(issue.number);
+    const report = await this.findReportByIssue(issue.number, issue.html_url);
     if (!report) {
       this.logger.debug(`No report found for issue #${issue.number}, ignoring comment`);
       return;
@@ -168,8 +168,21 @@ export class GithubWebhookService {
   // HELPERS
   // ════════════════════════════════════════════════
 
-  private async findReportByIssue(issueNumber: number) {
-    return this.reportModel.findOne({ githubIssueNumber: issueNumber }).lean().exec();
+  private async findReportByIssue(issueNumber: number, issueUrl?: string) {
+    // Primary: lookup by issue number (set by worker on creation)
+    const byNumber = await this.reportModel.findOne({ githubIssueNumber: issueNumber }).lean().exec();
+    if (byNumber) return byNumber;
+
+    // Fallback: match by githubIssueUrl for legacy reports created before the number field was added
+    if (issueUrl) {
+      const byUrl = await this.reportModel.findOne({ githubIssueUrl: issueUrl }).lean().exec();
+      if (byUrl) {
+        // Backfill the issue number for future lookups
+        await this.reportModel.updateOne({ _id: byUrl._id }, { $set: { githubIssueNumber: issueNumber } });
+        return byUrl;
+      }
+    }
+    return null;
   }
 
   private async createEvent(data: {

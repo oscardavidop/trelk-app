@@ -205,32 +205,33 @@ use('mbot');
 
 // 25 frases con tono más humano y variado
 const reviewsPool = [
-  "El comando /start explica todo súper claro desde el inicio.",
-  "Los comandos responden rápido, no hay lag en Telegram.",
-  "Configurar el bot en mi grupo fue muy fácil con /setup.",
-  "A veces /start tarda un poco, pero en general funciona bien.",
-  "Perfecto para moderar grupos grandes sin complicarse.",
-  "El comando /help podría tener ejemplos más claros.",
-  "Me gusta que los comandos no sean invasivos en el chat.",
-  "Falta integración con otros bots, pero cumple bien su función.",
-  "El mejor bot que he usado para gestionar usuarios en Telegram.",
-  "Debería tener más opciones de personalización en /settings.",
-  "Las respuestas del bot se sienten naturales, no robóticas.",
-  "Uso /stats todos los días, súper útil para ver actividad.",
-  "El sistema de roles y permisos está muy bien logrado.",
-  "Tuve un problema con /login pero lo solucioné rápido.",
-  "Se nota que el bot está bien optimizado en el backend.",
-  "El modo silencioso del bot en grupos es un gran plus.",
-  "Funciona perfecto en móvil, cero problemas.",
-  "Al inicio cuesta entender todos los comandos, pero luego fluye.",
-  "Las respuestas automáticas ayudan mucho en soporte.",
-  "No sabía que necesitaba este bot hasta que lo probé.",
-  "Muy completo para administración de comunidades.",
-  "El soporte del bot responde bastante rápido.",
-  "A veces las notificaciones llegan con delay.",
-  "La seguridad con verificación es un buen detalle.",
-  "Hace exactamente lo que promete, sin complicaciones."
+  "El comando /md5 genera el hash al instante, súper útil.",
+  "La encriptación es rápida, no hay lag procesando los archivos.",
+  "Convertir strings a hash fue muy fácil con el comando /md5.",
+  "A veces /md5 tarda con archivos pesados, pero funciona bien.",
+  "Perfecto para verificar integridad de archivos sin complicaciones.",
+  "El comando /md5 podría explicar mejor qué algoritmos usa.",
+  "Me gusta que los hashes generados no ensucien tanto el chat.",
+  "Falta soporte para SHA-256, pero /md5 cumple bien su función.",
+  "El mejor bot que he usado para firmar archivos en Telegram.",
+  "Debería permitir exportar el resultado de /md5 en un .txt.",
+  "Los hashes de /md5 coinciden perfecto con los de mi terminal.",
+  "Uso /md5 todos los días para validar mis descargas, súper útil.",
+  "El sistema de verificación por MD5 está muy bien logrado.",
+  "Tuve un problema con un carácter especial en /md5 pero se arregló.",
+  "Se nota que el cálculo del hash está bien optimizado en el backend.",
+  "Poder sacar el /md5 de forma silenciosa es un gran plus.",
+  "Funciona perfecto enviando archivos desde el móvil, cero problemas.",
+  "Al inicio no sabía si pasar texto o archivo a /md5, luego fluye.",
+  "Las respuestas de /md5 ayudan mucho a verificar backups.",
+  "No sabía que necesitaba generar hashes en Telegram hasta ahora.",
+  "Muy completo para auditoría de archivos en comunidades.",
+  "El bot procesa el comando /md5 bastante rápido.",
+  "A veces el bot tarda en responder al enviar archivos para /md5.",
+  "La seguridad de validar integridad con /md5 es un buen detalle.",
+  "Genera el hash exactamente como promete, sin complicaciones."
 ];
+
 
 function generateRealisticDoc(index) {
   // Selección secuencial usando el índice del bucle
@@ -238,7 +239,7 @@ function generateRealisticDoc(index) {
   const rating = randomInt(3, 5); // Calificaciones más realistas para reviews de calidad
 
   return {
-    command: "start",
+    command: "md5",
     userId: Math.floor(Math.random() * 900000000) + 100000000,
     badge: ["new_user", "power_user", "vip"][Math.floor(Math.random() * 3)],
     createdAt: Date.now() - Math.floor(Math.random() * 100000000),

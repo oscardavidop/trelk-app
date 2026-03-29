@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { History, HistoryDocument } from '../history/schemas/history.schema';
-import { CommandRating, CommandRatingDocument } from '../command-stats/schemas/command-rating.schema';
+import { CommandRating, CommandRatingDocument } from '../ratings/schemas/command-rating.schema';
 import { CommandFavorite, CommandFavoriteDocument } from '../command-favorites/schemas/command-favorite.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { BOT_COMMANDS } from '../../data/commands';

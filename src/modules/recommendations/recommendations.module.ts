@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { History, HistorySchema } from '../history/schemas/history.schema';
-import { CommandRating, CommandRatingSchema } from '../command-stats/schemas/command-rating.schema';
+import { CommandRating, CommandRatingSchema } from '../ratings/schemas/command-rating.schema';
 import { CommandFavorite, CommandFavoriteSchema } from '../command-favorites/schemas/command-favorite.schema';
 import { RecommendationsService } from './recommendations.service';
 import { RecommendationsController } from './recommendations.controller';

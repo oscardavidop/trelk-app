@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useHideIsland } from '../hooks/useHideIsland';
 import StickyHeader from '@/components/StickyHeader';
 import ReportTimeline from '@/components/reports/ReportTimeline';
 import { fetchMyReports, type UserReport } from '../services/commandStatsApi';
-import { Flag, Clock, ChevronRight, ChevronDown, Loader2, FileText, ExternalLink, BugIcon, ServerCrashIcon, GitBranch } from 'lucide-react';
+import { Flag, Clock, ChevronDown, Loader2, FileText, ExternalLink, BugIcon, ServerCrashIcon, GitBranch } from 'lucide-react';
 
 const PAGE_SIZE = 10;
 
@@ -99,11 +100,27 @@ export default function MyReportsPage() {
       <StickyHeader title={t('title')} />
 
       {/* Stats bar */}
-      <div className="px-4 pt-2 pb-3">
+      <div className="px-4 pt-2 pb-3 flex items-center gap-3">
         <div className="flex items-center gap-2 text-[13px] text-tg-hint font-medium">
           <FileText size={14} />
           <span>{t('total_reports')}: <strong className="text-tg-text">{total}</strong></span>
         </div>
+        {reports.length > 0 && (
+          <div className="flex items-center gap-1.5 ml-auto">
+            {(['open', 'reviewed', 'closed'] as const).map((s) => {
+              const count = reports.filter((r) => r.status === s).length;
+              if (count === 0) return null;
+              return (
+                <span
+                  key={s}
+                  className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${STATUS_COLORS[s]}`}
+                >
+                  {count} {t(`status_${s}`)}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Loading skeleton */}
@@ -133,12 +150,15 @@ export default function MyReportsPage() {
       {/* Reports list */}
       {!initialLoad && reports.length > 0 && (
         <div className="px-4 space-y-3 pb-24">
-          {reports.map((report) => {
+          {reports.map((report, idx) => {
             const isExpanded = expandedId === report.id;
 
             return (
-              <div
+              <motion.div
                 key={report.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: idx * 0.04 }}
                 className="bg-tg-secondary rounded-[16px] border border-tg-border/30 overflow-hidden shadow-sm transition-all"
               >
                 {/* Header Row */}
@@ -168,45 +188,55 @@ export default function MyReportsPage() {
                     </div>
                   </div>
 
-                  <ChevronRight
+                  <ChevronDown
                     size={16}
-                    className={`text-tg-hint/40 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                    className={`text-tg-hint/40 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`}
                   />
                 </button>
 
                 {/* Expanded Details */}
-                {isExpanded && (
-                  <div className="px-4 pb-4 pt-1 border-t border-tg-border/20 animate-scale-in space-y-3">
-                    <p className="text-[13px] text-tg-text leading-relaxed">
-                      {report.message}
-                    </p>
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 pt-1 border-t border-tg-border/20 space-y-3">
+                        <p className="text-[13px] text-tg-text leading-relaxed">
+                          {report.message}
+                        </p>
 
-                    {/* GitHub link */}
-                    {report.githubIssueUrl && (
-                      <a
-                        href={report.githubIssueUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-tg-accent hover:underline bg-tg-accent/5 border border-tg-accent/15 rounded-[10px] px-3 py-1.5"
-                      >
-                        <ExternalLink size={12} />
-                        {t('view_on_github')}
-                      </a>
-                    )}
+                        {/* GitHub link */}
+                        {report.githubIssueUrl && (
+                          <a
+                            href={report.githubIssueUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-tg-accent hover:underline bg-tg-accent/5 border border-tg-accent/15 rounded-[10px] px-3 py-1.5"
+                          >
+                            <ExternalLink size={12} />
+                            {t('view_on_github')}
+                          </a>
+                        )}
 
-                    {/* Timeline section */}
-                    <div className="pt-2">
-                      <div className="flex items-center gap-2 mb-3">
-                        <GitBranch size={13} className="text-tg-hint/60" />
-                        <h3 className="text-[12px] font-bold text-tg-hint uppercase tracking-wider">
-                          {t('timeline', 'Timeline')}
-                        </h3>
+                        {/* Timeline section */}
+                        <div className="pt-2">
+                          <div className="flex items-center gap-2 mb-3">
+                            <GitBranch size={13} className="text-tg-hint/60" />
+                            <h3 className="text-[12px] font-bold text-tg-hint uppercase tracking-wider">
+                              {t('timeline', 'Timeline')}
+                            </h3>
+                          </div>
+                          <ReportTimeline reportId={report.id} initialCreatedAt={report.createdAt} />
+                        </div>
                       </div>
-                      <ReportTimeline reportId={report.id} initialCreatedAt={report.createdAt} />
-                    </div>
-                  </div>
-                )}
-              </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
 

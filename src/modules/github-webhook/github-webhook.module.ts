@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GithubWebhookController } from './github-webhook.controller';
 import { GithubWebhookService } from './github-webhook.service';
-import { CommandReport, CommandReportSchema } from '../command-stats/schemas/command-report.schema';
-import { ReportEvent, ReportEventSchema } from '../command-stats/schemas/report-event.schema';
+import { CommandReport, CommandReportSchema } from '../reports/schemas/command-report.schema';
+import { ReportEvent, ReportEventSchema } from '../reports/schemas/report-event.schema';
 import { NotificationModule } from '../notifications/notification.module';
 
 @Module({

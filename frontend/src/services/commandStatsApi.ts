@@ -206,6 +206,10 @@ export function fetchReviewsSummary(command: string): Promise<ReviewsSummary> {
   return json(`${BASE}/${encodeURIComponent(command)}/reviews/summary`);
 }
 
+export function fetchReviewHighlights(command: string): Promise<{ highlights: string[] }> {
+  return json(`${BASE}/${encodeURIComponent(command)}/reviews/highlights`);
+}
+
 export function fetchMyReview(command: string): Promise<{ review: MyReview | null }> {
   return json(`${BASE}/${encodeURIComponent(command)}/my-review`);
 }
@@ -365,6 +369,7 @@ export interface CommandSignals {
   activeUsersNow: number;
   trendingScore: number;
   regionTrend: boolean;
+  trendDelta: number;
   discussionsCount: number;
 }
 

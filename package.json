@@ -44,10 +44,13 @@
     "mongoose": "^8.17.1",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",
-    "qs": "^6.15.0"
+    "qs": "^6.15.0",
+    "snappy": "^7.3.3"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/passport-jwt": "^4.0.1"
+    "@types/passport-jwt": "^4.0.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^6.0.2"
   }
 }

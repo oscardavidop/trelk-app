@@ -76,3 +76,7 @@ export function markNotificationRead(id: string): Promise<{ ok: boolean }> {
 export function markAllNotificationsRead(): Promise<{ ok: boolean; count: number }> {
   return json(`${BASE}/read-all`, { method: 'PATCH', body: JSON.stringify({}) });
 }
+
+export function deleteNotification(id: string): Promise<{ ok: boolean }> {
+  return json(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}

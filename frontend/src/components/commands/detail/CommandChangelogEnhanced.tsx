@@ -163,7 +163,6 @@ function CommandChangelogEnhanced({ slug }: Props) {
       {isChangelogModalOpen && (
         <CommandChangelogModal
           isOpen={isChangelogModalOpen}
-          // onClose={() => setIsChangelogModalOpen(false)}
           slug={slug}
         />
       )}

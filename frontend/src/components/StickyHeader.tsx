@@ -20,11 +20,11 @@ export default function StickyHeader({ title, subtitle, children, icon, border }
         >
             <div className="absolute left-0 right-0 bottom-full h-[150px] bg-tg-bg backdrop-blur-md pointer-events-none z-0" />
             <div className="px-4 pt-4 flex items-center gap-3">
-                {
+                {/* {
                     icon && (
                         icon
                     )
-                }
+                } */}
 
                 <div>
                     <h1 className="text-[26px] font-extrabold text-tg-text  leading-none">{title}</h1>

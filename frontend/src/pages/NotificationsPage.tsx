@@ -1,11 +1,12 @@
 import { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import {
   Bell,
   BellRing,
   Check,
+  CheckCheck,
   CheckCircle,
   Trophy,
   AlertTriangle,
@@ -18,6 +19,7 @@ import {
   RefreshCw,
   Loader2,
   ChevronDown,
+  Trash2,
 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useTelegram } from '../hooks/useTelegram';
@@ -98,83 +100,100 @@ function NotificationSkeleton() {
 function NotificationRow({
   item,
   onRead,
+  onDelete,
   onTap,
   t,
 }: {
   item: NotificationItem;
   onRead: (id: string) => void;
+  onDelete: (id: string) => void;
   onTap: (item: NotificationItem) => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
   const Icon = TYPE_ICON[item.type] || Bell;
   const colorCls = TYPE_COLOR[item.type] || DEFAULT_COLOR;
+  const x = useMotionValue(0);
+  const deleteOpacity = useTransform(x, [-120, -60], [1, 0]);
+  const readOpacity = useTransform(x, [60, 120], [0, 1]);
+  const dragRef = useRef({ startX: 0 });
 
-  // Swipe to mark read
-  const touchStartX = useRef(0);
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+  const handleDragStart = (_: unknown, info: PanInfo) => {
+    dragRef.current.startX = info.point.x;
   };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (dx > 80 && !item.read) {
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    const totalOffset = info.point.x - dragRef.current.startX;
+    if (totalOffset < -80) {
+      onDelete(item._id);
+    } else if (totalOffset > 80 && !item.read) {
       onRead(item._id);
     }
   };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: 60 }}
-      transition={{ duration: 0.2 }}
-      className={`flex items-start gap-3.5 p-4 active:bg-tg-hint/5 transition-colors group cursor-pointer ${!item.read ? 'bg-tg-accent/[0.04]' : ''}`}
-      onClick={() => onTap(item)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Icon */}
-      <div
-        className={`w-10 h-10 rounded-[12px] border flex items-center justify-center shrink-0 shadow-sm transition-transform duration-200 group-active:scale-95 ${colorCls} ${item.read ? 'grayscale opacity-60' : ''}`}
+    <div className="relative overflow-hidden">
+      {/* Delete bg (left swipe) */}
+      <motion.div
+        style={{ opacity: deleteOpacity }}
+        className="absolute inset-0 bg-red-500/90 flex items-center justify-end pr-5"
       >
-        <Icon size={18} />
-      </div>
-
-      {/* Body */}
-      <div className="flex-1 min-w-0 pt-0.5">
-        <p
-          className={`text-[15px] leading-tight ${item.read ? 'font-medium text-tg-text/70' : 'font-semibold text-tg-text'}`}
+        <Trash2 size={20} className="text-white" />
+      </motion.div>
+      {/* Mark read bg (right swipe) */}
+      {!item.read && (
+        <motion.div
+          style={{ opacity: readOpacity }}
+          className="absolute inset-0 bg-emerald-500/90 flex items-center pl-5"
         >
-          {resolveText(item.titleKey, item.titleParams, t)}
-        </p>
-        <p
-          className={`text-[13px] mt-1 leading-snug ${item.read ? 'text-tg-hint/70' : 'font-medium text-tg-hint/90'}`}
-        >
-          {resolveText(item.messageKey, item.messageParams, t)}
-        </p>
-        <p className="text-[11px] font-bold text-tg-hint/50 mt-2 uppercase tracking-wide">
-          {relativeTime(item.createdAt, t)}
-        </p>
-      </div>
-
-      {/* Action */}
-      {!item.read ? (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRead(item._id);
-          }}
-          className="w-8 h-8 rounded-[10px] bg-tg-bg border border-tg-border/40 flex items-center justify-center text-tg-hint hover:text-tg-accent hover:border-tg-accent/40 transition-all active:scale-90 shrink-0 shadow-sm"
-          aria-label={t('mark_read')}
-        >
-          <Check size={16} strokeWidth={2.5} />
-        </button>
-      ) : (
-        <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          <CheckCircle size={18} className="text-emerald-500/40" strokeWidth={2.5} />
-        </div>
+          <Check size={20} className="text-white" />
+        </motion.div>
       )}
-    </motion.div>
+
+      <motion.div
+        layout
+        style={{ x }}
+        drag="x"
+        dragConstraints={{ left: -140, right: 140 }}
+        dragElastic={0.4}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0, x: 0 }}
+        exit={{ opacity: 0, height: 0, marginTop: 0, padding: 0 }}
+        transition={{ duration: 0.2 }}
+        className={`flex items-start gap-3.5 p-4 active:bg-tg-hint/5 transition-colors group cursor-pointer bg-tg-secondary ${!item.read ? 'bg-tg-accent/[0.04]' : ''}`}
+        onClick={() => { if (Math.abs(x.get()) < 5) onTap(item); }}
+      >
+        {/* Icon */}
+        <div
+          className={`w-10 h-10 rounded-[12px] border flex items-center justify-center shrink-0 shadow-sm transition-transform duration-200 group-active:scale-95 ${colorCls} ${item.read ? 'grayscale opacity-60' : ''}`}
+        >
+          <Icon size={18} />
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 min-w-0 pt-0.5">
+          <p
+            className={`text-[15px] leading-tight ${item.read ? 'font-medium text-tg-text/70' : 'font-semibold text-tg-text'}`}
+          >
+            {resolveText(item.titleKey, item.titleParams, t)}
+          </p>
+          <p
+            className={`text-[13px] mt-1 leading-snug ${item.read ? 'text-tg-hint/70' : 'font-medium text-tg-hint/90'}`}
+          >
+            {resolveText(item.messageKey, item.messageParams, t)}
+          </p>
+          <p className="text-[11px] font-bold text-tg-hint/50 mt-2 uppercase tracking-wide">
+            {relativeTime(item.createdAt, t)}
+          </p>
+        </div>
+
+        {/* Unread indicator */}
+        {!item.read && (
+          <div className="w-2.5 h-2.5 rounded-full bg-tg-accent shrink-0 mt-2" />
+        )}
+      </motion.div>
+    </div>
   );
 }
 
@@ -238,11 +257,13 @@ function groupNotifications(items: NotificationItem[]): (NotificationItem | Noti
 function GroupedNotificationRow({
   group,
   onRead,
+  onDelete,
   onTap,
   t,
 }: {
   group: NotificationGroup;
   onRead: (id: string) => void;
+  onDelete: (id: string) => void;
   onTap: (item: NotificationItem) => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
@@ -293,7 +314,7 @@ function GroupedNotificationRow({
             className="overflow-hidden bg-tg-bg/30 divide-y divide-tg-border/10"
           >
             {group.items.map(n => (
-              <NotificationRow key={n._id} item={n} onRead={onRead} onTap={onTap} t={t} />
+              <NotificationRow key={n._id} item={n} onRead={onRead} onDelete={onDelete} onTap={onTap} t={t} />
             ))}
           </motion.div>
         )}
@@ -321,6 +342,7 @@ export default function NotificationsPage() {
     totalPages,
     markRead,
     markAllRead,
+    deleteItem,
     loadMore,
     reload,
   } = useNotifications(true);
@@ -355,6 +377,14 @@ export default function NotificationsPage() {
     markAllRead();
   }, [markAllRead, haptic]);
 
+  const handleDelete = useCallback(
+    (id: string) => {
+      haptic?.impactOccurred('medium');
+      deleteItem(id);
+    },
+    [deleteItem, haptic],
+  );
+
   const handleTap = useCallback(
     (item: NotificationItem) => {
       haptic?.impactOccurred('light');
@@ -374,32 +404,30 @@ export default function NotificationsPage() {
       {/* ── Header ── */}
       <div className="sticky top-0 z-20 bg-tg-bg/85 backdrop-blur-xl border-b border-tg-border/20 px-5 pt-4 pb-3 flex items-center justify-between shadow-sm transition-all">
         <div className="flex items-center gap-3">
-          <div className="w-[42px] h-[42px] rounded-[14px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shadow-sm">
-            <Bell size={20} className="text-sky-500" />
+          <div className="w-9 h-9 rounded-[12px] bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shadow-sm">
+            <Bell size={18} className="text-sky-500" />
           </div>
           <div>
-            <h1 className="text-[20px] font-bold text-tg-text leading-tight tracking-tight">
+            <h1 className="text-[18px] font-bold text-tg-text leading-tight tracking-tight">
               {t('title')}
             </h1>
             {unreadCount > 0 && (
-              <p className="text-[13px] font-medium text-tg-hint leading-snug mt-0.5">
+              <p className="text-[12px] font-medium text-tg-hint leading-snug">
                 {unreadCount} {t('unread')}
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] bg-tg-accent/10 text-tg-accent border border-tg-accent/20 text-[13px] font-bold active:scale-95 transition-all shadow-sm"
-            >
-              <Check size={16} strokeWidth={2.5} />
-              {t('mark_all_read')}
-            </button>
-          )}
-        </div>
+        {unreadCount > 0 && (
+          <button
+            onClick={handleMarkAllRead}
+            className="w-9 h-9 rounded-[12px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center text-tg-accent active:scale-90 transition-all shadow-sm"
+            aria-label={t('mark_all_read')}
+          >
+            <CheckCheck size={18} strokeWidth={2.5} />
+          </button>
+        )}
       </div>
 
       {/* ── Loading state ── */}
@@ -457,6 +485,7 @@ export default function NotificationsPage() {
                     key={`g-${entry.groupType}-${entry.latestTimestamp}`}
                     group={entry}
                     onRead={handleMarkRead}
+                    onDelete={handleDelete}
                     onTap={handleTap}
                     t={t as (key: string, opts?: Record<string, unknown>) => string}
                   />
@@ -465,6 +494,7 @@ export default function NotificationsPage() {
                     key={(entry as NotificationItem)._id}
                     item={entry as NotificationItem}
                     onRead={handleMarkRead}
+                    onDelete={handleDelete}
                     onTap={handleTap}
                     t={t as (key: string, opts?: Record<string, unknown>) => string}
                   />
@@ -488,6 +518,7 @@ export default function NotificationsPage() {
                   key={`g-${entry.groupType}-${entry.latestTimestamp}`}
                   group={entry}
                   onRead={handleMarkRead}
+                  onDelete={handleDelete}
                   onTap={handleTap}
                   t={t as (key: string, opts?: Record<string, unknown>) => string}
                 />
@@ -496,6 +527,7 @@ export default function NotificationsPage() {
                   key={(entry as NotificationItem)._id}
                   item={entry as NotificationItem}
                   onRead={handleMarkRead}
+                  onDelete={handleDelete}
                   onTap={handleTap}
                   t={t as (key: string, opts?: Record<string, unknown>) => string}
                 />

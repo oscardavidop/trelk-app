@@ -105,6 +105,23 @@ async function bootstrap() {
   });
 
   // === Custom body parser para x-www-form-urlencoded (framework Aj) ===
+  // === JSON parser that preserves raw body (needed for webhook HMAC verification) ===
+  fastify.decorateRequest('rawBody', null);
+  fastify.removeContentTypeParser('application/json');
+  fastify.addContentTypeParser(
+    'application/json',
+    { parseAs: 'buffer' },
+    (req: any, body: Buffer, done: any) => {
+      // Store raw bytes for HMAC signature verification (GitHub webhooks)
+      req.rawBody = body;
+      try {
+        done(null, body.length > 0 ? JSON.parse(body.toString('utf8')) : {});
+      } catch (err) {
+        done(err as Error, undefined);
+      }
+    },
+  );
+
   fastify.removeContentTypeParser('application/x-www-form-urlencoded');
   fastify.addContentTypeParser(
     'application/x-www-form-urlencoded',
@@ -145,6 +162,26 @@ async function bootstrap() {
   logger.log(`Environment: ${configService.get('NODE_ENV', 'development')}`);
   logger.log(`CORS origins: ${corsOrigins}`);
   logger.log(`Rate limit: ${configService.get('THROTTLE_LIMIT', 100)} req/${configService.get('THROTTLE_TTL', 60000)}ms`);
+
+  // === Graceful shutdown ===
+  const signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'];
+  for (const signal of signals) {
+    process.on(signal, async () => {
+      logger.log(`Received ${signal}, shutting down gracefully...`);
+      try {
+        await app.close();
+        logger.log('Application closed successfully');
+      } catch (err) {
+        logger.error(`Error during shutdown: ${(err as Error).message}`);
+      }
+      process.exit(0);
+    });
+  }
+
+  // === Unhandled rejection safety net ===
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error(`Unhandled rejection: ${reason?.message || reason}`);
+  });
 }
 
 bootstrap();

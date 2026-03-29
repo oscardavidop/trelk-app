@@ -97,7 +97,7 @@ export class RedisCacheService implements OnModuleInit {
     }
   }
 
-  // === Generic Cache ===
+  // === Generic Cache (with metrics tracking) ===
 
   async get<T = any>(key: string): Promise<T | null> {
     if (!this.available) return null;
@@ -132,6 +132,63 @@ export class RedisCacheService implements OnModuleInit {
     } catch {
       return false;
     }
+  }
+
+  /** Increment a key atomically (for rate limiting counters) */
+  async incr(key: string): Promise<number> {
+    if (!this.available) return 0;
+    try {
+      return await this.client!.incr(key);
+    } catch {
+      return 0;
+    }
+  }
+
+  /** Set TTL on a key */
+  async expire(key: string, ttlSeconds: number): Promise<boolean> {
+    if (!this.available) return false;
+    try {
+      await this.client!.expire(key, ttlSeconds);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Get TTL of a key */
+  async ttl(key: string): Promise<number> {
+    if (!this.available) return -1;
+    try {
+      return await this.client!.ttl(key);
+    } catch {
+      return -1;
+    }
+  }
+
+  /** Get multiple keys at once (pipeline) */
+  async mget<T = any>(keys: string[]): Promise<(T | null)[]> {
+    if (!this.available || !keys.length) return keys.map(() => null);
+    try {
+      const results = await this.client!.mget(...keys);
+      return results.map(r => (r ? JSON.parse(r) : null));
+    } catch {
+      return keys.map(() => null);
+    }
+  }
+
+  /** Check existence without parsing */
+  async exists(key: string): Promise<boolean> {
+    if (!this.available) return false;
+    try {
+      return (await this.client!.exists(key)) === 1;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Get the raw Redis client (for rate limit guard etc.) */
+  getClient(): Redis | null {
+    return this.client;
   }
 
   // === Health Check ===

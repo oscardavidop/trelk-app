@@ -59,6 +59,12 @@ export class CommandReport {
 
 export const CommandReportSchema = SchemaFactory.createForClass(CommandReport);
 
+// Compound indexes for high-traffic queries
+CommandReportSchema.index({ command: 1, createdAt: -1 });
+CommandReportSchema.index({ userId: 1, createdAt: -1 });
+CommandReportSchema.index({ status: 1, createdAt: -1 });
+CommandReportSchema.index({ command: 1, status: 1 });
+
 CommandReportSchema.index({ createdAt: -1 });
 CommandReportSchema.index({ userId: 1 });
 CommandReportSchema.index({ command: 1, category: 1 });

@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import { Queue } from 'bullmq';
 import { createHmac, timingSafeEqual } from 'crypto';
-import { CommandRating, CommandRatingDocument } from '../schemas/command-rating.schema';
-import { UserModeration, UserModerationDocument } from '../schemas/user-moderation.schema';
-import { RedisCacheService } from '../../redis/redis-cache.service';
-import { NotificationEventBus } from '../../notifications/notification-event-bus';
+import { CommandRating, CommandRatingDocument } from '../ratings/schemas/command-rating.schema';
+import { UserModeration, UserModerationDocument } from './schemas/user-moderation.schema';
+import { RedisCacheService } from '../redis/redis-cache.service';
+import { NotificationEventBus } from '../notifications/notification-event-bus';
 
 // ── Types ──────────────────────────────────────────
 
@@ -142,10 +142,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     return this.enabled;
   }
 
-  // ════════════════════════════════════════════════
-  // ENQUEUE MODERATION JOB
-  // ════════════════════════════════════════════════
-
   async enqueueModeration(data: ModerationJobData): Promise<void> {
     if (!this.queue) {
       this.logger.warn('Moderation queue not available, auto-approving');
@@ -158,7 +154,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const jobId = `review_${data.reviewId}`;
-      // Remove existing job (completed/failed) to allow re-moderation on edit
       const existing = await this.queue.getJob(jobId);
       if (existing) {
         await existing.remove().catch(() => {});
@@ -166,17 +161,12 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       await this.queue.add('moderate-review', data, { jobId });
     } catch (err) {
       this.logger.error(`Failed to enqueue moderation job: ${(err as Error).message}`);
-      // Graceful fallback: auto-approve
       await this.ratingModel.updateOne(
         { _id: data.reviewId },
         { $set: { status: 'approved' } },
       ).exec();
     }
   }
-
-  // ════════════════════════════════════════════════
-  // ENQUEUE REPORT DISPATCH JOB
-  // ════════════════════════════════════════════════
 
   async enqueueReport(reportId: string): Promise<void> {
     if (!this.reportQueue) {
@@ -192,17 +182,12 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // ════════════════════════════════════════════════
-  // ENQUEUE AI SUMMARY REGENERATION
-  // ════════════════════════════════════════════════
-
   async enqueueAISummary(commandSlug: string): Promise<void> {
     if (!this.aiSummaryQueue) {
       this.logger.debug('AI summary queue not available, skipping');
       return;
     }
     try {
-      // Deduplicate: use jobId so only one summary job per command in queue
       const jobId = `summary_${commandSlug}`;
       const existing = await this.aiSummaryQueue.getJob(jobId);
       if (existing) {
@@ -212,16 +197,12 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       }
       await this.aiSummaryQueue.add('generate-summary', { commandSlug }, {
         jobId,
-        delay: 5000, // Small delay to batch multiple reviews
+        delay: 5000,
       });
     } catch (err) {
       this.logger.warn(`Failed to enqueue AI summary: ${(err as Error).message}`);
     }
   }
-
-  // ════════════════════════════════════════════════
-  // CANCEL MODERATION JOB (when user deletes pending review)
-  // ════════════════════════════════════════════════
 
   async cancelJob(reviewId: string): Promise<void> {
     if (!this.queue) return;
@@ -235,10 +216,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       this.logger.warn(`Failed to cancel moderation job for ${reviewId}: ${(err as Error).message}`);
     }
   }
-
-  // ════════════════════════════════════════════════
-  // USER BLOCK CHECK
-  // ════════════════════════════════════════════════
 
   async isUserBlocked(userId: number): Promise<boolean> {
     if (!this.enabled) return false;
@@ -258,7 +235,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
         await this.redis.set(cacheKey, true, 300);
         return true;
       }
-      // Block expired: reset
       await this.userModModel.updateOne(
         { userId },
         { $set: { isBlocked: false, blockedUntil: null, rejectedCount: 0, updatedAt: Date.now() } },
@@ -268,10 +244,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     await this.redis.set(cacheKey, false, 300);
     return false;
   }
-
-  // ════════════════════════════════════════════════
-  // UPDATE REVIEW AFTER MODERATION
-  // ════════════════════════════════════════════════
 
   async applyModerationResult(reviewId: string, result: ModerationResult): Promise<void> {
     const { Types } = await import('mongoose');
@@ -296,7 +268,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       },
     ).exec();
 
-    // Invalidate caches
     const cmd = (doc as any).command;
     if (cmd) {
       await this.redis.del(`command:rating:${cmd}`);
@@ -304,12 +275,10 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       await this.redis.del(`command:reviews:summary:${cmd}`);
     }
 
-    // Handle user strikes if rejected
     if (result.status === 'rejected') {
       await this.incrementUserStrike((doc as any).userId);
     }
 
-    // Notify user via Telegram if rejected
     if (result.status === 'rejected') {
       this.notifyUserRejection((doc as any).userId, result.moderationReasons).catch(() => {});
       this.notificationEventBus.emit('review.rejected', {
@@ -319,7 +288,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       }).catch(() => {});
     }
 
-    // Notify user via in-app notification if approved
     if (result.status === 'approved') {
       this.notificationEventBus.emit('review.approved', {
         userId: String((doc as any).userId),
@@ -328,10 +296,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       }).catch(() => {});
     }
   }
-
-  // ════════════════════════════════════════════════
-  // STRIKE SYSTEM
-  // ════════════════════════════════════════════════
 
   async incrementUserStrike(userId: number): Promise<void> {
     const now = Date.now();
@@ -354,13 +318,8 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
         { $set: { isBlocked: true, blockedUntil, updatedAt: now } },
       ).exec();
 
-      // Invalidate block cache
       await this.redis.del(`mod:blocked:${userId}`);
-
-      // Notify user they're blocked
       this.notifyUserBlocked(userId).catch(() => {});
-
-      // Notify admin
       this.notifyAdminBlock(userId, userMod.rejectedCount).catch(() => {});
     }
   }
@@ -377,15 +336,10 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     ).exec();
   }
 
-  // ════════════════════════════════════════════════
-  // PRE-MODERATION DETECTION (before sending to API)
-  // ════════════════════════════════════════════════
-
   detectPreModFlags(content: string): PreModerationFlag[] {
     const flags: PreModerationFlag[] = [];
     if (!content) return flags;
 
-    // 1. Repeated links
     const urlRegex = /https?:\/\/[^\s]+/gi;
     const urls = content.match(urlRegex) || [];
     if (urls.length >= 3) {
@@ -396,11 +350,10 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       flags.push({ type: 'repeated_links', score: 0.9, reason: 'Repeated identical URL' });
     }
 
-    // 2. Unicode spoofing detection
     const spoofRanges = [
-      /[\u0400-\u04FF]/,  // Cyrillic
-      /[\u0370-\u03FF]/,  // Greek
-      /[\uFF00-\uFFEF]/,  // Fullwidth forms
+      /[\u0400-\u04FF]/,
+      /[\u0370-\u03FF]/,
+      /[\uFF00-\uFFEF]/,
     ];
     const hasLatin = /[a-zA-Z]/.test(content);
     const hasSpoofChars = spoofRanges.some(r => r.test(content));
@@ -408,19 +361,16 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       flags.push({ type: 'unicode_spoofing', score: 0.7, reason: 'Mixed script characters (possible spoofing)' });
     }
 
-    // 3. Emoji spam (more than 10 emojis)
     const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
     const emojis = content.match(emojiRegex) || [];
     if (emojis.length > 10) {
       flags.push({ type: 'emoji_spam', score: 0.6, reason: 'Excessive emoji usage' });
     }
 
-    // 4. Repetitive characters (e.g., "aaaaaaa")
     if (/(.)\1{6,}/.test(content)) {
       flags.push({ type: 'repetitive_chars', score: 0.5, reason: 'Repetitive characters' });
     }
 
-    // 5. ALL CAPS (for text > 20 chars)
     const alphaOnly = content.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ]/g, '');
     if (alphaOnly.length > 20 && alphaOnly === alphaOnly.toUpperCase()) {
       flags.push({ type: 'all_caps', score: 0.3, reason: 'All caps text' });
@@ -428,10 +378,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
 
     return flags;
   }
-
-  // ════════════════════════════════════════════════
-  // ADMIN MODERATION ENDPOINTS
-  // ════════════════════════════════════════════════
 
   async getPendingReviews(limit = 20, offset = 0) {
     const safeLimit = Math.min(Math.max(limit, 1), 50);
@@ -539,10 +485,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // ════════════════════════════════════════════════
-  // WEBHOOK VERIFICATION
-  // ════════════════════════════════════════════════
-
   verifyWebhookSignature(payload: string, signature: string): boolean {
     if (!this.webhookSecret) return false;
     try {
@@ -555,10 +497,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
   }
-
-  // ════════════════════════════════════════════════
-  // METRICS
-  // ════════════════════════════════════════════════
 
   async getMetrics(): Promise<ModerationMetrics> {
     const cacheKey = 'mod:metrics';
@@ -585,13 +523,18 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     }
 
     const result: ModerationMetrics = { totalModerated, totalRejected, totalFlagged, blockedUsers, topReasons };
-    await this.redis.set(cacheKey, result, 300); // 5min cache
+    await this.redis.set(cacheKey, result, 300);
     return result;
   }
 
-  // ════════════════════════════════════════════════
-  // TELEGRAM NOTIFICATIONS (English, with ToS link)
-  // ════════════════════════════════════════════════
+  public async getReviewModerationStatus(reviewId: string): Promise<string> {
+    const { Types } = await import('mongoose');
+    if (!Types.ObjectId.isValid(reviewId)) return 'unknown';
+    const oid = new Types.ObjectId(reviewId);
+    const doc = await this.ratingModel.findById(oid, { status: 1 }).lean().exec();
+    if (!doc) return 'unknown';
+    return (doc as any).status || 'unknown';
+  }
 
   private static readonly TOS_URL = 'https://trelkbot.com/terms';
 
@@ -608,15 +551,6 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
 
   private humanizeReasons(reasons: string[]): string[] {
     return reasons.map(r => ReviewModerationService.REASON_TO_ENGLISH[r] || r);
-  }
-
-  public async getReviewModerationStatus(reviewId: string): Promise<string> {
-    const { Types } = await import('mongoose');
-    if (!Types.ObjectId.isValid(reviewId)) return 'unknown';
-    const oid = new Types.ObjectId(reviewId);
-    const doc = await this.ratingModel.findById(oid, { status: 1 }).lean().exec();
-    if (!doc) return 'unknown';
-    return (doc as any).status || 'unknown';
   }
 
   private async notifyUserRejection(userId: number, reasons: string[]): Promise<void> {

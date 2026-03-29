@@ -6,11 +6,13 @@ import type { ReviewsSummary } from '../../../services/commandStatsApi';
 
 interface Props {
   summary: ReviewsSummary;
+  onFilterStar?: (star: number | null) => void;
+  activeStar?: number | null;
 }
 
 const springPop = { type: 'spring' as const, stiffness: 400, damping: 22 };
 
-function ReviewSummaryCard({ summary }: Props) {
+function ReviewSummaryCard({ summary, onFilterStar, activeStar }: Props) {
   const { t } = useTranslation('commandDetail');
   const { avgRating, totalReviews, distribution } = summary;
   const maxCount = Math.max(...Object.values(distribution), 1);
@@ -25,7 +27,6 @@ function ReviewSummaryCard({ summary }: Props) {
     return (
       <section className="px-5 mt-6">
         <div className="relative overflow-hidden rounded-[22px] border-2 border-dashed border-tg-accent/30 bg-gradient-to-br from-tg-accent/[0.06] via-transparent to-amber-500/[0.04] p-7 text-center">
-          {/* Decorative glow */}
           <div className="absolute -top-12 -right-12 w-32 h-32 bg-tg-accent/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -76,7 +77,6 @@ function ReviewSummaryCard({ summary }: Props) {
             >
               {avgRating.toFixed(1)}
             </motion.span>
-            {/* Star row */}
             <div className="flex gap-0.5 mt-1.5">
               {[1, 2, 3, 4, 5].map((n) => {
                 const fill = Math.min(Math.max(avgRating - n + 1, 0), 1);
@@ -99,14 +99,23 @@ function ReviewSummaryCard({ summary }: Props) {
           <div className="flex-1 flex flex-col gap-[6px] pt-1">
             {([5, 4, 3, 2, 1] as const).map((star) => {
               const count = distribution[star];
-              const pct = totalReviews > 0 ? (count / maxCount) * 100 : 0;
+              const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+              const barPct = totalReviews > 0 ? (count / maxCount) * 100 : 0;
+              const isActive = activeStar === star;
               return (
-                <div key={star} className="flex items-center gap-2">
+                <button
+                  key={star}
+                  className={`flex items-center gap-2 group transition-all duration-150 rounded-md -mx-1 px-1 ${
+                    onFilterStar ? 'cursor-pointer active:scale-[0.98]' : ''
+                  } ${isActive ? 'bg-tg-accent/10' : ''}`}
+                  onClick={() => onFilterStar?.(isActive ? null : star)}
+                  type="button"
+                >
                   <span className="text-[12px] text-tg-hint w-[10px] text-right tabular-nums">{star}</span>
                   <div className="flex-1 h-[8px] bg-tg-hint/10 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
+                      animate={{ width: `${barPct}%` }}
                       transition={{ duration: 0.6, delay: (5 - star) * 0.08, ease: 'easeOut' }}
                       className="h-full rounded-full"
                       style={{
@@ -118,7 +127,10 @@ function ReviewSummaryCard({ summary }: Props) {
                       }}
                     />
                   </div>
-                </div>
+                  <span className="text-[10px] text-tg-hint/60 w-[30px] text-right tabular-nums font-medium">
+                    {pct}%
+                  </span>
+                </button>
               );
             })}
           </div>

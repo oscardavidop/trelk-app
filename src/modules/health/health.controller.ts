@@ -3,6 +3,8 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { SkipThrottle } from '@nestjs/throttler';
 import { RedisCacheService } from '../redis/redis-cache.service';
+import { MetricsService } from '../metrics/metrics.service';
+import { CircuitBreakerService } from '../../common/services/circuit-breaker.service';
 
 @Controller('health')
 @SkipThrottle()
@@ -10,6 +12,8 @@ export class HealthController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
     private readonly redis: RedisCacheService,
+    private readonly metrics: MetricsService,
+    private readonly circuitBreaker: CircuitBreakerService,
   ) {}
 
   @Get()
@@ -18,6 +22,10 @@ export class HealthController {
     const redisStatus = await this.redis.ping() ? 'connected' : 'disconnected';
     const uptime = process.uptime();
     const memUsage = process.memoryUsage();
+    const [metricsSnapshot, circuits] = await Promise.all([
+      this.metrics.getSnapshot(),
+      this.circuitBreaker.getStatus(),
+    ]);
 
     return {
       status: mongoStatus === 'connected' ? 'healthy' : 'degraded',
@@ -32,6 +40,13 @@ export class HealthController {
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
       },
+      performance: {
+        requestsPerSec: metricsSnapshot.requestsPerSec,
+        errorRate: metricsSnapshot.errorRate,
+        latencyP95: metricsSnapshot.latencyP95,
+        cacheHitRate: metricsSnapshot.cacheHitRate,
+      },
+      circuits,
     };
   }
 
@@ -58,6 +73,7 @@ export class StatusController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
     private readonly redis: RedisCacheService,
+    private readonly metrics: MetricsService,
   ) {}
 
   @Get()
@@ -75,12 +91,15 @@ export class StatusController {
     if (!mongoOk && !redisOk) status = 'down';
     else if (!mongoOk || !redisOk) status = 'degraded';
 
-    const errorRate = status === 'down' ? 1 : status === 'degraded' ? 0.15 : 0.02;
+    const snapshot = await this.metrics.getSnapshot();
 
     return {
       status,
       latency_ms: latencyMs,
-      error_rate: errorRate,
+      error_rate: snapshot.errorRate,
+      requests_per_sec: snapshot.requestsPerSec,
+      latency_p95: snapshot.latencyP95,
+      cache_hit_rate: snapshot.cacheHitRate,
       updated_at: new Date().toISOString(),
     };
   }

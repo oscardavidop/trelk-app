@@ -200,37 +200,7 @@
   transform: translateX(16px);
 }
 
-/* === Checkbox custom === */
-.tm-checkbox {
-  position: relative;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid #555;
-  transition: all 0.2s;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.tm-checkbox.checked {
-  background: var(--tg-accent);
-  border-color: var(--tg-accent);
-}
-
-.tm-checkbox.checked::after {
-  content: '✓';
-  color: #fff;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-/* === Section styling matching BotFather === */
-.tm-section {
-  margin-bottom: 0;
-}
 
 .tm-section-header {
   padding: 12px 22px 8px;

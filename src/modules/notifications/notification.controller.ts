@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Param,
   Query,
   Req,
@@ -63,6 +64,17 @@ export class NotificationController {
     const userId = this.uid(req);
     const count = await this.notificationService.markAllAsRead(userId);
     return { ok: true, count };
+  }
+
+  /** DELETE /api/v1/ui/notifications/:id */
+  @Delete(':id')
+  async deleteNotification(@Param('id') id: string, @Req() req: any) {
+    const userId = this.uid(req);
+    if (!id || id.length < 10) {
+      throw new BadRequestException('Invalid notification ID');
+    }
+    const success = await this.notificationService.deleteNotification(id, userId);
+    return { ok: success };
   }
 
   private uid(req: any): string {

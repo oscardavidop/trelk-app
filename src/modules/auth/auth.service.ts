@@ -64,7 +64,7 @@ export class AuthService {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
 
-    @InjectModel(Token.name)
+    @InjectModel(Token.name,)
     public readonly tokenModel: Model<TokenDocument>,
 
     @Inject(forwardRef(() => UserService))

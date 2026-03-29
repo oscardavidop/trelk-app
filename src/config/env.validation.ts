@@ -66,6 +66,22 @@ export const envValidationSchema = Joi.object({
   MODERATION_THRESHOLD_REVIEW: Joi.number().min(0).max(1).default(0.5),
   MAX_REJECTED_REVIEWS: Joi.number().integer().min(1).default(5),
   USER_BLOCK_DAYS: Joi.number().integer().min(1).default(7),
+
+  // === Feature Flags ===
+  ENABLE_AI_SUMMARY: Joi.boolean().default(true),
+  ENABLE_SIGNALS: Joi.boolean().default(true),
+  ENABLE_NOTIFICATIONS: Joi.boolean().default(true),
+  ENABLE_MODERATION: Joi.boolean().default(true),
+  ENABLE_RECOMMENDATIONS: Joi.boolean().default(true),
+  ENABLE_GAMIFICATION: Joi.boolean().default(true),
+  ENABLE_REPORTS: Joi.boolean().default(true),
+  ENABLE_RATE_LIMIT: Joi.boolean().default(true),
+  ENABLE_ABUSE_DETECTION: Joi.boolean().default(true),
+  ENABLE_SSE: Joi.boolean().default(true),
+
+  // === AI Cost Control ===
+  AI_SUMMARY_MIN_REVIEWS: Joi.number().integer().min(1).default(10),
+  AI_SUMMARY_INTERVAL_MS: Joi.number().integer().default(300000), // 5min
 }).unknown(true); // Permite variables extra sin fallar
 
 /**

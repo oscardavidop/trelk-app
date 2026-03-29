@@ -14,7 +14,7 @@ import {
 } from '../services/commandStatsApi';
 import {
     ReviewSummaryCard, ReviewCard, WriteReview, ReviewFilters,
-    ReviewListSkeleton, ReviewSummarySkeleton, ReviewAISummary,
+    ReviewListSkeleton, ReviewSummarySkeleton, ReviewAISummary, ReviewHighlights,
     type ReviewFilterType, type ReviewSortType,
 } from '../components/commands/reviews';
 import { StickySectionHeader } from '@/components/StickyHeader';
@@ -225,6 +225,9 @@ export default function CommandReviewsPage() {
     // ── Filter/sort change resets ──
     const handleFilterChange = useCallback((f: ReviewFilterType) => setFilter(f), []);
     const handleSortChange = useCallback((s: ReviewSortType) => setSort(s), []);
+    const handleFilterStar = useCallback((star: number | null) => {
+        setFilter((star ?? 'all') as ReviewFilterType);
+    }, []);
 
     if (!cmd) {
         return (
@@ -265,8 +268,15 @@ export default function CommandReviewsPage() {
                 {summaryLoading ? (
                     <ReviewSummarySkeleton />
                 ) : summary ? (
-                    <ReviewSummaryCard summary={summary} />
+                    <ReviewSummaryCard
+                        summary={summary}
+                        onFilterStar={handleFilterStar}
+                        activeStar={typeof filter === 'number' ? filter : null}
+                    />
                 ) : null}
+
+                {/* Highlights */}
+                {mainSlug && <ReviewHighlights command={mainSlug} />}
 
                 {/* AI Summary */}
                 {mainSlug && <ReviewAISummary command={mainSlug} />}

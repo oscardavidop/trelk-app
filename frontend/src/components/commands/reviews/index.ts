@@ -7,3 +7,4 @@ export { default as ReviewPreview } from './ReviewPreview';
 export { default as ReviewReplyThread } from './ReviewReplyThread';
 export { default as ReviewAISummary } from './ReviewAISummary';
 export { ReviewListSkeleton, ReviewSummarySkeleton } from './ReviewSkeleton';
+export { default as ReviewHighlights } from './ReviewHighlights';

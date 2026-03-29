@@ -56,6 +56,9 @@ export class CommandRating {
   @Prop({ default: 0 })
   repliesCount: number;
 
+  @Prop({ default: 0 })
+  impactScore: number;
+
   // ── Moderation fields ──
   @Prop({ type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' })
   status: 'pending' | 'approved' | 'rejected';
@@ -90,3 +93,4 @@ CommandRatingSchema.index({ command: 1, createdAt: -1 });
 CommandRatingSchema.index({ command: 1, rating: 1 });
 CommandRatingSchema.index({ helpfulCount: -1 });
 CommandRatingSchema.index({ command: 1, status: 1, createdAt: -1 });
+CommandRatingSchema.index({ command: 1, impactScore: -1 });

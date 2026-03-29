@@ -231,6 +231,10 @@
   "users_using_now": "{{count}} usando ahora",
   "trending_region": "Tendencia en tu región",
   "active_discussions": "{{count}} discusiones",
+  "signals_hot": "En llamas",
+
+  "reviews_highlights": "Lo que dicen los usuarios",
+  "reviews_highlights_empty": "Aún no hay insights. ¡Sé el primero en opinar!",
 
   "known_issues_tips": "Problemas conocidos y consejos",
   "known_issues": "Problemas conocidos",

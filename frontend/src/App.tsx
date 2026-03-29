@@ -97,6 +97,7 @@ function App() {
       webApp.ready();
       webApp.MainButton.setParams({ color: '#248BDA' });
       webApp.disableVerticalSwipes();
+      webApp.expand();
       // NOTE: Back button handling is done in useBackButton hook (AppLayout).
       // Do NOT register a duplicate backButtonClicked handler here.
       try {

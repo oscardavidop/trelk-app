@@ -17,6 +17,12 @@ export class ReviewSummary {
   @Prop({ type: [String], default: [] })
   cons: string[];
 
+  @Prop({ type: [String], default: [] })
+  highlights: string[];
+
+  @Prop({ type: [String], default: [] })
+  highlightSourceReviewIds: string[];
+
   @Prop({ enum: ['positive', 'neutral', 'negative'], default: 'neutral' })
   sentiment: string;
 
@@ -49,3 +55,7 @@ export class ReviewSummary {
 }
 
 export const ReviewSummarySchema = SchemaFactory.createForClass(ReviewSummary);
+
+// Indexes for efficient lookup
+ReviewSummarySchema.index({ commandSlug: 1, updatedAt: -1 });
+ReviewSummarySchema.index({ sentiment: 1 });

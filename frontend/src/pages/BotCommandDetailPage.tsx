@@ -15,14 +15,16 @@ import {
   type CommandStatsData, type ReviewsSummary, type Review, type MyReview,
 } from '../services/commandStatsApi';
 import ReportErrorModal from '../components/commands/ReportErrorModal';
+import CommandReviewsModal from '../components/commands/detail/CommandReviewsModal';
 import CommandFeedback from '@/components/commands/CommandFeedback';
+import { trackCommandView } from '../hooks/useRecentlyViewedCommands';
 import { AlertTriangle, Send } from 'lucide-react';
 import { getCategoryBrand } from '../design';
 import { StickySectionHeader } from '@/components/StickyHeader';
 // useScrollCollapse hooks available if needed
 // import { useScrollEnd, useScrollHeader, useScrollHeaderDebounced } from '@/hooks/useScrollCollapse';
 import { useCommandFavoritesStore } from '../stores/commandFavorites';
-import { ReviewSummaryCard, WriteReview, ReviewPreview, ReviewSummarySkeleton, ReviewAISummary } from '../components/commands/reviews';
+import { ReviewSummaryCard, WriteReview, ReviewPreview, ReviewSummarySkeleton, ReviewAISummary, ReviewHighlights } from '../components/commands/reviews';
 
 import {
   CommandHero,
@@ -87,6 +89,7 @@ export default function BotCommandDetailPage() {
   const reviewSectionRef = useRef<HTMLDivElement>(null);
   const [highlightReview, setHighlightReview] = useState(false);
   const location = useLocation();
+  const isOpenCommandsReviewPage = location.hash === '#reviews';
 
   useEffect(() => {
     if (location.state?.scrollY) {
@@ -270,9 +273,14 @@ export default function BotCommandDetailPage() {
   }, [haptic, toggleFav, mainSlug, showToast, t]);
 
   const handleSeeAllReviews = useCallback(() => {
-    navigate(`/users/ui/${userId}/bot-commands/${slug}/reviews`);
+    navigate('#reviews');
     haptic?.impactOccurred('light');
-  }, [navigate, userId, slug, haptic]);
+  }, [navigate, haptic]);
+
+  // Track recently viewed command
+  useEffect(() => {
+    if (mainSlug) trackCommandView(mainSlug);
+  }, [mainSlug]);
 
   const examples = useMemo(() => (mainSlug ? getExamples(mainSlug) : []), [mainSlug]);
 
@@ -473,6 +481,13 @@ export default function BotCommandDetailPage() {
             </motion.div>
           )}
 
+          {/* Review Highlights */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <ReviewHighlights command={mainSlug} />
+            </motion.div>
+          )}
+
           <motion.div variants={sectionVariant}>
             <WriteReview
               initialRating={myReview?.rating}
@@ -513,8 +528,9 @@ export default function BotCommandDetailPage() {
 
         {/* ── Bottom Action Bar ── */}
         {/* Animation on scroll */}
+        {/*  */}
         <AnimatePresence>
-          {heroCollapsed && (
+          {heroCollapsed && !isOpenCommandsReviewPage && (
             <motion.div
               key="bottom-bar" // Key necesaria para AnimatePresence
               initial={{ y: 100, opacity: 0 }}
@@ -551,6 +567,9 @@ export default function BotCommandDetailPage() {
             showToast(tReports('report_sent'), 'success');
           }}
         />
+
+        {/* ── Reviews Modal ── */}
+        {mainSlug && <CommandReviewsModal slug={mainSlug} />}
       </motion.div>
     </AnimatePresence>
   );

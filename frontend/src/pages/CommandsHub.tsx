@@ -12,12 +12,14 @@ import {
   Plus,
   Compass,
   Star,
-  FlaskConical
+  FlaskConical,
+  Clock
 } from 'lucide-react';
-import { TOTAL_BOT_COMMANDS } from '@/data/botCommands';
+import { TOTAL_BOT_COMMANDS, cmdSlug } from '@/data/botCommands';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserStore } from '@/stores';
 import StickyHeader from '@/components/StickyHeader';
+import { useRecentlyViewedCommands } from '@/hooks/useRecentlyViewedCommands';
 
 // ── Datos mejorados con Iconos y Gradientes Únicos ──
 const GRADIENTS = [
@@ -54,20 +56,23 @@ export default function CommandsHub() {
   };
 
   const userCommands = config?.commands ? Object.entries(config.commands) : [];
+  const { commands: recentlyViewed } = useRecentlyViewedCommands();
 
   return (
     <div className="pb-24 animate-fade-in relative">
       <StickyHeader title={t('title')} subtitle={t('hub_subtitle')} />
-      
+
+
+
       {/* ── Explorar Bot Commands (Premium Banner) ── */}
-      <section className="mt-4 px-5">
+      <section className={`${recentlyViewed.length > 0 ? 'mt-5' : 'mt-4'} px-5`}>
         <button
           onClick={() => go('/bot-commands')}
           className="w-full relative overflow-hidden bg-tg-secondary border border-tg-border/40 rounded-[24px] p-4 text-left active:scale-[0.98] transition-all duration-200 group shadow-sm"
         >
           {/* Fondo con gradiente sutil */}
           <div className="absolute inset-0 bg-gradient-to-r from-tg-accent/5 to-violet-500/5 pointer-events-none" />
-          
+
           <div className="relative flex items-center gap-4">
             <div className="w-[52px] h-[52px] rounded-[16px] bg-gradient-to-br from-tg-accent to-blue-600 flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.3)] flex-shrink-0 group-active:scale-95 transition-transform duration-200">
               <Compass size={24} className="text-white drop-shadow-sm" />
@@ -133,8 +138,8 @@ export default function CommandsHub() {
             <Sparkles size={28} className="text-tg-accent/60 mb-3" />
             <h3 className="text-[15px] font-semibold text-tg-text mb-1">{t('no_premium')}</h3>
             <p className="text-[13px] text-tg-hint mb-4">{t('explore_premium')}</p>
-            <button 
-              onClick={() => go('/premium')} 
+            <button
+              onClick={() => go('/premium')}
               className="px-5 py-2 rounded-xl bg-tg-accent/10 text-tg-accent font-medium text-[14px] active:scale-95 transition-all"
             >
               Unlock Features
@@ -165,6 +170,28 @@ export default function CommandsHub() {
         )}
       </section>
 
+      {/* ── Recently Viewed ── */}
+      {recentlyViewed.length > 0 && (
+        <section className="mt-4">
+          <div className="flex items-center justify-between px-6 mb-3">
+            <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider flex items-center gap-1.5">
+              <Clock size={14} /> {t('recently_viewed', 'Recently viewed')}
+            </h2>
+          </div>
+          <div className="flex gap-2.5 overflow-x-auto px-5 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {recentlyViewed.slice(0, 8).map((cmd) => (
+              <button
+                key={cmdSlug(cmd)}
+                onClick={() => go(`/bot-commands/${cmdSlug(cmd)}`)}
+                className="flex-shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-[14px] bg-tg-secondary border border-tg-border/30 active:scale-95 transition-transform"
+              >
+                <Terminal size={14} className="text-tg-hint" />
+                <span className="text-[13px] font-semibold text-tg-text whitespace-nowrap">/{cmd.name[0]}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
       {/* ── Custom Commands (Lista Estilo iOS) ── */}
       <section className="mt-6 px-5 pb-6">
         <div className="flex items-center justify-between mb-3">
