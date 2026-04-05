@@ -55,7 +55,23 @@ export const COMMAND_EXAMPLES: Record<string, CommandExample[]> = {
   reverse:  [{ text: '/reverse Hello world' }],
   capitalize: [{ text: '/capitalize make this capitalized' }],
   ipinfo: [{ text: '/ipinfo 8.8.8.8' }, { text: '/ipinfo 1.1.1.1' }],
-
+  menu: [{ text: '/menu' }],
+  dog: [{ text: '/dog' }],
+  cat: [{ text: '/cat' }],
+  mydogs: [{ text: '/mydogs' }],
+  mycats: [{ text: '/mycats' }],
+  xnx: [{ text: '/xnx search query' }],
+  tiktok: [{ text: '/tiktok https://vm.tiktok.com/abc123' }],
+  fb: [{ text: '/fb https://facebook.com/video/123' }],
+  xdl: [{ text: '/xdl https://instagram.com/p/abc123' }, { text: '/xdl https://twitter.com/user/status/123' }],
+  help: [{ text: '/help' }, { text: '/help play' }],
+  mail: [{ text: '/mail user@example.com Hello!' }],
+  quiz: [{ text: '/quiz' }, { text: '/quiz science' }],
+  roman: [{ text: '/roman 42' }, { text: '/roman XIV' }],
+  alerta: [{ text: '/alerta 30m check oven' }, { text: '/alerta 2h call mom' }],
+  dalert: [{ text: '/dalert 1' }],
+  listalert: [{ text: '/listalert' }],
+  password: [{ text: '/password' }, { text: '/password 20' }],
 };
 
 
@@ -93,6 +109,23 @@ export const COMMAND_WORKS_STEPS: Record<string, string[]> = {
   reverse: ['User sends /reverse command with text', 'Bot reverses the text string', 'Bot sends the reversed text back to the user'],
   capitalize: ['User sends /capitalize command with text', 'Bot capitalizes the first letter of each word in the text', 'Bot sends the capitalized text back to the user'],
   ipinfo: ['User sends /ipinfo command with an IP address', 'Bot retrieves geolocation and other information about the IP address', 'Bot sends this information back to the user'],
+  menu: ['User sends /menu command', 'Bot displays the main command menu with categories', 'User can browse and select commands from the menu'],
+  dog: ['User sends /dog command', 'Bot fetches a random dog image', 'Bot sends the dog photo to the user'],
+  cat: ['User sends /cat command', 'Bot fetches a random cat image', 'Bot sends the cat photo to the user'],
+  mydogs: ['User sends /mydogs command', 'Bot retrieves the user\'s saved dog photos', 'Bot displays the collection of saved dogs'],
+  mycats: ['User sends /mycats command', 'Bot retrieves the user\'s saved cat photos', 'Bot displays the collection of saved cats'],
+  xnx: ['User sends /xnx command with a search query', 'Bot searches for content matching the query', 'Bot sends the results to the user'],
+  tiktok: ['User sends /tiktok command with a TikTok URL', 'Bot processes and downloads the video without watermark', 'Bot sends the video file to the user'],
+  fb: ['User sends /fb command with a Facebook video URL', 'Bot extracts and downloads the video', 'Bot sends the video file to the user'],
+  xdl: ['User sends /xdl command with a media URL', 'Bot detects the platform and downloads the media', 'Bot sends the downloaded file to the user'],
+  help: ['User sends /help command', 'Bot generates a list of all available commands', 'Bot sends the help guide to the user'],
+  mail: ['User sends /mail command with recipient and message', 'Bot composes and sends the email', 'Bot confirms the email was sent successfully'],
+  quiz: ['User sends /quiz command', 'Bot generates a trivia question with multiple choices', 'User answers and bot reveals if it was correct'],
+  roman: ['User sends /roman command with a number or roman numeral', 'Bot converts between Arabic and Roman numerals', 'Bot sends the converted value back to the user'],
+  alerta: ['User sends /alerta command with time and message', 'Bot schedules the alert for the specified time', 'When time is up, bot sends the alert notification'],
+  dalert: ['User sends /dalert command with an alert ID', 'Bot finds and deletes the specified alert', 'Bot confirms the alert was removed'],
+  listalert: ['User sends /listalert command', 'Bot retrieves all active alerts for the user', 'Bot displays the list of scheduled alerts'],
+  password: ['User sends /password command with optional length', 'Bot generates a secure random password', 'Bot sends the generated password to the user'],
 };
 
 export function getExamples(slug: string): CommandExample[] {

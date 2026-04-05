@@ -92,9 +92,11 @@ export const fetchFavorites = (p: {
 
 export const fetchFilters = (): Promise<FiltersResponse> => json(`${BASE}/filters`);
 export const fetchRandom = (limit = 10): Promise<{ ok: boolean; items: FavoriteItem[] }> => json(`${BASE}/random?limit=${limit}`);
-export const deleteFavorite = (id: string): Promise<{ ok: boolean }> => json(`${BASE}/${id}`, { method: 'DELETE' });
-export const batchDeleteFavorites = (ids: string[]): Promise<{ ok: boolean; deleted: number }> =>
+export const deleteFavorite = (id: string): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string }> => json(`${BASE}/${id}`, { method: 'DELETE' });
+export const batchDeleteFavorites = (ids: string[]): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string; count: number }> =>
   json(`${BASE}/batch-delete`, { method: 'POST', body: JSON.stringify({ ids }) });
+export const undoDeleteFavorites = (ids: string[]): Promise<{ ok: boolean; restored: number }> =>
+  json(`${BASE}/undo`, { method: 'POST', body: JSON.stringify({ ids }) });
 export const moveFavorites = (ids: string[], collectionId: string | null): Promise<{ ok: boolean }> =>
   json(`${BASE}/move`, { method: 'PATCH', body: JSON.stringify({ ids, collectionId }) });
 

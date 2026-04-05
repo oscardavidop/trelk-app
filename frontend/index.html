@@ -1,60 +1,24 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="light">
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="format-detection" content="telephone=no" />
-  <title>Trelk</title>
+  <title>
+    Trelk Mini App - Manage your Trelk Account and Access Premium Features on the Go
+  </title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- <link rel="preconnect" href="https://fonts.googleapis.com" /> -->
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" /> -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
 <body class="bg-tg-bg text-tg-text font-sans antialiased">
   <div id="root"></div>
-
-<script type="text/javascript">
-  (function() {
-    const originalFetch = window.fetch;
-    // const URI_BASE = 'https://api.trelk.site';
-
-    window.fetch = async (input, init) => {
-      // 1. Manejar si el input es un string o un objeto Request
-      let url = typeof input === 'string' ? input : input.url;
-      
-      // 2. Solo añadir la base si la URL es relativa (empieza con /)
-      // if (url.startsWith('/')) {
-      //   url = `${URI_BASE}${url}`;
-      // }
-
-      try {
-        const response = await originalFetch(url, init);
-
-        // 3. Manejo de 401 sin bucle infinito
-        if (response.status === 401) {
-          console.warn("Sesión expirada. Redirigiendo...");
-          // En lugar de reload, mejor redirigir a login o limpiar token
-          // window.location.href = '/login'; 
-          return response; 
-        }
-
-        return response;
-      } catch (error) {
-        console.error("Error en fetch interceptor:", error);
-        throw error;
-      }
-    };
-  })();
-</script>
-
   <script type="module" src="/src/main.tsx"></script>
-
 </body>
 
 </html>

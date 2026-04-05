@@ -101,10 +101,15 @@ export default function CommandFavoritesPage() {
 
   const handleRemove = async (slug: string) => {
     haptic?.notificationOccurred('warning');
-    await remove(slug);
+    const removedItem = items.find((i) => i.command === slug);
     setItems((prev) => prev.filter((i) => i.command !== slug));
     setTotal((t) => Math.max(0, t - 1));
-    showToast(t('removed_from_favorites', 'Removed from favorites'), 'info');
+    await remove(slug, () => {
+      if (removedItem) {
+        setItems((prev) => [removedItem, ...prev]);
+        setTotal((t) => t + 1);
+      }
+    });
   };
 
   const handlePin = async (slug: string) => {
@@ -208,7 +213,7 @@ export default function CommandFavoritesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('search_favorites', 'Search favorites...')}
-            className="w-full h-full bg-tg-bg border border-tg-border/40 rounded-[14px] pl-10 pr-4 text-[15px] text-tg-text placeholder:text-tg-hint/70 outline-none focus:border-tg-accent/50 focus:ring-1 focus:ring-tg-accent/20 transition-all shadow-sm"
+            className="w-full h-full bg-tg-secondary border border-tg-border/40 rounded-[14px] pl-10 pr-4 text-[15px] text-tg-text placeholder:text-tg-hint/70 outline-none focus:border-tg-accent focus:border-2 focus:ring-1 focus:ring-tg-accent/20 transition-all"
           />
         </div>
 

@@ -16,11 +16,15 @@ function CommandHowItWorks({ slug, usage }: Props) {
   const [activeStep, setActiveStep] = useState(-1);
 
   const cmdName = usage.split(' ')[0] || `/${slug}`;
-  const steps = COMMAND_WORKS_STEPS[slug] || [
+  const rawSteps = COMMAND_WORKS_STEPS[slug] || [
     t('step_1', { cmd: cmdName }),
     t('step_2'),
     t('step_3'),
   ];
+  // Use i18n keys if available, fallback to English from mocks
+  const steps = rawSteps.map((fallback, i) =>
+    t(`steps.${slug}.${i}`, { defaultValue: fallback }),
+  );
 
   // Trigger animation when section enters viewport
   useEffect(() => {

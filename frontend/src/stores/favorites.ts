@@ -1,11 +1,14 @@
 import { create } from 'zustand';
+import i18next from 'i18next';
 import {
   fetchFavorites, fetchFilters, fetchCollections,
   deleteFavorite as apiDelete, batchDeleteFavorites as apiBatchDelete,
+  undoDeleteFavorites as apiUndoDelete,
   moveFavorites as apiMove,
   createCollection as apiCreateCol, updateCollection as apiUpdateCol, deleteCollection as apiDeleteCol,
   type FavoriteItem, type Collection, type ViewMode,
 } from '../services/favoritesApi';
+import { useUndoStore } from '../hooks/useUndo';
 
 interface FavoritesState {
   items: FavoriteItem[];
@@ -106,11 +109,28 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   setViewMode: (v) => { localStorage.setItem('fav_view', v); set({ viewMode: v }); },
 
   remove: async (id) => {
+    const removedItem = get().items.find((i) => i._id === id);
     try {
-      await apiDelete(id);
+      const res = await apiDelete(id);
       set((s) => {
         const next = new Set(s.selectedIds); next.delete(id);
         return { items: s.items.filter((i) => i._id !== id), total: Math.max(0, s.total - 1), selectedIds: next };
+      });
+
+      useUndoStore.getState().push({
+        id: res.jobId || `fav_${id}_${Date.now()}`,
+        message: i18next.t('favorites:removed', 'Removed from favorites'),
+        icon: 'star',
+        duration: 6000,
+        onUndo: async () => {
+          if (res.status === 'pending_delete') {
+            await apiUndoDelete([id]);
+          }
+          // In both modes, restore local state
+          if (removedItem) {
+            set((s) => ({ items: [removedItem, ...s.items], total: s.total + 1 }));
+          }
+        },
       });
     } catch (e: any) { set({ error: e.message }); }
   },
@@ -118,13 +138,33 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   removeSelected: async () => {
     const { selectedIds } = get();
     if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const removedItems = get().items.filter((i) => selectedIds.has(i._id));
     try {
-      const r = await apiBatchDelete(Array.from(selectedIds));
-      if (r.ok) set((s) => ({
-        items: s.items.filter((i) => !selectedIds.has(i._id)),
-        total: Math.max(0, s.total - r.deleted),
-        selectedIds: new Set<string>(), selectMode: false,
-      }));
+      const r = await apiBatchDelete(ids);
+      if (r.ok) {
+        set((s) => ({
+          items: s.items.filter((i) => !selectedIds.has(i._id)),
+          total: Math.max(0, s.total - r.count),
+          selectedIds: new Set<string>(), selectMode: false,
+        }));
+
+        useUndoStore.getState().push({
+          id: r.jobId || `fav_batch_${Date.now()}`,
+          message: i18next.t('favorites:removed_count', { count: r.count, defaultValue: `${r.count} removed` }),
+          icon: 'star',
+          duration: 6000,
+          onUndo: async () => {
+            if (r.status === 'pending_delete') {
+              await apiUndoDelete(ids);
+            }
+            set((s) => ({
+              items: [...removedItems, ...s.items],
+              total: s.total + removedItems.length,
+            }));
+          },
+        });
+      }
     } catch (e: any) { set({ error: e.message }); }
   },
 

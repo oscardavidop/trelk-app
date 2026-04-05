@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { History, HistoryDocument } from './schemas/history.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
+import { PendingDeleteService } from '../pending-delete/pending-delete.service';
 
 const STATS_CACHE_KEY = 'history:stats';
 const STATS_CACHE_TTL = 30; // 30s cache for stats
@@ -12,6 +13,7 @@ export class HistoryService {
   constructor(
     @InjectModel(History.name, 'mbot') private readonly historyModel: Model<HistoryDocument>,
     private readonly redis: RedisCacheService,
+    private readonly pendingDelete: PendingDeleteService,
   ) {}
 
   /**
@@ -21,10 +23,11 @@ export class HistoryService {
   async findPaginated(userId: number, offset: number, limit: number) {
     const safeLimit = Math.min(Math.max(limit, 1), 50);
     const safeOffset = Math.max(offset, 0);
+    const filter = { userId, visible: { $ne: false }, status: { $ne: 'pending_delete' } };
 
     const [items, total] = await Promise.all([
       this.historyModel
-        .find({ userId })
+        .find(filter)
         .select(['type', 'command', 'timestamp', 'args', 'achievementName'])
         .sort({ timestamp: -1 })
         .skip(safeOffset)
@@ -33,7 +36,7 @@ export class HistoryService {
         .exec(),
       // Only count on first page to avoid expensive counts on every scroll
       safeOffset === 0
-        ? this.historyModel.countDocuments({ userId }).exec()
+        ? this.historyModel.countDocuments(filter).exec()
         : Promise.resolve(-1),
     ]);
 
@@ -229,6 +232,78 @@ export class HistoryService {
     }
 
     return streak;
+  }
+
+  /**
+   * Mark specific history entries as pending_delete (with undo window), or hard delete in persistent mode.
+   */
+  async hideEntries(userId: number, ids: string[]): Promise<{ status: string; expiresAt: number; jobId: string; count: number }> {
+    if (!ids.length) return { status: 'deleted', expiresAt: 0, jobId: '', count: 0 };
+    const safeIds = ids.slice(0, 200);
+
+    let result: { expiresAt: number; jobId: string; count: number };
+    let status: string;
+
+    if (this.pendingDelete.isAwareMode) {
+      result = await this.pendingDelete.schedule('history', this.historyModel, safeIds, userId);
+      status = 'pending_delete';
+    } else {
+      const { count } = await this.pendingDelete.hardDelete(this.historyModel, safeIds, userId);
+      result = { expiresAt: 0, jobId: '', count };
+      status = 'deleted';
+    }
+
+    await this.redis.del(`${STATS_CACHE_KEY}:${userId}`);
+    return { status, ...result };
+  }
+
+  /**
+   * Mark ALL visible history entries as pending_delete (with undo window), or hard delete in persistent mode.
+   */
+  async hideAll(userId: number): Promise<{ status: string; expiresAt: number; jobId: string; count: number }> {
+    let result: { expiresAt: number; jobId: string; count: number };
+    let status: string;
+
+    if (this.pendingDelete.isAwareMode) {
+      result = await this.pendingDelete.scheduleAll(
+        'history',
+        this.historyModel,
+        userId,
+        { visible: { $ne: false } },
+      );
+      status = 'pending_delete';
+    } else {
+      const docs = await this.historyModel.find(
+        { userId, visible: { $ne: false } } as any,
+      ).select('_id').lean().exec();
+      const ids = docs.map((d: any) => d._id.toString());
+      const { count } = ids.length
+        ? await this.pendingDelete.hardDelete(this.historyModel, ids, userId)
+        : { count: 0 };
+      result = { expiresAt: 0, jobId: '', count };
+      status = 'deleted';
+    }
+
+    await this.redis.del(`${STATS_CACHE_KEY}:${userId}`);
+    return { status, ...result };
+  }
+
+  /**
+   * Undo pending_delete for specific history entries.
+   */
+  async undoEntries(userId: number, ids: string[]): Promise<{ restored: number }> {
+    const result = await this.pendingDelete.cancel(this.historyModel, ids, userId);
+    await this.redis.del(`${STATS_CACHE_KEY}:${userId}`);
+    return result;
+  }
+
+  /**
+   * Undo pending_delete for all entries with a specific jobId.
+   */
+  async undoAll(userId: number, jobId: string): Promise<{ restored: number }> {
+    const result = await this.pendingDelete.cancelByJobId(this.historyModel, jobId, userId);
+    await this.redis.del(`${STATS_CACHE_KEY}:${userId}`);
+    return result;
   }
 }
 

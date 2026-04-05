@@ -23,6 +23,15 @@ export class Favorite {
   @Prop({ type: SchemaTypes.ObjectId, default: null })
   collectionId: any;
 
+  @Prop({ type: String, default: 'active', enum: ['active', 'pending_delete'] })
+  status: string;
+
+  @Prop({ type: Number, default: null })
+  pendingDeleteAt: number | null;
+
+  @Prop({ type: String, default: null })
+  deleteJobId: string | null;
+
   @Prop()
   createdAt: Date;
 
@@ -41,3 +50,4 @@ FavoriteSchema.index(
   { 'data.caption': 'text', 'data.title': 'text' },
   { weights: { 'data.caption': 10, 'data.title': 5 }, default_language: 'spanish' },
 );
+FavoriteSchema.index({ status: 1, pendingDeleteAt: 1 });

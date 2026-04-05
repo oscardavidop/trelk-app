@@ -67,5 +67,7 @@
   "save_error": "Error al guardar",
   "share_text": "¡Mira este increíble bot de Telegram!",
   "link": "Enlace",
-  "try_these": "Prueba estos"
+  "try_these": "Prueba estos",
+  "undo": "Deshacer",
+  "action_undone": "Acción deshecha"
 }

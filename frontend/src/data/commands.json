@@ -57,13 +57,13 @@
     "description": "Establece una alerta o recordatorio.",
     "supportsInline": false,
     "alias": [
-      "alert",
       "task",
       "reminder",
-      "notify"
+      "notify",
+      "alerta"
     ],
     "protected": false,
-    "uniqueName": "alerta",
+    "uniqueName": "alert",
     "photos": [
       "1.png", "2.png", "3.png"
     ]
@@ -244,7 +244,10 @@
       "hablar"
     ],
     "protected": false,
-    "uniqueName": "tts"
+    "uniqueName": "tts",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [],
@@ -547,7 +550,10 @@
       "dnsquery"
     ],
     "protected": false,
-    "uniqueName": "dns"
+    "uniqueName": "dns",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
@@ -648,7 +654,10 @@
       "captura"
     ],
     "protected": false,
-    "uniqueName": "ssweb"
+    "uniqueName": "ssweb",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [

@@ -5,6 +5,7 @@ import { CommandFavorite, CommandFavoriteDocument } from './schemas/command-favo
 import { History, HistoryDocument } from '../history/schemas/history.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { CacheInvalidationService } from '../../core/resilience/cache-invalidation.service';
+import { PendingDeleteService } from '../pending-delete/pending-delete.service';
 import { AppError, ErrorCode } from '../../common/errors';
 
 const CACHE_PREFIX = 'cmd-fav';
@@ -20,6 +21,7 @@ export class CommandFavoritesService {
     @InjectModel(History.name) private readonly historyModel: Model<HistoryDocument>,
     private readonly redis: RedisCacheService,
     private readonly cacheInvalidation: CacheInvalidationService,
+    private readonly pendingDelete: PendingDeleteService,
   ) { }
 
   // ════════════════════════════════════════════════
@@ -31,7 +33,7 @@ export class CommandFavoritesService {
     const safeLimit = Math.min(Math.max(limit, 1), 100);
     const safeOffset = Math.max(offset, 0);
 
-    const filter: any = { userId };
+    const filter: any = { userId, status: { $ne: 'pending_delete' } };
     if (search) {
       filter.command = { $regex: search, $options: 'i' };
     }
@@ -45,7 +47,7 @@ export class CommandFavoritesService {
         .lean()
         .exec(),
       safeOffset === 0
-        ? this.favModel.countDocuments({ userId }).exec()
+        ? this.favModel.countDocuments(filter).exec()
         : Promise.resolve(-1),
     ]);
 
@@ -68,7 +70,9 @@ export class CommandFavoritesService {
       throw new AppError(ErrorCode.COMMAND_INVALID, 'Invalid command name', 400);
     }
 
-    const existing = await this.favModel.findOne({ userId, command: trimmed }).lean().exec();
+    const existing = await this.favModel.findOne({
+      userId, command: trimmed, status: { $ne: 'pending_delete' },
+    }).lean().exec();
 
     if (existing) {
       await this.favModel.deleteOne({ _id: existing._id });
@@ -81,20 +85,60 @@ export class CommandFavoritesService {
       command: trimmed,
       pinned: false,
       createdAt: Date.now(),
+      status: 'active',
     });
     await this.invalidateCache(userId);
     return { added: true };
   }
 
-  /** Remove a specific favorite */
-  async remove(userId: number, command: string): Promise<void> {
-    await this.favModel.deleteOne({ userId, command: command.trim().toLowerCase() });
+  /** Remove a specific favorite (with pending_delete + undo window, or hard delete in persistent mode) */
+  async remove(userId: number, command: string): Promise<{ status: string; expiresAt: number; jobId: string }> {
+    const trimmed = command.trim().toLowerCase();
+    const fav = await this.favModel.findOne({
+      userId, command: trimmed, status: { $ne: 'pending_delete' },
+    }).exec();
+
+    if (!fav) throw new AppError(ErrorCode.FAVORITE_NOT_FOUND, 'Favorite not found', 404);
+
+    if (this.pendingDelete.isAwareMode) {
+      const result = await this.pendingDelete.schedule(
+        'command_favorite', this.favModel, [fav._id.toString()], userId,
+      );
+      await this.invalidateCache(userId);
+      return { status: 'pending_delete', expiresAt: result.expiresAt, jobId: result.jobId };
+    }
+
+    // Persistent mode — hard delete immediately
+    await this.pendingDelete.hardDelete(this.favModel, [fav._id.toString()], userId);
     await this.invalidateCache(userId);
+    return { status: 'deleted', expiresAt: 0, jobId: '' };
+  }
+
+  /** Undo pending_delete for command-favorites */
+  async undoDelete(userId: number, commands?: string[], jobId?: string): Promise<{ restored: number }> {
+    let result: { restored: number };
+
+    if (jobId) {
+      result = await this.pendingDelete.cancelByJobId(this.favModel, jobId, userId);
+    } else if (commands?.length) {
+      const docs = await this.favModel.find({
+        userId, command: { $in: commands.map((c) => c.trim().toLowerCase()) }, status: 'pending_delete',
+      }).select('_id').lean().exec();
+      const ids = docs.map((d) => (d as any)._id.toString());
+      result = await this.pendingDelete.cancel(this.favModel, ids, userId);
+    } else {
+      throw new AppError(ErrorCode.COMMAND_INVALID, 'commands or jobId required', 400);
+    }
+
+    await this.invalidateCache(userId);
+    return result;
   }
 
   /** Toggle pin status */
   async togglePin(userId: number, command: string): Promise<{ pinned: boolean }> {
-    const fav = await this.favModel.findOne({ userId, command: command.trim().toLowerCase() }).exec();
+    const fav = await this.favModel.findOne({
+      userId, command: command.trim().toLowerCase(), status: { $ne: 'pending_delete' },
+    }).exec();
     if (!fav) throw new AppError(ErrorCode.FAVORITE_NOT_FOUND, 'Favorite not found', 404);
     fav.pinned = !fav.pinned;
     await fav.save();
@@ -111,8 +155,9 @@ export class CommandFavoritesService {
       return cached.includes(command.trim().toLowerCase());
     }
 
-    // Load all favorites into cache
-    const all = await this.favModel.find({ userId }).select('command').lean().exec();
+    const all = await this.favModel.find({
+      userId, status: { $ne: 'pending_delete' },
+    }).select('command').lean().exec();
     const commands = all.map((f) => f.command);
     await this.redis.set(cacheKey, commands, LIST_TTL);
 
@@ -125,7 +170,9 @@ export class CommandFavoritesService {
     const cached = await this.redis.get<string[]>(cacheKey);
     if (cached) return cached;
 
-    const all = await this.favModel.find({ userId }).select('command').lean().exec();
+    const all = await this.favModel.find({
+      userId, status: { $ne: 'pending_delete' },
+    }).select('command').lean().exec();
     const commands = all.map((f) => f.command);
     await this.redis.set(cacheKey, commands, LIST_TTL);
     return commands;

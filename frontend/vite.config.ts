@@ -42,6 +42,9 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           i18n: ['i18next', 'react-i18next'],
+          query: ['@tanstack/react-query'],
+          motion: ['framer-motion'],
+          dexie: ['dexie'],
         },
       },
     },

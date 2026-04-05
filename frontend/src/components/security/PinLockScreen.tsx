@@ -199,8 +199,10 @@ export default function PinLockScreen() {
     }
 
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-tg-bg overflow-y-auto">
-        <div className="px-5 pt-6 pb-4 flex items-center gap-3">
+      <div className="fixed inset-0 z-[9999] flex flex-col bg-tg-bg overflow-y-auto" style={{
+        top: 'var(--tg-top-offset, var(--tg-top-offset, env(--tg-top2-offset, 6px)))'
+      }}>
+        <div className="px-5 pt-4 pb-4 flex items-center gap-3">
           <button
             onClick={() => { setScreen('pin'); setPin(''); setError(''); }}
             className="w-9 h-9 rounded-full bg-tg-text/[0.04] flex items-center justify-center"
@@ -224,7 +226,7 @@ export default function PinLockScreen() {
                 value={recoveryAnswers[qid] || ''}
                 onChange={(e) => setRecoveryAnswers((prev) => ({ ...prev, [qid]: e.target.value }))}
                 placeholder={t('recovery_answer_placeholder')}
-                className="w-full px-3.5 py-3 rounded-xl bg-tg-bg/60 border border-tg-border/15 text-[14px] text-tg-text placeholder:text-tg-hint/40 focus:outline-none focus:border-tg-accent focus:border-2 focus:ring-1 focus:ring-tg-accent/20 transition-colors"
+                className="w-full px-3.5 py-3 rounded-xl bg-tg-bg/60 border border-tg-border/70 text-[14px] text-tg-text placeholder:text-tg-hint/40 focus:outline-none focus:border-tg-accent focus:border-2 focus:ring-1 focus:ring-tg-accent/20 transition-colors"
                 autoComplete="off"
               />
             </div>
@@ -237,7 +239,9 @@ export default function PinLockScreen() {
           )}
         </div>
 
-        <div className="px-5 py-4 pb-[env(safe-area-inset-bottom)]">
+        <div className="px-5 py-4" style={{
+          top: 'var(--tg-top-offset, var(--tg-top-offset, env(--tg-top2-offset, 6px)))'
+        }}>
           <button
             onClick={submitRecovery}
             disabled={recoveryLoading || myQuestionIds.some((qid) => !recoveryAnswers[qid]?.trim())}
@@ -288,11 +292,10 @@ export default function PinLockScreen() {
         {Array.from({ length: PIN_LENGTH }).map((_, i) => (
           <motion.div
             key={i}
-            className={`w-4 h-4 rounded-full transition-all duration-150 ${
-              i < pin.length
-                ? (screen === 'new-pin' ? 'bg-emerald-500 scale-110' : 'bg-tg-accent scale-110')
-                : 'bg-tg-text/10'
-            }`}
+            className={`w-4 h-4 rounded-full transition-all duration-150 ${i < pin.length
+              ? (screen === 'new-pin' ? 'bg-emerald-500 scale-110' : 'bg-tg-accent scale-110')
+              : 'bg-tg-text/10'
+              }`}
             animate={i < pin.length ? { scale: [1, 1.3, 1] } : {}}
             transition={{ duration: 0.15 }}
           />

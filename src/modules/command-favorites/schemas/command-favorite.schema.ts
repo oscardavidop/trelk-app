@@ -16,6 +16,15 @@ export class CommandFavorite {
 
   @Prop({ required: true })
   createdAt: number;
+
+  @Prop({ default: 'active' })
+  status: string;
+
+  @Prop()
+  pendingDeleteAt: number;
+
+  @Prop()
+  deleteJobId: string;
 }
 
 export const CommandFavoriteSchema = SchemaFactory.createForClass(CommandFavorite);
@@ -25,3 +34,5 @@ CommandFavoriteSchema.index({ userId: 1, command: 1 }, { unique: true });
 // Fast lookups sorted by time
 CommandFavoriteSchema.index({ userId: 1, createdAt: -1 });
 CommandFavoriteSchema.index({ command: 1 });
+// pending_delete cleanup
+CommandFavoriteSchema.index({ status: 1, pendingDeleteAt: 1 });

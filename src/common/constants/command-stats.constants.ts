@@ -1,6 +1,6 @@
 export const STATS_TTL = 120;           // 2min cache for aggregated stats
 export const WEEKLY_TTL = 3600;          // 60min cache for weekly usage
-export const RATING_LIMIT = 10;         // max ratings per hour
+export const RATING_LIMIT = 30;         // max ratings per hour
 export const REPORT_LIMIT = 5;          // max reports per 10 minutes
 export const REPORT_DEDUP_TTL = 86400;  // 24h dedup window
 export const REVIEW_SUMMARY_TTL = 60;   // 60s cache for review summary

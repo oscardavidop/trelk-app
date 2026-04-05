@@ -9,9 +9,11 @@ async function json<T = any>(url: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const err: any = new Error(body?.message || `HTTP ${res.status}`);
-    err.error_key = body?.error_key;
-    err.statusCode = body?.statusCode || res.status;
+    const errBody = body?.error ?? body;
+    const err: any = new Error(errBody?.message || `HTTP ${res.status}`);
+    err.error_key = errBody?.error_key || errBody?.code;
+    err.i18nKey = errBody?.i18nKey;
+    err.statusCode = res.status;
     throw err;
   }
   return res.json();

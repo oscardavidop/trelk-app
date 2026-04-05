@@ -358,8 +358,8 @@ export class UserService {
         id: Number(telegramId),
         [`config.premium_commands.${sanitizedKey}`]: { $exists: true },
         $or: [
-          { "pro_features.custom_commands.used_commands": { $gt: 0 } },
-          { "pro_features.custom_commands.used_commands": { $exists: false } }
+          // { "pro_features.custom_commands.used_commands": { $gt: 0 } },
+          // { "pro_features.custom_commands.used_commands": { $exists: false } }
         ]
       },
       {

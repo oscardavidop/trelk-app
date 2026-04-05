@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import moment from 'moment';
+
 import {
   X,
   Trash2,
@@ -237,7 +237,7 @@ export default function AlertDetailModal({
             {/* DATE */}
             <div className="flex items-center gap-2 bg-tg-bg p-3 rounded-[12px]">
               <Calendar size={12} />
-              <p>{moment(alert.runAt).format('MMMM Do YYYY, h:mm:ss a')}</p>
+              <p>{new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeStyle: 'medium' }).format(new Date(alert.runAt))}</p>
             </div>
           </div>
 

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor, Smartphone, Tablet, Globe, Trash2, Check, X,
-  Shield, Wifi, MapPin, Clock,
+  Shield, MapPin, Clock,
 } from 'lucide-react';
 import { useTelegram } from '../hooks/useTelegram';
 import { useHideIsland } from '../hooks/useHideIsland';
@@ -79,7 +79,15 @@ export default function SessionsPage() {
 
   return (
     <div className="pb-24 animate-fade-in relative">
-      <StickyHeader title={t('title')} subtitle={t('subtitle')} />
+      <StickyHeader 
+        title={t('title')} 
+        subtitle={t('subtitle')}
+        icon={
+          <div className="w-[42px] h-[42px] rounded-[14px] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Shield className="w-5 h-5 text-emerald-500" />
+          </div>
+        }
+      />
 
       <motion.div variants={staggerContainer} initial="initial" animate="animate">
         {/* ── Current Session ── */}
@@ -187,16 +195,19 @@ function CurrentSessionCard({ session, t }: { session: DeviceSession; t: (k: str
   return (
     <div className="p-4 relative">
       <div className="flex items-center gap-3.5">
-        <div className="w-[42px] h-[42px] rounded-[12px] bg-tg-accent/15 border border-tg-accent/20 flex items-center justify-center flex-shrink-0">
-          <Icon size={20} className="text-tg-accent" />
+        <div className="w-[46px] h-[46px] rounded-[14px] bg-tg-accent/12 border border-tg-accent/20 flex items-center justify-center flex-shrink-0 shadow-sm relative">
+          <Icon size={22} className="text-tg-accent" />
+          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-tg-secondary shadow-sm">
+            <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-50" />
+          </span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-tg-text truncate">
               {session.device || t('unknown_device')}
             </span>
-            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-tg-accent/15 text-tg-accent flex-shrink-0">
-              {t('current')}
+            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500 border border-emerald-500/15 flex-shrink-0">
+              {t('active_now')}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1.5 text-[12px] text-tg-hint/70">
@@ -206,32 +217,28 @@ function CurrentSessionCard({ session, t }: { session: DeviceSession; t: (k: str
                 {session.platform}
               </span>
             )}
-            <span className="flex items-center gap-1">
-              <Wifi size={11} className="text-emerald-500" />
-              {t('active_now')}
-            </span>
           </div>
         </div>
       </div>
 
       {/* Meta row */}
-      <div className="mt-3 pt-3 border-t border-tg-border/15 flex items-center gap-4 text-[11px] text-tg-hint/50">
+      <div className="mt-3 pt-3 border-t border-tg-border/15 grid grid-cols-3 gap-2">
         {session.ip && (
-          <span className="flex items-center gap-1">
-            <Shield size={10} />
-            {maskIp(session.ip)}
-          </span>
+          <div className="flex flex-col items-center gap-1 py-1.5">
+            <Shield size={12} className="text-tg-hint/40" />
+            <span className="text-[11px] font-medium text-tg-hint/60">{maskIp(session.ip)}</span>
+          </div>
         )}
         {session.location && (
-          <span className="flex items-center gap-1">
-            <MapPin size={10} />
-            {session.location}
-          </span>
+          <div className="flex flex-col items-center gap-1 py-1.5">
+            <MapPin size={12} className="text-tg-hint/40" />
+            <span className="text-[11px] font-medium text-tg-hint/60">{session.location}</span>
+          </div>
         )}
-        <span className="flex items-center gap-1">
-          <Clock size={10} />
-          {new Date(session.createdAt).toLocaleDateString()}
-        </span>
+        <div className="flex flex-col items-center gap-1 py-1.5">
+          <Clock size={12} className="text-tg-hint/40" />
+          <span className="text-[11px] font-medium text-tg-hint/60">{new Date(session.createdAt).toLocaleDateString()}</span>
+        </div>
       </div>
     </div>
   );
@@ -243,21 +250,26 @@ function OtherSessionRow({ session, t, showBorder, onRevoke }: {
   const Icon = getDeviceIcon(session);
   return (
     <div className={`flex items-center gap-3.5 p-4 ${showBorder ? 'border-b border-tg-border/15' : ''}`}>
-      <div className="w-[38px] h-[38px] rounded-[10px] bg-tg-hint/8 border border-tg-border/20 flex items-center justify-center flex-shrink-0">
-        <Icon size={18} className="text-tg-hint/60" />
+      <div className="w-[40px] h-[40px] rounded-[12px] bg-tg-hint/6 border border-tg-border/20 flex items-center justify-center flex-shrink-0">
+        <Icon size={18} className="text-tg-hint/50" />
       </div>
       <div className="flex-1 min-w-0">
         <span className="text-[14px] font-semibold text-tg-text truncate block">
           {session.device || t('unknown_device')}
         </span>
-        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-tg-hint/50">
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {session.platform && (
+            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-tg-hint/6 text-tg-hint/60">
+              {session.platform}
+            </span>
+          )}
           {session.location && (
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0.5 text-[11px] text-tg-hint/50">
               <MapPin size={9} />
               {session.location}
             </span>
           )}
-          <span className="flex items-center gap-0.5">
+          <span className="flex items-center gap-0.5 text-[11px] text-tg-hint/40">
             <Clock size={9} />
             {timeAgo(session.lastUsed, t)}
           </span>
@@ -266,9 +278,9 @@ function OtherSessionRow({ session, t, showBorder, onRevoke }: {
       <motion.button
         whileTap={MOTION.tap}
         onClick={onRevoke}
-        className="w-8 h-8 rounded-[10px] flex items-center justify-center bg-red-500/8 border border-red-500/15 active:bg-red-500/20 transition-colors flex-shrink-0"
+        className="w-9 h-9 rounded-[11px] flex items-center justify-center bg-red-500/8 border border-red-500/15 active:bg-red-500/20 transition-colors flex-shrink-0"
       >
-        <Trash2 size={14} className="text-red-400" />
+        <Trash2 size={15} className="text-red-400" />
       </motion.button>
     </div>
   );

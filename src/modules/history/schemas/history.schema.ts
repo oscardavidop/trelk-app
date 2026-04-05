@@ -28,6 +28,18 @@ export class History {
 
   @Prop({ required: true })
   date: string;
+
+  @Prop({ default: true })
+  visible: boolean;
+
+  @Prop({ type: String, default: 'active', enum: ['active', 'pending_delete'] })
+  status: string;
+
+  @Prop({ type: Number, default: null })
+  pendingDeleteAt: number | null;
+
+  @Prop({ type: String, default: null })
+  deleteJobId: string | null;
 }
 
 export const HistorySchema = SchemaFactory.createForClass(History);
@@ -38,4 +50,5 @@ HistorySchema.index({ command: 1 });
 HistorySchema.index({ type: 1 });
 HistorySchema.index({ timestamp: -1 });
 HistorySchema.index({ type: 1, timestamp: 1, command: 1 });
+HistorySchema.index({ status: 1, pendingDeleteAt: 1 });
 

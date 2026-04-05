@@ -12,6 +12,8 @@
   "change_pin": "Cambiar PIN",
   "lock_timeout": "Bloqueo automático",
   "lock_timeout_desc": "Bloquear después de inactividad",
+  "lock_now": "Bloquear ahora",
+  "lock_now_desc": "Requiere PIN para volver a entrar",
   "minutes": "minutos",
   "min_abbr": "m",
   "pin_enabled": "PIN activado",

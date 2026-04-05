@@ -26,6 +26,8 @@ function CommandScreenshots({ photos, cmdName }: Props) {
 
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [failedToLoad, setFailedToLoad] = useState<boolean[]>(new Array(images.length).fill(false));
+
 
   const touchStartX = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,13 +37,14 @@ function CommandScreenshots({ photos, cmdName }: Props) {
   const hasDragged = useRef(false); // <-- NUEVO: Detecta si hubo movimiento real
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  
 
   const openGallery = useCallback((i: number) => {
     // Si hubo un arrastre real, ignoramos el click
     if (hasDragged.current) return;
     setGalleryIdx(i)
   }, []);
-  
+
   const closeGallery = useCallback(() => setGalleryIdx(null), []);
 
   const goPrev = useCallback(() => {
@@ -112,7 +115,7 @@ function CommandScreenshots({ photos, cmdName }: Props) {
 
     const x = e.pageX - container.offsetLeft;
     const walk = (x - startX.current) * 1.2;
-    
+
     // Si el mouse se mueve más de 5px, lo consideramos un arrastre (no un click)
     if (Math.abs(walk) > 5) {
       hasDragged.current = true;
@@ -141,6 +144,22 @@ function CommandScreenshots({ photos, cmdName }: Props) {
     };
   }, [galleryIdx]);
 
+  
+
+  if (images.length > 0 && failedToLoad.some(status => status === true)) {
+    return (
+      <section className="px-5 mt-8">
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-3">
+          {t('preview')}
+        </h2>
+        <div className="flex items-center justify-center  bg-tg-secondary/70 backdrop-blur-xl rounded-[20px] border border-tg-border/30 p-5 shadow-sm">
+          <p className="text-tg-hint">{t('preview_unavailable')}</p>
+        </div>
+      </section>
+    );
+  }
+
+
   return (
     <section className="px-5 mt-8">
       <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider pl-1 mb-3">
@@ -154,7 +173,7 @@ function CommandScreenshots({ photos, cmdName }: Props) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
-        onContextMenu={(e)=> {e.preventDefault();}}
+        onContextMenu={(e) => { e.preventDefault(); }}
         initial="hidden"
         animate="show"
         variants={{ show: { transition: { staggerChildren: 0.08 } } }}
@@ -162,31 +181,40 @@ function CommandScreenshots({ photos, cmdName }: Props) {
       >
         {hasReal
           ? photos.map((url, i) => (
-              <motion.img
-                key={i}
-                variants={card}
-                src={`https://cdn.trelkbot.com/assets/img/commands/${cmdName}/${url}`}
-                alt={`Screenshot ${i + 1}`}
-                className="flex-shrink-0 w-[235px] h-[500px] rounded-[20px] cursor-pointer"
-                loading="lazy"
-                onClick={() => openGallery(i)}
-              />
-            ))
+            <motion.img
+              key={i}
+              variants={card}
+              src={`https://cdn.trelkbot.com/assets/img/commands/${cmdName}/${url}`}
+              alt={`Screenshot ${i + 1}`}
+              className="flex-shrink-0 w-[235px] h-[500px] rounded-[20px] cursor-pointer"
+              loading="lazy"
+              onClick={() => openGallery(i)}
+              onError={() => {
+                setFailedToLoad(prev => {
+                  const newState = [...prev];
+                  newState[i] = true;
+                  return newState;
+                });
+              }}
+
+            />
+          ))
           : MOCK_SCREENSHOTS.map((src, i) => (
-              <motion.div
-                key={i}
-                variants={card}
-                className="flex-shrink-0 w-[235px] h-[500px] rounded-[20px] cursor-pointer"
-                onClick={() => openGallery(i)}
-              >
-                <img
-                  src={src}
-                  alt={`Preview ${i + 1}`}
-                  className="w-full h-full object-contain"
-                  loading="lazy"
-                />
-              </motion.div>
-            ))}
+            <motion.div
+              key={i}
+              variants={card}
+              className="flex-shrink-0 w-[235px] h-[500px] rounded-[20px] cursor-pointer"
+              onClick={() => openGallery(i)}
+            >
+              <img
+                src={src}
+                alt={`Preview ${i + 1}`}
+                className="w-full h-full object-contain"
+                loading="lazy"
+                onError={() => setFailedToLoad(prev => ({ ...prev, [i]: true }))}
+              />
+            </motion.div>
+          ))}
       </motion.div>
 
       {/* DOTS NORMAL */}
@@ -198,11 +226,10 @@ function CommandScreenshots({ photos, cmdName }: Props) {
               const el = containerRef.current?.children[i] as HTMLElement;
               el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }}
-            className={`transition-all duration-300 rounded-full ${
-              i === activeIdx
+            className={`transition-all duration-300 rounded-full ${i === activeIdx
                 ? 'w-5 h-2 bg-tg-text'
                 : 'w-2 h-2 bg-tg-hint/40'
-            }`}
+              }`}
           />
         ))}
       </div>
@@ -276,11 +303,10 @@ function CommandScreenshots({ photos, cmdName }: Props) {
                       e.stopPropagation();
                       setGalleryIdx(i);
                     }}
-                    className={`transition-all duration-300 rounded-full ${
-                      i === galleryIdx
+                    className={`transition-all duration-300 rounded-full ${i === galleryIdx
                         ? 'w-5 h-2 bg-white'
                         : 'w-2 h-2 bg-white/40'
-                    }`}
+                      }`}
                   />
                 ))}
               </div>

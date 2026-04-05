@@ -15,3 +15,4 @@ export { default as CommandDetailSkeleton } from './CommandDetailSkeleton';
 export { default as CommandLivePreview } from './CommandLivePreview';
 export { default as CommandSignals } from './CommandSignals';
 export { default as CommandKnowledge } from './CommandKnowledge';
+export { default as CommandReliabilityScore } from './CommandReliabilityScore';

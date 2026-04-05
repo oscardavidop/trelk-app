@@ -57,6 +57,39 @@ export function fetchActivityStats(): Promise<ActivityStats> {
   return json(`${BASE}/stats`);
 }
 
+export async function deleteHistoryEntries(ids: string[]): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string; count: number }> {
+  const res = await authFetch(BASE, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function deleteAllHistory(): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string; count: number }> {
+  const res = await authFetch(BASE, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function undoHistoryDelete(ids?: string[], jobId?: string): Promise<{ ok: boolean; restored: number }> {
+  const body: Record<string, any> = {};
+  if (ids?.length) body.ids = ids;
+  if (jobId) body.jobId = jobId;
+  const res = await authFetch(`${BASE}/undo`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
 export function fetchGlobalStats(): Promise<GlobalStats> {
   return json(`${BASE}/global`);
 }

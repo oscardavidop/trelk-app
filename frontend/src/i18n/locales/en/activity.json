@@ -11,5 +11,14 @@
   "saved": "Saved",
   "in_favorites": "in favorites",
   "unlocked_achievement": "Unlocked achievement",
-  "unknown_action": "Unknown action"
+  "unknown_action": "Unknown action",
+  "this_week": "This week",
+  "delete_all": "Delete all",
+  "delete_selected": "Delete selected",
+  "confirm_delete_all": "Delete all history?",
+  "confirm_delete_selected": "Delete {{count}} items?",
+  "deleted": "History deleted",
+  "select": "Select",
+  "cancel": "Cancel",
+  "confirm": "Confirm"
 }

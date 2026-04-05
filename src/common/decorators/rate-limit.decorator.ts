@@ -21,10 +21,10 @@ export function RateLimit(...configs: RateLimitConfig[]) {
 
 // === Presets — common rate limit patterns ===
 
-/** Reviews: 5 req/min per user */
+/** Reviews: 15 req/min per user */
 export const ReviewRateLimit = () => RateLimit(
-  { limit: 5, window: 60, keyType: 'user' },
-  { limit: 15, window: 60, keyType: 'ip' },
+  { limit: 15, window: 60, keyType: 'user' },
+  { limit: 30, window: 60, keyType: 'ip' },
 );
 
 /** Reports: 2 req/min per user */

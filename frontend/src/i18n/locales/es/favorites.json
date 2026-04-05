@@ -12,5 +12,7 @@
   "confirm_delete_tap": "Toca de nuevo para confirmar",
   "delete_favorite": "Eliminar favorito",
   "go_back": "Volver",
-  "no_inspiration": "Sin inspiración disponible"
+  "no_inspiration": "Sin inspiración disponible",
+  "removed": "Eliminado de favoritos",
+  "removed_count": "{{count}} eliminados de favoritos"
 }

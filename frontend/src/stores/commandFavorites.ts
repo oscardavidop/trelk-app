@@ -1,13 +1,16 @@
 import { create } from 'zustand';
+import i18next from 'i18next';
 import {
   fetchFavoriteSet,
   toggleCommandFavorite,
   removeCommandFavorite,
+  undoCommandFavoriteDelete,
   togglePinCommand,
   fetchTrending,
   type CommandFavoriteItem,
   type TrendingCommand,
 } from '../services/commandFavoritesApi';
+import { useUndoStore } from '../hooks/useUndo';
 
 interface CommandFavoritesState {
   /** Set of favorited command slugs */
@@ -24,7 +27,7 @@ interface CommandFavoritesState {
   /** Toggle a command's favorite status — returns true if added */
   toggle: (command: string) => Promise<boolean>;
   /** Remove a favorite */
-  remove: (command: string) => Promise<void>;
+  remove: (command: string, onRestore?: () => void) => Promise<void>;
   /** Toggle pin on a favorite */
   togglePin: (command: string) => Promise<boolean>;
   /** Quick check if a command is favorited */
@@ -86,7 +89,7 @@ export const useCommandFavoritesStore = create<CommandFavoritesState>()((set, ge
     }
   },
 
-  remove: async (command: string) => {
+  remove: async (command: string, onRestore?: () => void) => {
     const slug = command.toLowerCase();
     const prev = new Set(get().favorites);
     const next = new Set(prev);
@@ -94,7 +97,28 @@ export const useCommandFavoritesStore = create<CommandFavoritesState>()((set, ge
     set({ favorites: next });
 
     try {
-      await removeCommandFavorite(slug);
+      const res = await removeCommandFavorite(slug);
+
+      const undoCallback = async () => {
+        if (res.status === 'pending_delete') {
+          await undoCommandFavoriteDelete([slug]);
+        } else {
+          // Persistent mode — re-add via toggle
+          await toggleCommandFavorite(slug);
+        }
+        const updated = new Set(get().favorites);
+        updated.add(slug);
+        set({ favorites: updated });
+        onRestore?.();
+      };
+
+      useUndoStore.getState().push({
+        id: res.jobId || `cf_${slug}_${Date.now()}`,
+        message: i18next.t('common:removed', 'Removed'),
+        icon: 'heart',
+        duration: 6000,
+        onUndo: undoCallback,
+      });
     } catch {
       set({ favorites: prev });
     }

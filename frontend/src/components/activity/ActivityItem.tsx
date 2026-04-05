@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { HistoryEntry } from '../../services/historyApi';
 import { useToastStore } from '../../stores';
-import { Terminal, Heart, Trophy, Copy, Check } from 'lucide-react';
+import { Terminal, Heart, Trophy, Copy, Check, Circle, CheckCircle2 } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 
 function timeAgo(ts: number, t: (key: string, opts?: any) => string): string {
@@ -19,9 +19,13 @@ function timeAgo(ts: number, t: (key: string, opts?: any) => string): string {
 interface ActivityItemProps {
   entry: HistoryEntry;
   onRerun?: (cmd: string, args?: string) => void;
+  selectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
+  onLongPress?: () => void;
 }
 
-export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
+export default function ActivityItem({ entry: e, onRerun, selectMode, isSelected, onToggleSelect, onLongPress }: ActivityItemProps) {
   const { t } = useTranslation('activity');
   const showToast = useToastStore((s) => s.show);
   const { haptic } = useTelegram();
@@ -81,8 +85,43 @@ export default function ActivityItem({ entry: e, onRerun }: ActivityItemProps) {
 
   const { Icon, bg, border, color } = getConfig();
 
+  // Long-press handler
+  const longPressTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const handlePointerDown = useCallback(() => {
+    if (selectMode) return;
+    longPressTimer.current = setTimeout(() => {
+      haptic?.impactOccurred('medium');
+      onLongPress?.();
+    }, 500);
+  }, [selectMode, haptic, onLongPress]);
+  const cancelLongPress = useCallback(() => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  }, []);
+
+  const handleClick = () => {
+    if (selectMode) {
+      haptic?.impactOccurred('light');
+      onToggleSelect?.();
+    }
+  };
+
   return (
-    <div className="w-full flex items-center gap-3.5 p-4 active:bg-tg-hint/5 transition-colors group">
+    <div
+      className={`w-full flex items-center gap-3.5 p-4 active:bg-tg-hint/5 transition-colors group ${selectMode ? 'cursor-pointer' : ''} ${isSelected ? 'bg-tg-accent/5' : ''}`}
+      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      onPointerUp={cancelLongPress}
+      onPointerLeave={cancelLongPress}
+    >
+      {/* ── Select checkbox ── */}
+      {selectMode && (
+        <div className="flex-shrink-0">
+          {isSelected
+            ? <CheckCircle2 size={22} className="text-tg-accent" />
+            : <Circle size={22} className="text-tg-hint/30" />
+          }
+        </div>
+      )}
       
       {/* ── Icono Estilo iOS ── */}
       <div className={`w-[42px] h-[42px] rounded-[12px] flex items-center justify-center flex-shrink-0 shadow-sm border ${bg} ${border} transition-transform duration-200 group-active:scale-90`}>

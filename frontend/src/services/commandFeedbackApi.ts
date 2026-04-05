@@ -18,7 +18,10 @@ async function json<T = unknown>(url: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error((body as any)?.message ?? `HTTP ${res.status}`);
+    const err: any = new Error((body as any)?.error?.message ?? (body as any)?.message ?? `HTTP ${res.status}`);
+    err.i18nKey = (body as any)?.error?.i18nKey;
+    err.status = res.status;
+    throw err;
   }
   return res.json() as Promise<T>;
 }

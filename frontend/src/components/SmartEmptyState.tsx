@@ -54,7 +54,7 @@ function SmartEmptyState({ context, title, description }: Props) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="p-8 rounded-[24px] bg-tg-secondary border border-tg-border/40 text-center shadow-sm flex flex-col items-center justify-center"
+      className="p-8 px-4 rounded-[24px] bg-tg-secondary border border-tg-border/40 text-center shadow-sm flex flex-col items-center justify-center"
     >
       <div className="w-[56px] h-[56px] rounded-[16px] bg-tg-hint/10 flex items-center justify-center mb-4 shadow-inner">
         <Icon size={28} className="text-tg-hint/40" />

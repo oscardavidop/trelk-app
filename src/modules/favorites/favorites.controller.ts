@@ -50,15 +50,23 @@ export class FavoritesController {
 
   @Delete(':id')
   async deleteOne(@Param('id') id: string, @Req() req: any) {
-    await this.svc.deleteById(id, this.uid(req));
-    return { ok: true };
+    const result = await this.svc.deleteById(id, this.uid(req));
+    return { ok: true, ...result };
   }
 
   @Post('batch-delete')
   async batchDelete(@Body() body: { ids: string[] }, @Req() req: any) {
     if (!Array.isArray(body.ids) || body.ids.length === 0) throw new BadRequestException('ids required');
     if (body.ids.length > 100) throw new BadRequestException('Max 100 ids');
-    return { ok: true, ...(await this.svc.deleteBatch(body.ids, this.uid(req))) };
+    const result = await this.svc.deleteBatch(body.ids, this.uid(req));
+    return { ok: true, ...result };
+  }
+
+  @Post('undo')
+  async undo(@Body() body: { ids: string[] }, @Req() req: any) {
+    if (!Array.isArray(body.ids) || body.ids.length === 0) throw new BadRequestException('ids required');
+    const result = await this.svc.undoDelete(body.ids, this.uid(req));
+    return { ok: true, ...result };
   }
 
   @Patch('move')

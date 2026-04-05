@@ -1,12 +1,22 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import moment from 'moment';
 import { GitBranch, Tag, Clock, Plus, Bug, Sparkles, Trash2, ChevronDown, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { loadChangelog, hasChangelog } from '../../../utils/changelogLoader';
 import type { ParsedChangelog, ChangelogVersion, ChangeType } from '../../../utils/parseChangelog';
 import CommandChangelogModal from './CommandChangelogModal';
+
+const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+function timeAgo(date: string): string {
+  const sec = (Date.now() - new Date(date).getTime()) / 1000;
+  if (sec < 60) return rtf.format(-Math.round(sec), 'second');
+  if (sec < 3600) return rtf.format(-Math.round(sec / 60), 'minute');
+  if (sec < 86400) return rtf.format(-Math.round(sec / 3600), 'hour');
+  if (sec < 2592000) return rtf.format(-Math.round(sec / 86400), 'day');
+  if (sec < 31536000) return rtf.format(-Math.round(sec / 2592000), 'month');
+  return rtf.format(-Math.round(sec / 31536000), 'year');
+}
 
 /* ── Section styling by type ── */
 export const SECTION_META: Record<ChangeType, { icon: typeof Plus; color: string; labelKey: string }> = {
@@ -41,7 +51,7 @@ export function VersionCard({ v, defaultOpen }: { v: ChangelogVersion; defaultOp
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="flex items-center gap-1 text-tg-hint/80 bg-tg-bg/40 px-2 py-0.5 rounded-[6px] border border-tg-border/30">
             <Clock size={10} />
-            <span className="text-[10px] font-bold uppercase tracking-wider">{moment(v.date).fromNow()}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">{timeAgo(v.date)}</span>
           </div>
           <ChevronDown
             size={14}

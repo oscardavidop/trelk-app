@@ -16,6 +16,7 @@ import { HistoryModule } from './modules/history/history.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { CommandFavoritesModule } from './modules/command-favorites/command-favorites.module';
 import { CommandStatsModule } from './modules/command-stats/command-stats.module';
+import { CommandReliabilityModule } from './modules/command-reliability/command-reliability.module';
 import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { NotificationModule } from './modules/notifications/notification.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
@@ -30,6 +31,7 @@ import { SearchModule } from './modules/search/search.module';
 import { DeepLinkModule } from './modules/deep-link/deep-link.module';
 import { PersonalizationModule } from './modules/personalization/personalization.module';
 import { AnalyticsTrackingModule } from './modules/analytics-tracking/analytics-tracking.module';
+import { PendingDeleteModule } from './modules/pending-delete/pending-delete.module';
 import { ResilienceModule } from './core/resilience';
 import { UserStateModule } from './core/user-state';
 import { LiveTrackingInterceptor } from './modules/live/live-tracking.interceptor';
@@ -86,6 +88,7 @@ import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config'
     GamificationModule,
     CommandFavoritesModule,
     CommandStatsModule,
+    CommandReliabilityModule,
     SuggestionsModule,
     NotificationModule,
     RecommendationsModule,
@@ -100,6 +103,7 @@ import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config'
     DeepLinkModule,
     PersonalizationModule,
     AnalyticsTrackingModule,
+    PendingDeleteModule,
     ResilienceModule,
     UserStateModule,
   ],

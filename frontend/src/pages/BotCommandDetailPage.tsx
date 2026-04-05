@@ -7,11 +7,11 @@ import { useTelegram } from '../hooks/useTelegram';
 import { useToastStore, useUserStore } from '../stores';
 import { useBotStatus } from '../hooks/useBotStatus';
 import { BOT_COMMANDS, findCommand, cmdSlug } from '../data/botCommands';
-import { getExamples, getComments } from '../data/commandMocks';
+import { getExamples } from '../data/commandMocks';
 import {
-  fetchCommandStats, fetchMyRating, submitRating, fetchMyReportStatus,
+  fetchCommandStats, submitRating, fetchMyReportStatus,
   fetchReviewsSummary, fetchReviews, fetchMyReview, toggleReviewHelpful,
-  deleteMyReview, reportReview, fetchCommandSignals, fetchCommandKnowledge,
+  deleteMyReview, reportReview, fetchCommandSignals,
   type CommandStatsData, type ReviewsSummary, type Review, type MyReview,
 } from '../services/commandStatsApi';
 import ReportErrorModal from '../components/commands/ReportErrorModal';
@@ -19,10 +19,6 @@ import CommandReviewsModal from '../components/commands/detail/CommandReviewsMod
 import CommandFeedback from '@/components/commands/CommandFeedback';
 import { trackCommandView } from '../hooks/useRecentlyViewedCommands';
 import { AlertTriangle, Send } from 'lucide-react';
-import { getCategoryBrand } from '../design';
-import { StickySectionHeader } from '@/components/StickyHeader';
-// useScrollCollapse hooks available if needed
-// import { useScrollEnd, useScrollHeader, useScrollHeaderDebounced } from '@/hooks/useScrollCollapse';
 import { useCommandFavoritesStore } from '../stores/commandFavorites';
 import { ReviewSummaryCard, WriteReview, ReviewPreview, ReviewSummarySkeleton, ReviewAISummary, ReviewHighlights } from '../components/commands/reviews';
 
@@ -42,7 +38,7 @@ import {
   CommandDetailSkeleton,
   CommandLivePreview,
   CommandSignals,
-  CommandKnowledge,
+  CommandReliabilityScore,
 } from '../components/commands/detail';
 
 /* ─── Page animation variants ─── */
@@ -69,7 +65,6 @@ export default function BotCommandDetailPage() {
   const { t: tUi } = useTranslation('ui');
   const { t: tReports } = useTranslation('reports');
   const showToast = useToastStore((s) => s.show);
-  const { status: botStatus } = useBotStatus();
   const { user: appUser } = useUserStore();
   const currentUserId = appUser?.authTelegram?.id;
 
@@ -123,9 +118,8 @@ export default function BotCommandDetailPage() {
       }),
     ]).finally(() => setLoading(false));
 
-    // Prefetch signals & knowledge
+    // Prefetch signals
     queryClient.prefetchQuery({ queryKey: ['command-signals', mainSlug], queryFn: () => fetchCommandSignals(mainSlug), staleTime: 30_000 });
-    queryClient.prefetchQuery({ queryKey: ['command-knowledge', mainSlug], queryFn: () => fetchCommandKnowledge(mainSlug), staleTime: 300_000 });
   }, [mainSlug, queryClient]);
 
   /* ── Reviews data (React Query) ── */
@@ -151,7 +145,7 @@ export default function BotCommandDetailPage() {
     enabled: !!mainSlug,
     staleTime: 60_0000, // 
     // enable cache for my review since it's used in multiple places (mainly to avoid refetching when going to full reviews page)
-    
+
   });
   const myReview = myReviewData?.review ?? null;
 
@@ -227,7 +221,8 @@ export default function BotCommandDetailPage() {
       fetchCommandStats(mainSlug).then(setStats).catch(() => { });
       return true;
     } catch (error: any) {
-      const key = error.error_key;
+      const i18n = error.i18nKey || error.error_key;
+      const key = i18n ? i18n.replace('.', ':') : null;
       showToast(key ? t(key) : t('error_system'), 'error');
       throw error;
     } finally {
@@ -323,20 +318,6 @@ export default function BotCommandDetailPage() {
         exit="exit"
         className="pb-28 relative max-w-[480px] mx-auto"
       >
-        {/* ── Bot status warning ── */}
-        {botStatus && botStatus !== 'online' && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`mx-5 mt-3 mb-1 px-4 py-3 rounded-[16px] flex items-center gap-3 text-[13px] font-medium ${botStatus === 'degraded'
-              ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-              : 'bg-red-500/10 text-red-500 border border-red-500/20'
-              }`}
-          >
-            <AlertTriangle size={16} className="flex-shrink-0" />
-            <span>{tUi('command_status_warning')}</span>
-          </motion.div>
-        )}
 
         <CommandHero
           cmd={cmd}
@@ -400,13 +381,6 @@ export default function BotCommandDetailPage() {
           {stats && (
             <motion.div variants={sectionVariant} className="mt-5">
               <CommandStatsRow stats={stats} />
-            </motion.div>
-          )}
-
-          {/* Community Signals */}
-          {mainSlug && (
-            <motion.div variants={sectionVariant}>
-              <CommandSignals slug={mainSlug} />
             </motion.div>
           )}
 
@@ -514,6 +488,20 @@ export default function BotCommandDetailPage() {
             />
           </motion.div>
 
+
+          {/* Reliability Score */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandReliabilityScore slug={mainSlug} />
+            </motion.div>
+          )}
+          
+          {/* Community Signals */}
+          {mainSlug && (
+            <motion.div variants={sectionVariant}>
+              <CommandSignals slug={mainSlug} />
+            </motion.div>
+          )}
           {/* Feedback */}
           <motion.div variants={sectionVariant} className="px-5 mt-10">
             <div className="w-full h-px bg-tg-border/40 mb-8" />

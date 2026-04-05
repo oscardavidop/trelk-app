@@ -67,5 +67,7 @@
   "save_error": "Error saving",
   "share_text": "Check out this amazing Telegram bot!",
   "link": "Link",
-  "try_these": "Try these"
+  "try_these": "Try these",
+  "undo": "Undo",
+  "action_undone": "Action undone"
 }

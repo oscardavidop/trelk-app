@@ -37,7 +37,7 @@ export default function CommandFilters({
       <div className="flex gap-2.5">
         
         {/* Buscador */}
-        <div className="flex-1 flex items-center gap-2.5 px-3.5 py-3 bg-tg-text/[0.03] border border-tg-border/30 rounded-[16px] shadow-inner focus-within:border-tg-accent/50 focus-within:bg-tg-text/[0.01] transition-all">
+        <div className="flex-1 flex items-center gap-2.5 px-3.5 py-3 bg-tg-text/[0.03] border-2 border-tg-border/30 rounded-[16px] shadow-inner focus-within:border-tg-accent focus-within:border-2 transition-all">
           <Search className="w-[18px] h-[18px] text-tg-hint/70 shrink-0" />
           <input
             type="search"

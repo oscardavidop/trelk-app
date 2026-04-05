@@ -134,7 +134,7 @@ export default function PremiumCommandsPage() {
 
       {/* ── Search ── */}
       <motion.div variants={staggerItem} className="px-5 mt-4">
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-tg-secondary/60 border border-tg-border/30 rounded-[14px] focus-within:border-tg-accent/40 transition-colors">
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-tg-secondary/60 border border-tg-border/30 rounded-[14px] focus-within:border-tg-accent focus-within:border-2 transition-colors">
           <Search className="w-4 h-4 text-tg-hint/60 shrink-0" />
           <input
             type="search"

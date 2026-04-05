@@ -10,6 +10,7 @@ import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Favorite, FavoriteDocument } from './schemas/favorite.schema';
 import { FavCollection, FavCollectionDocument } from './schemas/fav-collection.schema';
+import { PendingDeleteService } from '../pending-delete/pending-delete.service';
 import fs, { createReadStream, existsSync, statSync } from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
@@ -41,6 +42,7 @@ export class FavoritesService {
     @InjectModel(Favorite.name, 'mbot') private readonly favoriteModel: Model<FavoriteDocument>,
     @InjectModel(FavCollection.name) private readonly collectionModel: Model<FavCollectionDocument>,
     private readonly configService: ConfigService,
+    private readonly pendingDelete: PendingDeleteService,
   ) {
     this.botToken = this.configService.get<string>('BOT_TOKEN')!;
     this.apiUrl = this.configService.get<string>('TELEGRAM_API_URL') || 'https://api.telegram.org';
@@ -57,7 +59,7 @@ export class FavoritesService {
     limit = 24,
     filters?: FavoritesFilter,
   ): Promise<PaginatedFavorites> {
-    const query: Record<string, any> = { userId };
+    const query: Record<string, any> = { userId, status: { $ne: 'pending_delete' } };
 
     if (cursor && Types.ObjectId.isValid(cursor)) {
       query._id = { $lt: new Types.ObjectId(cursor) };
@@ -128,32 +130,111 @@ export class FavoritesService {
     };
   }
 
-  async deleteById(id: string, userId: number): Promise<void> {
+  async deleteById(id: string, userId: number): Promise<{ status: string; expiresAt: number; jobId: string }> {
     if (!Types.ObjectId.isValid(id)) throw new NotFoundException('Invalid ID');
     const fav = await this.favoriteModel.findById(id).lean().exec();
     if (!fav) throw new NotFoundException('Not found');
     if (fav.userId !== userId) throw new ForbiddenException('Not your favorite');
-    await this.favoriteModel.deleteOne({ _id: id });
-    // Decrement collection count
+    if ((fav as any).status === 'pending_delete') throw new BadRequestException('Already pending delete');
+
+    if (this.pendingDelete.isAwareMode) {
+      const result = await this.pendingDelete.schedule('favorite', this.favoriteModel, [id], userId);
+
+      // Decrement collection count (will be restored on undo)
+      if (fav.collectionId) {
+        await this.collectionModel.updateOne(
+          { _id: fav.collectionId, userId },
+          { $inc: { count: -1 } },
+        );
+      }
+
+      return { status: 'pending_delete', expiresAt: result.expiresAt, jobId: result.jobId };
+    }
+
+    // Persistent mode — hard delete
+    await this.pendingDelete.hardDelete(this.favoriteModel, [id], userId);
     if (fav.collectionId) {
       await this.collectionModel.updateOne(
         { _id: fav.collectionId, userId },
         { $inc: { count: -1 } },
       );
     }
+    return { status: 'deleted', expiresAt: 0, jobId: '' };
   }
 
-  async deleteBatch(ids: string[], userId: number): Promise<{ deleted: number }> {
-    const objectIds = ids.filter((id) => Types.ObjectId.isValid(id)).map((id) => new Types.ObjectId(id));
-    if (objectIds.length === 0) return { deleted: 0 };
-    const result = await this.favoriteModel.deleteMany({ _id: { $in: objectIds }, userId });
-    return { deleted: result.deletedCount };
+  async deleteBatch(ids: string[], userId: number): Promise<{ status: string; expiresAt: number; jobId: string; count: number }> {
+    const validIds = ids.filter((id) => Types.ObjectId.isValid(id));
+    if (validIds.length === 0) return { status: 'deleted', expiresAt: 0, jobId: '', count: 0 };
+
+    // Get collection info before marking/deleting
+    const favs = await this.favoriteModel.find(
+      { _id: { $in: validIds }, userId, status: { $ne: 'pending_delete' } },
+    ).select('collectionId').lean().exec();
+
+    let result: { expiresAt: number; jobId: string; count: number };
+    let status: string;
+
+    if (this.pendingDelete.isAwareMode) {
+      result = await this.pendingDelete.schedule('favorite', this.favoriteModel, validIds, userId);
+      status = 'pending_delete';
+    } else {
+      const { count } = await this.pendingDelete.hardDelete(this.favoriteModel, validIds, userId);
+      result = { expiresAt: 0, jobId: '', count };
+      status = 'deleted';
+    }
+
+    // Decrement collection counts
+    const colCounts = new Map<string, number>();
+    for (const fav of favs) {
+      if (fav.collectionId) {
+        const key = String(fav.collectionId);
+        colCounts.set(key, (colCounts.get(key) || 0) + 1);
+      }
+    }
+    for (const [colId, count] of colCounts) {
+      await this.collectionModel.updateOne(
+        { _id: colId, userId },
+        { $inc: { count: -count } },
+      );
+    }
+
+    return { status, ...result };
+  }
+
+  // ════════════════════════════════════════════════
+  // UNDO
+  // ════════════════════════════════════════════════
+
+  async undoDelete(ids: string[], userId: number): Promise<{ restored: number }> {
+    const result = await this.pendingDelete.cancel(this.favoriteModel, ids, userId);
+
+    // Restore collection counts
+    const favs = await this.favoriteModel.find(
+      { _id: { $in: ids }, userId },
+    ).select('collectionId').lean().exec();
+
+    const colCounts = new Map<string, number>();
+    for (const fav of favs) {
+      if (fav.collectionId) {
+        const key = String(fav.collectionId);
+        colCounts.set(key, (colCounts.get(key) || 0) + 1);
+      }
+    }
+    for (const [colId, count] of colCounts) {
+      await this.collectionModel.updateOne(
+        { _id: colId, userId },
+        { $inc: { count } },
+      );
+    }
+
+    return result;
   }
 
   async getFilters(userId: number): Promise<{ contexts: string[]; engines: string[] }> {
+    const baseFilter = { userId, status: { $ne: 'pending_delete' } };
     const [contexts, engines] = await Promise.all([
-      this.favoriteModel.distinct('context', { userId }),
-      this.favoriteModel.distinct('engine', { userId }),
+      this.favoriteModel.distinct('context', baseFilter),
+      this.favoriteModel.distinct('engine', baseFilter),
     ]);
     return { contexts: contexts.sort(), engines: engines.sort() };
   }
@@ -183,7 +264,7 @@ export class FavoritesService {
 
   async getRandomFavorites(userId: number, limit = 10): Promise<any[]> {
     return this.favoriteModel.aggregate([
-      { $match: { userId, 'data.photo': { $exists: true, $ne: [] } } },
+      { $match: { userId, status: { $ne: 'pending_delete' }, 'data.photo': { $exists: true, $ne: [] } } },
       { $sample: { size: limit } },
     ]).exec();
   }

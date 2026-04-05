@@ -84,7 +84,7 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
         <span className="text-[13px] font-semibold text-tg-text truncate max-w-[140px] tracking-wide pr-1.5">
           {name}
         </span>
-        <BotStatusIndicator />
+        {/* <BotStatusIndicator /> */}
       </div>
     </div>
   );

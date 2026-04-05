@@ -57,12 +57,32 @@ export async function toggleCommandFavorite(command: string): Promise<{ added: b
   return { added: data.added };
 }
 
-/** Remove a favorite */
-export async function removeCommandFavorite(command: string): Promise<void> {
+/** Remove a favorite (returns pending_delete info for undo) */
+export async function removeCommandFavorite(command: string): Promise<{
+  status: string; expiresAt: number; jobId: string;
+}> {
   const res = await authFetch(`${BASE}/${encodeURIComponent(command)}`, {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error(`remove favorite ${res.status}`);
+  return res.json();
+}
+
+/** Undo pending_delete for command-favorites */
+export async function undoCommandFavoriteDelete(
+  commands?: string[],
+  jobId?: string,
+): Promise<{ ok: boolean; restored: number }> {
+  const body: Record<string, any> = {};
+  if (commands?.length) body.commands = commands;
+  if (jobId) body.jobId = jobId;
+  const res = await authFetch(`${BASE}/undo`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`undo command favorite ${res.status}`);
+  return res.json();
 }
 
 /** Toggle pin on a favorite */

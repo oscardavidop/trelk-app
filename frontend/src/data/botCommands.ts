@@ -124,7 +124,10 @@ function checkPhotos(){
   console.log(`Checked command photos, ${missingPhotos.length} missing out of ${BOT_COMMANDS.length}`);
 }
 
-checkPhotos();
+if (import.meta.env.DEV) {
+  // Defer to avoid blocking initial render
+  setTimeout(checkPhotos, 3000);
+}
 /** Get the primary name (first alias) */
 export function cmdSlug(cmd: BotCommand): string {
   return cmd.uniqueName || cmd.name[0];

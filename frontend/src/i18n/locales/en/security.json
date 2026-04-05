@@ -12,6 +12,8 @@
   "change_pin": "Change PIN",
   "lock_timeout": "Auto-lock",
   "lock_timeout_desc": "Lock after inactivity",
+  "lock_now": "Lock now",
+  "lock_now_desc": "Requires PIN to re-enter",
   "minutes": "minutes",
   "min_abbr": "m",
   "pin_enabled": "PIN enabled",

@@ -197,6 +197,12 @@ export class AnalyticsService {
     return null;
   }
 
+  // ╔══════════════════════════════════════════════════╗
+  // ║  MOCK MODE — set to true to return mock signals ║
+  // ║  Comment out or set false for real data          ║
+  // ╚══════════════════════════════════════════════════╝
+  private readonly USE_MOCK_SIGNALS = true;
+
   async getCommandSignals(slug: string): Promise<{
     activeUsersNow: number;
     trendingScore: number;
@@ -204,6 +210,18 @@ export class AnalyticsService {
     trendDelta: number;
     discussionsCount: number;
   }> {
+    // ── MOCK ─────────────────────────────────────
+    if (this.USE_MOCK_SIGNALS) {
+      return {
+        activeUsersNow: 3 + Math.floor(Math.random() * 12),
+        trendingScore: 1.5 + +(Math.random() * 2).toFixed(2),
+        regionTrend: true,
+        trendDelta: 5 + Math.floor(Math.random() * 15),
+        discussionsCount: 2 + Math.floor(Math.random() * 8),
+      };
+    }
+    // ─────────────────────────────────────────────
+
     const cacheKey = `signals:${slug}`;
     const cached = await this.redis.get<any>(cacheKey);
     if (cached) return cached;

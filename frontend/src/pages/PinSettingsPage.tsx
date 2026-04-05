@@ -235,7 +235,7 @@ export default function PinSettingsPage() {
   const { t } = useTranslation('security');
   const { haptic } = useTelegram();
   const queryClient = useQueryClient();
-  const { setPinEnabled } = useSecurityStore();
+  const { setPinEnabled, setVerified } = useSecurityStore();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -835,13 +835,30 @@ export default function PinSettingsPage() {
 
                 <button
                   onClick={() => startPinEntry('disable')}
-                  className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left active:bg-tg-hint/8 transition-colors"
+                  className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left active:bg-tg-hint/8 transition-colors border-b border-tg-border/40"
                 >
                   <div className="w-9 h-9 rounded-[11px] bg-red-500/10 border border-red-500/15 flex items-center justify-center">
                     <ShieldOff size={17} className="text-red-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[15px] font-semibold text-tg-text">{t('disable_pin')}</div>
+                  </div>
+                  <ChevronRight size={17} className="text-tg-hint/30" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    haptic?.impactOccurred('medium');
+                    setVerified(false);
+                  }}
+                  className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left active:bg-tg-hint/8 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-[11px] bg-orange-500/10 border border-orange-500/15 flex items-center justify-center">
+                    <Lock size={17} className="text-orange-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[15px] font-semibold text-tg-text">{t('lock_now')}</div>
+                    <div className="text-[12px] text-tg-hint mt-0.5">{t('lock_now_desc')}</div>
                   </div>
                   <ChevronRight size={17} className="text-tg-hint/30" />
                 </button>

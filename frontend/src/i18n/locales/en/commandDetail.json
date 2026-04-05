@@ -233,6 +233,18 @@
   "active_discussions": "{{count}} discussions",
   "signals_hot": "On fire",
 
+  "reliability_score": "Reliability Score",
+  "reliability_excellent": "Excellent",
+  "reliability_good": "Good",
+  "reliability_fair": "Fair",
+  "reliability_poor": "Poor",
+  "executions": "executions",
+  "avg": "avg",
+  "success": "Success",
+  "failures": "Failures",
+  "last_24h": "Last 24h",
+  "now": "now",
+
   "reviews_highlights": "What people say",
   "reviews_highlights_empty": "No insights yet. Be the first to review.",
 

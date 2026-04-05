@@ -9,7 +9,6 @@ import { CommandFavoritesService } from './command-favorites.service';
 @UseGuards(BearerAuthGuard)
 export class CommandFavoritesController {
   constructor(private readonly svc: CommandFavoritesService) {}
-
   /** GET / — paginated favorites list */
   @Get()
   async list(
@@ -39,12 +38,22 @@ export class CommandFavoritesController {
     return { ok: true, ...result };
   }
 
-  /** DELETE /:command — remove specific favorite */
+  /** DELETE /:command — remove specific favorite (pending_delete with undo) */
   @Delete(':command')
   async remove(@Param('command') command: string, @Req() req: any) {
     if (!command?.trim()) throw new BadRequestException('command required');
-    await this.svc.remove(this.uid(req), command);
-    return { ok: true };
+    const result = await this.svc.remove(this.uid(req), command);
+    return { ok: true, ...result };
+  }
+
+  /** POST /undo — undo pending_delete for command-favorites */
+  @Post('undo')
+  async undo(@Body() body: { commands?: string[]; jobId?: string }, @Req() req: any) {
+    if (!body.commands?.length && !body.jobId) {
+      throw new BadRequestException('commands or jobId required');
+    }
+    const result = await this.svc.undoDelete(this.uid(req), body.commands, body.jobId);
+    return { ok: true, ...result };
   }
 
   /** PATCH /:command/pin — toggle pin */
