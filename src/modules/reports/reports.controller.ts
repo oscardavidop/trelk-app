@@ -1,13 +1,13 @@
 import {
   Controller, Get, Post, Param, Body, Query, Req, UseGuards, BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReportsService } from './reports.service';
 import { ReportRateLimit } from '../../common/decorators/rate-limit.decorator';
 import { extractUserId } from '../../common/utils/auth.utils';
 
 @Controller('api/v1/ui/commands')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class ReportsController {
   constructor(private readonly reports: ReportsService) {}
 

@@ -63,7 +63,10 @@
       "notify"
     ],
     "protected": false,
-    "uniqueName": "alerta"
+    "uniqueName": "alerta",
+    "photos": [
+      "1.png", "2.png", "3.png"
+    ]
   },
   {
     "name": [
@@ -89,7 +92,10 @@
       "dalerts"
     ],
     "protected": false,
-    "uniqueName": "dalert"
+    "uniqueName": "dalert",
+    "photos": [
+      "1.png", "2.png", "3.png"
+    ]
   },
   {
     "name": [
@@ -107,7 +113,10 @@
       "listaralertas"
     ],
     "protected": false,
-    "uniqueName": "listalert"
+    "uniqueName": "listalert",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
@@ -132,7 +141,10 @@
       "guau"
     ],
     "protected": false,
-    "uniqueName": "dog"
+    "uniqueName": "dog",
+    "photos": [
+      "1.png"
+    ]
   },
   {
     "name": [
@@ -155,7 +167,10 @@
       "miau"
     ],
     "protected": false,
-    "uniqueName": "cat"
+    "uniqueName": "cat",
+    "photos": [
+      "1.png"
+    ]
   },
   {
     "name": [],
@@ -400,7 +415,10 @@
       "correo_temporal"
     ],
     "protected": false,
-    "uniqueName": "mail"
+    "uniqueName": "mail",
+    "photos": [
+      "1.png", "2.png", "3.png", "4.png"
+    ]
   },
   {
     "name": [
@@ -473,7 +491,10 @@
       "searchip"
     ],
     "protected": false,
-    "uniqueName": "ipinfo"
+    "uniqueName": "ipinfo",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
@@ -495,7 +516,10 @@
       "whois-search"
     ],
     "protected": false,
-    "uniqueName": "whois"
+    "uniqueName": "whois",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
@@ -546,7 +570,10 @@
       "qrcode"
     ],
     "protected": false,
-    "uniqueName": "qr"
+    "uniqueName": "qr",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [],
@@ -578,7 +605,10 @@
       "inttoroman"
     ],
     "protected": false,
-    "uniqueName": "roman"
+    "uniqueName": "roman",
+    "photos": [
+      "1.png", "2.png", "3.png"
+    ]
   },
   {
     "name": [
@@ -657,7 +687,10 @@
       "md5hash"
     ],
     "protected": false,
-    "uniqueName": "md5"
+    "uniqueName": "md5",
+    "photos": [
+      "1.png"
+    ]
   },
   {
     "name": [
@@ -688,7 +721,10 @@
       "generarpass"
     ],
     "protected": false,
-    "uniqueName": "password"
+    "uniqueName": "password",
+    "photos": [
+      "1.png", "2.png", "3.png"
+    ]
   },
   {
     "name": [
@@ -718,7 +754,10 @@
       "chat"
     ],
     "protected": false,
-    "uniqueName": "myid"
+    "uniqueName": "myid",
+    "photos": [
+      "1.png"
+    ]
   },
   {
     "name": [
@@ -726,7 +765,7 @@
       "upper",
       "mayusculas"
     ],
-    "group": "mayus",
+    "group": "tools",
     "category": "utilities",
     "usage": "/mayus <text to convert>",
     "requireArgs": true,
@@ -739,15 +778,18 @@
       "mayusculas"
     ],
     "protected": false,
-    "uniqueName": "mayus"
+    "uniqueName": "upper",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
       "lowercase",
-      "lower",
+      "minus",
       "minusculas"
     ],
-    "group": "minus",
+    "group": "tools",
     "category": "utilities",
     "usage": "/minus <text to convert>",
     "requireArgs": true,
@@ -756,11 +798,14 @@
     "inlineIcon": "https://cdn-icons-png.flaticon.com/512/9881/9881662.png",
     "alias": [
       "lowercase",
-      "lower",
+      "minus",
       "minusculas"
     ],
     "protected": false,
-    "uniqueName": "minus"
+    "uniqueName": "lower",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
@@ -779,7 +824,10 @@
       "invertir"
     ],
     "protected": false,
-    "uniqueName": "reverse"
+    "uniqueName": "reverse",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [
@@ -798,7 +846,11 @@
       "capi"
     ],
     "protected": false,
-    "uniqueName": "capitalize"
+    "uniqueName": "capitalize",
+    "photos": [
+      "1.png", "2.png"
+    ]
+
   },
   {
     "name": [
@@ -823,7 +875,10 @@
       "bitly"
     ],
     "protected": false,
-    "uniqueName": "shorten"
+    "uniqueName": "shorten",
+    "photos": [
+      "1.png", "2.png"
+    ]
   },
   {
     "name": [

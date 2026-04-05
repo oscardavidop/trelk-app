@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserGamification, UserGamificationSchema } from './schemas/user-gamification.schema';
+import { History, HistorySchema } from '../history/schemas/history.schema';
 import { GamificationService } from './gamification.service';
 import { GamificationController } from './gamification.controller';
 
@@ -9,6 +10,9 @@ import { GamificationController } from './gamification.controller';
     MongooseModule.forFeature([
       { name: UserGamification.name, schema: UserGamificationSchema },
     ]),
+    MongooseModule.forFeature([
+      { name: History.name, schema: HistorySchema },
+    ], 'mbot'),
   ],
   controllers: [GamificationController],
   providers: [GamificationService],

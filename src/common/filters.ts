@@ -24,7 +24,7 @@ export class AuthExceptionFilter implements ExceptionFilter {
     }
 
     if (exception.message === 'expired-session-view') {
-      return res.status(401).send({ error: 'Session expired' });
+      return res.status(401).send({ error: 'Unauthorized access' });
     }
 
     res.status(401).send({ error: exception.message || 'Unauthorized' });

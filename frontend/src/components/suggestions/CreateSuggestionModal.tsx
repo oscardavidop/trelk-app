@@ -159,7 +159,7 @@ export default function CreateSuggestionModal({ open, onClose, onCreated }: Prop
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t('title_placeholder')}
                   maxLength={120}
-                  className="w-full h-12 px-4 rounded-2xl bg-tg-bg border border-tg-border/40 text-[14px] text-tg-text placeholder:text-tg-hint/40 outline-none focus:border-tg-accent/40 transition-colors"
+                  className="w-full h-12 px-4 rounded-2xl bg-tg-bg border border-tg-border/40 text-[14px] text-tg-text placeholder:text-tg-hint/40 outline-none focus:border-tg-accent/60 transition-colors"
                 />
                 <div className="flex justify-between mt-1.5">
                   <span className={`text-[11px] font-medium ${title.trim().length >= MIN_TITLE ? 'text-tg-hint/40' : 'text-amber-500/70'}`}>
@@ -204,7 +204,7 @@ export default function CreateSuggestionModal({ open, onClose, onCreated }: Prop
                   placeholder={t('description_placeholder')}
                   maxLength={2000}
                   rows={5}
-                  className="w-full px-4 py-3 rounded-2xl bg-tg-bg border border-tg-border/40 text-[14px] text-tg-text placeholder:text-tg-hint/40 outline-none focus:border-tg-accent/40 transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-2xl bg-tg-bg border border-tg-border/40 text-[14px] text-tg-text placeholder:text-tg-hint/40 outline-none focus:border-tg-accent focus:border-2 transition-colors resize-none"
                 />
                 <div className="flex justify-between mt-1.5">
                   <span className={`text-[11px] font-medium ${description.trim().length >= MIN_DESC ? 'text-tg-hint/40' : 'text-amber-500/70'}`}>

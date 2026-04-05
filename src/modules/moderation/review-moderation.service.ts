@@ -8,6 +8,7 @@ import { CommandRating, CommandRatingDocument } from '../ratings/schemas/command
 import { UserModeration, UserModerationDocument } from './schemas/user-moderation.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { NotificationEventBus } from '../notifications/notification-event-bus';
+import { CacheInvalidationService } from '../../core/resilience/cache-invalidation.service';
 
 // ── Types ──────────────────────────────────────────
 
@@ -67,6 +68,7 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
     private readonly redis: RedisCacheService,
     private readonly configService: ConfigService,
     private readonly notificationEventBus: NotificationEventBus,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {
     this.enabled = this.configService.get<boolean>('MODERATION_ENABLED', false);
     this.webhookSecret = this.configService.get<string>('MODAPI_WEBHOOK_SECRET', '');
@@ -270,9 +272,7 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
 
     const cmd = (doc as any).command;
     if (cmd) {
-      await this.redis.del(`command:rating:${cmd}`);
-      await this.redis.del(`command:stats:${cmd}`);
-      await this.redis.del(`command:reviews:summary:${cmd}`);
+      await this.cacheInvalidation.emit({ type: 'moderation_complete', command: cmd, userId: (doc as any).userId });
     }
 
     if (result.status === 'rejected') {
@@ -318,7 +318,7 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
         { $set: { isBlocked: true, blockedUntil, updatedAt: now } },
       ).exec();
 
-      await this.redis.del(`mod:blocked:${userId}`);
+      await this.cacheInvalidation.emit({ type: 'user_blocked', userId });
       this.notifyUserBlocked(userId).catch(() => {});
       this.notifyAdminBlock(userId, userMod.rejectedCount).catch(() => {});
     }
@@ -456,9 +456,7 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
 
     const cmd = (doc as any).command;
     if (cmd) {
-      await this.redis.del(`command:rating:${cmd}`);
-      await this.redis.del(`command:stats:${cmd}`);
-      await this.redis.del(`command:reviews:summary:${cmd}`);
+      await this.cacheInvalidation.emit({ type: 'moderation_manual', command: cmd });
     }
   }
 
@@ -479,9 +477,7 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
 
     const cmd = (doc as any).command;
     if (cmd) {
-      await this.redis.del(`command:rating:${cmd}`);
-      await this.redis.del(`command:stats:${cmd}`);
-      await this.redis.del(`command:reviews:summary:${cmd}`);
+      await this.cacheInvalidation.emit({ type: 'moderation_manual', command: cmd });
     }
   }
 

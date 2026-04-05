@@ -1,8 +1,9 @@
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/favorites';
 
 async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    credentials: 'include',
+  const res = await authFetch(url, {
     headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...((opts.headers as Record<string, string>) || {}) },
     ...opts,
   });
@@ -106,8 +107,13 @@ export const updateCollection = (id: string, name: string): Promise<{ ok: boolea
 export const deleteCollection = (id: string): Promise<{ ok: boolean }> =>
   json(`${BASE}/collections/${id}`, { method: 'DELETE' });
 
-// File URL (proxied — token never exposed)
-export const fileUrl = (fileId: string) => `${BASE}/file/${encodeURIComponent(fileId)}`;
+// File URL — includes token as query param so <img src> can authenticate
+import { getSessionToken } from '../lib/authFetch';
+export const fileUrl = (fileId: string) => {
+  const base = `${BASE}/file/${encodeURIComponent(fileId)}`;
+  const token = getSessionToken();
+  return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+};
 
 export const getThumbnail = (photos?: PhotoSize[]): PhotoSize | null =>
   photos && photos.length > 0 ? photos[0] : null;

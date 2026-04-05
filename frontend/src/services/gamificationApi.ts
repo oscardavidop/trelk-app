@@ -1,3 +1,5 @@
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/gamification';
 
 export interface MergedAchievement {
@@ -34,7 +36,7 @@ export interface RankingEntry {
 }
 
 export async function fetchGamification(): Promise<GamificationProfile> {
-  const res = await fetch(BASE, { credentials: 'include' });
+  const res = await authFetch(BASE);
   if (!res.ok) throw new Error(`gamification ${res.status}`);
   return res.json();
 }
@@ -42,13 +44,13 @@ export async function fetchGamification(): Promise<GamificationProfile> {
 export async function fetchAchievements(
   filter: 'all' | 'unlocked' | 'pending' = 'all',
 ): Promise<MergedAchievement[]> {
-  const res = await fetch(`${BASE}/achievements?filter=${filter}`, { credentials: 'include' });
+  const res = await authFetch(`${BASE}/achievements?filter=${filter}`);
   if (!res.ok) throw new Error(`achievements ${res.status}`);
   return res.json();
 }
 
 export async function fetchRankings(limit = 10): Promise<RankingEntry[]> {
-  const res = await fetch(`${BASE}/rankings?limit=${limit}`, { credentials: 'include' });
+  const res = await authFetch(`${BASE}/rankings?limit=${limit}`);
   if (!res.ok) throw new Error(`rankings ${res.status}`);
   return res.json();
 }

@@ -1,9 +1,9 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RecommendationsService } from './recommendations.service';
 
 @Controller('api/v1/ui/recommendations')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class RecommendationsController {
   constructor(private readonly svc: RecommendationsService) {}
 

@@ -1,0 +1,7 @@
+{
+  "offline_message": "You are offline",
+  "pending": "pending",
+  "syncing": "Syncing changes...",
+  "sync_complete": "All synced",
+  "sync_failed": "Some changes could not sync"
+}

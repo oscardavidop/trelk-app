@@ -4,20 +4,37 @@ interface ToastState {
   message: string | null;
   type: 'success' | 'error' | 'info';
   visible: boolean;
-  show: (message: string, type?: 'success' | 'error' | 'info') => void;
+  /** Optional retry callback — shown as a retry button in the toast */
+  retryFn: (() => void) | null;
+  /** Toast display duration in ms (default 2200) */
+  duration: number;
+  show: (message: string, type?: 'success' | 'error' | 'info', opts?: { retryFn?: () => void; duration?: number }) => void;
   hide: () => void;
 }
+
+let _hideTimer: ReturnType<typeof setTimeout> | undefined;
+let _clearTimer: ReturnType<typeof setTimeout> | undefined;
 
 export const useToastStore = create<ToastState>((set) => ({
   message: null,
   type: 'info',
   visible: false,
-  show: (message, type = 'info') => {
-    set({ message, type, visible: true });
-    setTimeout(() => set({ visible: false }), 2200);
-    setTimeout(() => set({ message: null }), 2500);
+  retryFn: null,
+  duration: 2200,
+  show: (message, type = 'info', opts) => {
+    clearTimeout(_hideTimer);
+    clearTimeout(_clearTimer);
+    const duration = opts?.duration ?? (type === 'error' ? 3500 : 2200);
+    set({ message, type, visible: true, retryFn: opts?.retryFn ?? null, duration });
+    _hideTimer = setTimeout(() => set({ visible: false }), duration);
+    _clearTimer = setTimeout(() => set({ message: null, retryFn: null }), duration + 300);
   },
-  hide: () => set({ visible: false }),
+  hide: () => {
+    clearTimeout(_hideTimer);
+    clearTimeout(_clearTimer);
+    set({ visible: false });
+    _clearTimer = setTimeout(() => set({ message: null, retryFn: null }), 300);
+  },
 }));
 
 interface UserState {

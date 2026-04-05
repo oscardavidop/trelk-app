@@ -1,3 +1,5 @@
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/command-favorites';
 
 // ── Types ──────────────────────────────────────────
@@ -30,14 +32,14 @@ export async function fetchCommandFavorites(
 ): Promise<CommandFavoritesResponse> {
   const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
   if (search) params.set('search', search);
-  const res = await fetch(`${BASE}?${params}`, { credentials: 'include' });
+  const res = await authFetch(`${BASE}?${params}`);
   if (!res.ok) throw new Error(`command-favorites ${res.status}`);
   return res.json();
 }
 
 /** Get all favorite command names (for quick isFavorite checks) */
 export async function fetchFavoriteSet(): Promise<string[]> {
-  const res = await fetch(`${BASE}/set`, { credentials: 'include' });
+  const res = await authFetch(`${BASE}/set`);
   if (!res.ok) throw new Error(`command-favorites set ${res.status}`);
   const data = await res.json();
   return data.commands;
@@ -45,9 +47,8 @@ export async function fetchFavoriteSet(): Promise<string[]> {
 
 /** Toggle favorite (add/remove) */    
 export async function toggleCommandFavorite(command: string): Promise<{ added: boolean }> {
-  const res = await fetch(`${BASE}/toggle`, {
+  const res = await authFetch(`${BASE}/toggle`, {
     method: 'POST',
-    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ command }),
   });
@@ -58,18 +59,16 @@ export async function toggleCommandFavorite(command: string): Promise<{ added: b
 
 /** Remove a favorite */
 export async function removeCommandFavorite(command: string): Promise<void> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(command)}`, {
+  const res = await authFetch(`${BASE}/${encodeURIComponent(command)}`, {
     method: 'DELETE',
-    credentials: 'include',
   });
   if (!res.ok) throw new Error(`remove favorite ${res.status}`);
 }
 
 /** Toggle pin on a favorite */
 export async function togglePinCommand(command: string): Promise<{ pinned: boolean }> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(command)}/pin`, {
+  const res = await authFetch(`${BASE}/${encodeURIComponent(command)}/pin`, {
     method: 'PATCH',
-    credentials: 'include',
   });
   if (!res.ok) throw new Error(`toggle pin ${res.status}`);
   const data = await res.json();
@@ -78,7 +77,7 @@ export async function togglePinCommand(command: string): Promise<{ pinned: boole
 
 /** Trending commands (most favorited this week) */
 export async function fetchTrending(limit = 10): Promise<TrendingCommand[]> {
-  const res = await fetch(`${BASE}/trending?limit=${limit}`, { credentials: 'include' });
+  const res = await authFetch(`${BASE}/trending?limit=${limit}`);
   if (!res.ok) throw new Error(`trending ${res.status}`);
   const data = await res.json();
   return data.items;
@@ -86,7 +85,7 @@ export async function fetchTrending(limit = 10): Promise<TrendingCommand[]> {
 
 /** Most favorited commands overall */
 export async function fetchMostFavorited(limit = 10): Promise<TrendingCommand[]> {
-  const res = await fetch(`${BASE}/most-favorited?limit=${limit}`, { credentials: 'include' });
+  const res = await authFetch(`${BASE}/most-favorited?limit=${limit}`);
   if (!res.ok) throw new Error(`most-favorited ${res.status}`);
   const data = await res.json();
   return data.items;

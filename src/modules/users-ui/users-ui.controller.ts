@@ -3,15 +3,17 @@
 import { Controller, Get, Patch, Body, Param, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { UsersUiService } from './users-ui.service';
 import { UserService } from '../users/user.service';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { UserStateService } from '../../core/user-state';
+import { AppError, ErrorCode } from '../../common/errors';
 
 const ADMIN_IDS = new Set(
     (process.env.ADMIN_IDS || '').split(',').map(Number).filter(Boolean),
 );
 
 @Controller('api/v1/ui')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class AjaxUsersUiController {
 
     private readonly ADMIN_IDS: Set<number>;
@@ -19,6 +21,7 @@ export class AjaxUsersUiController {
     constructor(
         private readonly userService: UserService,
         private readonly configService: ConfigService,
+        private readonly userState: UserStateService,
     ) { 
         this.ADMIN_IDS = new Set(
             (this.configService.get<string>('ADMIN_IDS') || '').split(',').map(Number).filter(Boolean),
@@ -28,13 +31,13 @@ export class AjaxUsersUiController {
     @Get('me')
     async getMe(@Req() req: any) {
         const user = req.user;
-        // req.user viene de CookieStrategy: { authUser: {...}, authTelegram: {...} }
         const userId = user.authTelegram?.id
             || user.authUser?.telegramId
             || user.authUser?.id
             || user.authUser?._id;
 
-            console.log('[getMe] userId:', userId, this.ADMIN_IDS, 'isAdmin:', this.ADMIN_IDS.has(Number(userId)));
+        const userStateData = await this.userState.getUserState(Number(userId)).catch(() => null);
+
         return {
             ok: true,
             user: {
@@ -42,6 +45,8 @@ export class AjaxUsersUiController {
                 telegram: user.authTelegram,
                 profile: user.authUser,
                 isAdmin: this.ADMIN_IDS.has(Number(userId)),
+                state: userStateData?.type ?? 'exploring_user',
+                engagementScore: userStateData?.engagementScore ?? 0,
             },
         };
     }
@@ -52,7 +57,7 @@ export class AjaxUsersUiController {
         const telegramId = this.extractTelegramId(req);
         const data = await this.userService.getFullConfig(telegramId);
         if (!data) {
-            return { ok: false, error: 'User not found' };
+            throw new AppError(ErrorCode.USER_NOT_FOUND, 'User not found', 404);
         }
 
         return {
@@ -124,5 +129,13 @@ export class AjaxUsersUiController {
             user.authUser?.telegramId ||
             user.authUser?.id
         );
+    }
+
+    /** GET /api/v1/ui/user/state — user engagement classification */
+    @Get('user/state')
+    async getUserEngagementState(@Req() req: any) {
+        const telegramId = this.extractTelegramId(req);
+        const state = await this.userState.getUserState(telegramId);
+        return { ok: true, state };
     }
 }

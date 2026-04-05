@@ -8,13 +8,10 @@ import { CommandFavoritesController } from './command-favorites.controller';
 
 @Module({
   imports: [
-    MongooseModule.forFeature(
-      [{ name: CommandFavorite.name, schema: CommandFavoriteSchema }],
-      'miniapp'
-    ),
-    MongooseModule.forFeature(
-      [{ name: History.name, schema: HistorySchema }],
-    ),
+    MongooseModule.forFeature([
+      { name: CommandFavorite.name, schema: CommandFavoriteSchema },
+      { name: History.name, schema: HistorySchema },
+    ]),
   ],
   controllers: [CommandFavoritesController],
   providers: [CommandFavoritesService],

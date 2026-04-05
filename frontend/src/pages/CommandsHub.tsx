@@ -142,7 +142,7 @@ export default function CommandsHub() {
               onClick={() => go('/premium')}
               className="px-5 py-2 rounded-xl bg-tg-accent/10 text-tg-accent font-medium text-[14px] active:scale-95 transition-all"
             >
-              Unlock Features
+              {t('unlock_features')}
             </button>
           </div>
         ) : (
@@ -216,7 +216,9 @@ export default function CommandsHub() {
                   <div className="flex-1 min-w-0">
                     <div className="text-[15px] font-semibold text-tg-text leading-tight truncate">/{key}</div>
                     <div className="text-[12px] font-medium text-tg-hint truncate mt-0.5 uppercase tracking-wide">
-                      {(cmd as any)?.engine || 'google'} · {(cmd as any)?.inline?.results_per_page || 5} res
+                      {(cmd as any)?.engine || ''}
+                      {(cmd as any)?.mode ? (cmd as any).mode : ''}
+                      {(cmd as any)?.inline?.results_per_page ? ` · ${(cmd as any).inline.results_per_page} res` : ''}
                     </div>
                   </div>
                   <ChevronRight size={20} className="text-tg-hint/40 flex-shrink-0" />

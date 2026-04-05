@@ -31,6 +31,7 @@ import { AuthService } from "../auth/auth.service";
 import { DynamicAuthGuard } from "../auth/guards/dynamic.guard";
 import { ChangeSettingsDto } from "./dto/api.dto";
 import { validate } from 'class-validator';
+import { AppError, ErrorCode } from '../../common/errors';
 
 @Controller()
 export class UserController {
@@ -58,10 +59,7 @@ export class UserController {
     });
     if (errors.length > 0) {
       console.log(JSON.stringify(errors, null, 2));
-      return {
-        ok: false,
-        error: "Bad Request",
-      }
+      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid request data', 400, { errors: this.formatErrors(errors) });
     }
 
     const method = body.method;
@@ -119,7 +117,7 @@ export class UserController {
         // req.telegramUser viene de DynamicAuthGuard → TelegramAuthService (HMAC validado)
         const tgUser = req.telegramUser;
         if (!tgUser || !tgUser.id) {
-          return { ok: false, error: 'Invalid telegram user data' };
+          throw new AppError(ErrorCode.INIT_DATA_INVALID, 'Invalid telegram user data', 400);
         }
 
         // Buscar o crear usuario en la DB
@@ -133,27 +131,16 @@ export class UserController {
             new Date(existingToken.createdAt).getTime() + 3600000 - Date.now();
 
           if (expiresInMs > 0 && !existingToken.revoked) {
-            console.log('Usando token existente para telegramId:', tgUser.id);
-
-            res
-              .setCookie('session_id', existingToken.session_id || existingToken.token, {
-                path: '/',
-                httpOnly: true,
-                sameSite: 'none',
-                secure: true,
-                expires: new Date(Date.now() + expiresInMs),
-              })
-              .send({
-                ok: true,
-                token: existingToken.token,
-                expiresIn: Math.floor(expiresInMs / 1000),
-                reused: true,
-              });
-            return;
+            return {
+              ok: true,
+              token: existingToken.token,
+              sessionId: existingToken.session_id || existingToken.token,
+              expiresIn: Math.floor(expiresInMs / 1000),
+              reused: true,
+            };
           }
         }
 
-        console.log('Creando nuevo token para telegramId:', tgUser.id);
         const tokenValue = crypto.randomBytes(32).toString('hex');
         await this.authService.create({
           type: 'telegram_miniapp',
@@ -163,16 +150,7 @@ export class UserController {
           sub: tgUser.id,
           userTlg: tgUser,
         });
-        res
-          .setCookie('session_id', tokenValue, {
-            path: '/',
-            httpOnly: true,
-            sameSite: 'none',
-            secure: true,
-            expires: new Date(Date.now() + 3600000),
-          })
-          .send({ ok: true });
-        return;
+        return { ok: true, sessionId: tokenValue };
 
       default:
         break;
@@ -188,6 +166,13 @@ export class UserController {
   @UseGuards(DynamicAuthGuard)
   async apiPut(@Body() body: any, @Req() req) {
     return this.api(body, req, null);
+  }
+
+  private formatErrors(errors: any[]) {
+    return errors.map(err => ({
+      property: err.property,
+      constraints: err.constraints,
+    }));
   }
 
 };

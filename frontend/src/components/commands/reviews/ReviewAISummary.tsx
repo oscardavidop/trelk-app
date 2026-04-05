@@ -1,10 +1,10 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConfidenceLabel from '../../ui/ConfidenceLabel';
 import {
   Sparkles,
   ThumbsUp,
   ThumbsDown,
-  Shield,
   Zap,
   ChevronDown,
 } from 'lucide-react';
@@ -55,8 +55,9 @@ function ReviewAISummary({ command }: Props) {
         <div className="rounded-2xl bg-tg-section-bg border border-tg-text/[0.04] p-5">
           <div className="flex items-center gap-3 text-tg-text/40">
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            // pulse animation for the sparkles icon
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.2, repeat: Infinity }}
             >
               <Sparkles size={16} />
             </motion.div>
@@ -239,10 +240,16 @@ function ReviewAISummary({ command }: Props) {
 
             {/* FOOTER */}
             <div className="flex items-center gap-2 pt-2 border-t border-tg-text/[0.05]">
-              <Shield size={10} className="text-tg-text/40" />
-              <span className="text-[10px] text-tg-text/40">
-                {t(`reviews_ai_confidence_${data.confidenceLevel}`)}
-              </span>
+              <ConfidenceLabel
+                confidence={data ? {
+                  level: data.confidenceLevel as 'high' | 'medium' | 'low',
+                  score: data.confidenceScore ?? 0,
+                  basedOn: data.totalReviews ?? 0,
+                  lastUpdated: data.updatedAt ?? 0,
+                  source: 'computed',
+                } : null}
+                showUpdated={false}
+              />
 
               <div className="flex-1" />
 

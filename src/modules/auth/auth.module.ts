@@ -15,14 +15,16 @@ import { UserModule } from '../users/user.module';
 import { TelegramAuthService } from './services/telegram-auth.service';
 import { TelegramInitDataGuard } from './guards/telegram-init-data.guard';
 import { DynamicAuthGuard } from './guards/dynamic.guard';
-import { CookieStrategy } from './helpers/cookie.strategy';
+import { BearerStrategy } from './helpers/bearer.strategy';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Token.name, schema: TokenSchema },
-      { name: User.name, schema: UserSchema },
     ]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+    ], 'mbot'),
     forwardRef(() => UserModule),
   ],
   controllers: [AuthController],
@@ -32,8 +34,8 @@ import { CookieStrategy } from './helpers/cookie.strategy';
     TelegramInitDataGuard,
     DynamicAuthGuard,
     JwtStrategy,
-    CookieStrategy,
+    BearerStrategy,
   ],
   exports: [AuthService, TelegramAuthService, TelegramInitDataGuard, DynamicAuthGuard],
 })
-export class AuthModule {}
+export class AuthModule { }

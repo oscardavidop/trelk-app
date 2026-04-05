@@ -43,11 +43,18 @@
   "lang_subtitle": "Elige tu idioma preferido",
   "my_reports": "Mis Reportes",
   "my_reports_desc": "Ver tus reportes de errores enviados",
+  "alerts": "Alertas",
+  "alerts_desc": "Gestiona tus alertas programadas",
   "animation_intensity": "Intensidad de animaciones",
   "intensity_low": "Sutil",
   "intensity_low_desc": "Animaciones y efectos mínimos",
   "intensity_medium": "Equilibrado",
   "intensity_medium_desc": "Experiencia recomendada",
   "intensity_high": "Intenso",
-  "intensity_high_desc": "Animaciones y efectos al máximo"
+  "intensity_high_desc": "Animaciones y efectos al máximo",
+  "security": "Seguridad",
+  "pin_security": "Seguridad PIN",
+  "pin_security_desc": "Protege tu cuenta con un PIN de 4 dígitos",
+  "active_sessions": "Sesiones activas",
+  "active_sessions_desc": "Gestiona tus dispositivos conectados"
 }

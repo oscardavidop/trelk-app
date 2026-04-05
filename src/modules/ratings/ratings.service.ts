@@ -6,8 +6,10 @@ import { History, HistoryDocument } from '../history/schemas/history.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { ReviewModerationService } from '../moderation/review-moderation.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
-import { BOT_COMMANDS } from '../../data/commands';
+import { CacheInvalidationService } from '../../core/resilience/cache-invalidation.service';
+import { BOT_COMMANDS } from '../../data/bot-commands';
 import { STATS_TTL, RATING_LIMIT, SPAM_BLACKLIST } from '../../common/constants/command-stats.constants';
+import { AppError, ErrorCode } from 'src/common/errors';
 
 @Injectable()
 export class RatingsService {
@@ -19,6 +21,7 @@ export class RatingsService {
     private readonly redis: RedisCacheService,
     private readonly moderation: ReviewModerationService,
     private readonly userStats: UserStatsService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {}
 
   async getRatingStats(command: string): Promise<{ avg: number; count: number }> {
@@ -140,7 +143,7 @@ export class RatingsService {
     const isEdit = !!(existing && (existing as any).review);
 
     if (isEdit && (existing as any).status === 'pending') {
-      throw new HttpException({ statusCode: HttpStatus.CONFLICT, error_key: 'reviews_error_edit_pending', message: 'Edit blocked' }, HttpStatus.CONFLICT);
+      throw new AppError(ErrorCode.REVIEW_EDIT_PENDING, 'Edit blocked while review is pending', 409);
     }
 
     if (isEdit) {
@@ -177,9 +180,7 @@ export class RatingsService {
       }).catch((err) => this.logger.warn(`Moderation enqueue failed: ${(err as Error).message}`));
     }
 
-    await this.redis.del(`command:rating:${cmd}`);
-    await this.redis.del(`command:stats:${cmd}`);
-    await this.redis.del(`command:reviews:summary:${cmd}`);
+    await this.cacheInvalidation.emit({ type: 'rating_submitted', command: cmd, userId });
 
     if (reviewText) {
       this.moderation.enqueueAISummary(cmd).catch(() => {});
@@ -222,8 +223,7 @@ export class RatingsService {
       { upsert: true },
     ).exec();
 
-    await this.redis.del(`command:rating:${cmd}`);
-    await this.redis.del(`command:stats:${cmd}`);
+    await this.cacheInvalidation.emit({ type: 'feedback_submitted', command: cmd });
   }
 
   computeImpactScore(review: { helpfulCount?: number; isVerified?: boolean; trustScoreSnapshot?: number; createdAt?: number }): number {
@@ -291,7 +291,7 @@ export class RatingsService {
 
     const current = await this.redis.get<number>(key);
     if (current !== null && current >= max) {
-      // throw new HttpException('Too many requests, please try again later', HttpStatus.TOO_MANY_REQUESTS);
+      throw new AppError(ErrorCode.RATE_LIMITED, 'Too many requests, please try again later', 429);
     }
 
     const next = (current ?? 0) + 1;

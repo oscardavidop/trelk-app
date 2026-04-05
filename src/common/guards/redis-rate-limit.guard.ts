@@ -1,4 +1,5 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, HttpStatus, Logger } from '@nestjs/common';
+import { AppError, ErrorCode } from '../errors';
 import { Reflector } from '@nestjs/core';
 import { RedisCacheService } from '../../modules/redis/redis-cache.service';
 import { createHash } from 'crypto';
@@ -47,13 +48,12 @@ export class RedisRateLimitGuard implements CanActivate {
 
             if (!allowed) {
                 const ttl = await this.getTTL(key);
-                throw new HttpException(
-                    {
-                        error: 'rate_limited',
-                        message: `Too many requests. Limit: ${config.limit}/${config.window}s`,
-                        retryIn: ttl,
-                    },
-                    HttpStatus.TOO_MANY_REQUESTS,
+                throw new AppError(
+                    ErrorCode.RATE_LIMITED,
+                    `Too many requests. Limit: ${config.limit}/${config.window}s`,
+                    429,
+                    { retryIn: ttl },
+                    true,
                 );
             }
         }
@@ -78,7 +78,8 @@ export class RedisRateLimitGuard implements CanActivate {
                 break;
             }
             case 'endpoint': {
-                parts.push('ep', request.method, request.routeOptions?.url || request.url);
+                const url = (request.routeOptions?.url || request.url).replace(/\/+$/, '').split('?')[0];
+                parts.push('ep', request.method, url);
                 break;
             }
             case 'slug': {

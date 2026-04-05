@@ -1,9 +1,11 @@
+import { authFetch } from '../lib/authFetch';
+import { ApiError } from '../lib/api-error';
+
 // REST JSON helpers for /api/v1/ui/config endpoints
 const BASE = '/api/v1/ui/config';
 
 async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    credentials: 'include',
+  const res = await authFetch(url, {
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -12,14 +14,10 @@ async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
     ...opts,
   });
 
-
   if (!res.ok) {
-    // Intentamos obtener el JSON del error
-    const errorData = await res.json().catch(() => null);
-
-    // Lanzamos el objeto completo. Si no es JSON, lanzamos el statusText
-    throw errorData || new Error(res.statusText);
-  } return res.json();
+    throw await ApiError.fromResponse(res);
+  }
+  return res.json();
 }
 
 // ── Full config ─────────────────────────────────

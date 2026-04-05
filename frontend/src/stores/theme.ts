@@ -14,30 +14,41 @@ function hexToRgb(hex: string): string {
 
 // Paletas de colores por tema
 const themes = {
-  dark: {
-    '--tg-bg': '#1a2026',
-    '--tg-secondary': '#212a33',
-    '--tg-surface': '#293540',
-    '--tg-accent': '#248BDA',
-    '--tg-text': '#ffffff',
-    '--tg-text-secondary': '#7d8b97',
-    '--tg-hint': '#7d8b97',
-    '--tg-link': '#5eaadf',
-    '--tg-destructive': '#e5545e',
-    '--tg-success': '#50b85d',
-    '--tg-border': '#293540',
-  },
+dark: {
+  // '--tg-bg': '#15171a',        // sube luminosidad (menos negro puro)
+  // '--tg-secondary': '#1e2126', // capas más claras
+  // '--tg-surface': '#262a30',   // cards bien diferenciadas
+'--tg-bg': '#181a1f',
+'--tg-secondary': '#22252b',
+'--tg-surface': '#2b3037',
+  '--tg-accent': '#3b82f6',
+  '--tg-link': '#60a5fa',
+
+  '--tg-text': '#ffffff',
+  '--tg-text-secondary': '#a3adb8', // un poco más claro
+  '--tg-hint': '#a3adb8',
+
+  '--tg-destructive': '#e5545e',
+  '--tg-success': '#50b85d',
+
+  '--tg-border': '#2c3137',    // más visible pero sin azul
+},
+
   light: {
     '--tg-bg': '#f0f2f5',
     '--tg-secondary': '#ffffff',
     '--tg-surface': '#e8eaed',
-    '--tg-accent': '#2481cc',
+
+    '--tg-accent': '#3b82f6',
+    '--tg-link': '#60a5fa',
+
     '--tg-text': '#1a1a1a',
     '--tg-text-secondary': '#6b7280',
     '--tg-hint': '#6b7280',
-    '--tg-link': '#2481cc',
+
     '--tg-destructive': '#dc3545',
     '--tg-success': '#28a745',
+
     '--tg-border': '#d1d5db',
   },
 };
@@ -71,7 +82,7 @@ function applyTheme(mode: ThemeMode) {
       tg.setHeaderColor(vars['--tg-secondary']);
       tg.setBackgroundColor(vars['--tg-bg']);
       tg.setBottomBarColor(vars['--tg-secondary']);
-    } catch {}
+    } catch { }
   }
 }
 
@@ -79,7 +90,7 @@ function loadSaved(): ThemeMode {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'dark' || saved === 'light' || saved === 'system') return saved;
-  } catch {}
+  } catch { }
   return 'dark';
 }
 
@@ -87,7 +98,7 @@ function loadIntensity(): DynamicIntensity {
   try {
     const saved = localStorage.getItem(INTENSITY_KEY);
     if (saved === 'low' || saved === 'medium' || saved === 'high') return saved;
-  } catch {}
+  } catch { }
   return 'medium';
 }
 

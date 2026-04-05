@@ -10,6 +10,7 @@ import StickyHeader from '../components/StickyHeader';
 import { TrendingUp, Star, Folder, ArrowRight } from 'lucide-react';
 import { fetchCommandRankings } from '../services/commandStatsApi';
 import { getCategoryBrand, MOTION, staggerContainer, staggerItem } from '../design';
+import { useScrollRestore } from '../hooks/usePageCache';
 
 export default function BotCommandsPage() {
   const { userId } = useParams();
@@ -19,6 +20,7 @@ export default function BotCommandsPage() {
   const [trending, setTrending] = useState<BotCommand[]>([]);
   const [popular, setPopular] = useState<BotCommand[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const { save: saveScroll, restore: restoreScroll } = useScrollRestore('bot-commands');
 
   const commandMap = useMemo(
     () => new Map(BOT_COMMANDS.map((cmd) => [cmdSlug(cmd), cmd] as const)),
@@ -41,12 +43,14 @@ export default function BotCommandsPage() {
         setTrending(trendingCommands.length ? trendingCommands : BOT_COMMANDS.slice(0, 4));
         setPopular(popularCommands.length ? popularCommands : BOT_COMMANDS.slice(0, 6));
         setDataLoading(false);
+        restoreScroll();
       })
       .catch(() => {
         if (cancelled) return;
         setTrending(BOT_COMMANDS.slice(0, 4));
         setPopular(BOT_COMMANDS.slice(0, 6));
         setDataLoading(false);
+        restoreScroll();
       });
 
     return () => {
@@ -55,6 +59,7 @@ export default function BotCommandsPage() {
   }, [commandMap]);
 
   const go = (slug: string) => {
+    saveScroll();
     haptic?.impactOccurred('light');
     navigate(`/users/ui/${userId}/bot-commands/${slug}`);
   };

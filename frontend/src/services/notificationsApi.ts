@@ -1,8 +1,9 @@
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/notifications';
 
 async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    credentials: 'include',
+  const res = await authFetch(url, {
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',

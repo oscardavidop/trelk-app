@@ -11,6 +11,7 @@ interface TelegramWebApp {
       language_code?: string;
       photo_url?: string;
     };
+    start_param?: string;
   };
   version: string;
   ready: () => void;

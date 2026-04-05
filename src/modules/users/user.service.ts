@@ -4,7 +4,7 @@ import { Injectable, BadRequestException, ForbiddenException, NotFoundException 
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument, PlanTier, IUserProFeatures, getPlanTemplate, FREE_PLAN_DEFAULTS } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { BOT_COMMANDS } from 'src/data/commands';
+import { BOT_COMMANDS } from 'src/data/bot-commands';
 
 /** Datos del usuario extraídos de initData de Telegram */
 export interface TelegramUserData {
@@ -20,7 +20,7 @@ export interface TelegramUserData {
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+  constructor(@InjectModel(User.name, 'mbot') private userModel: Model<UserDocument>) { }
 
   async create(customerId: string): Promise<User> {
     const createdUser = new this.userModel({ customerId });
@@ -196,7 +196,7 @@ export class UserService {
     }
 
     const user = await this.userModel
-      .findOne({ telegramId })
+      .findOne({ id: telegramId })
       .select(`config.commands.${sanitizedKey}`)
       .lean()
       .exec();
@@ -211,7 +211,7 @@ export class UserService {
     this.validateCommandConfig(sanitizedKey, next);
 
     return this.userModel.updateOne(
-      { telegramId },
+      { id: telegramId },
       { $set: { [`config.commands.${sanitizedKey}`]: next } },
     ).exec();
   }
@@ -335,7 +335,7 @@ export class UserService {
     }
 
     return this.userModel.updateOne(
-      { telegramId },
+      { id: telegramId },
       {
         $set: {
           [`config.premium_commands.${sanitizedKey}`]: {
@@ -353,19 +353,22 @@ export class UserService {
 
   async deletePremiumCommand(telegramId: number, key: string) {
     const sanitizedKey = key.replace(/[.$]/g, '_').toLowerCase();
-
     return this.userModel.updateOne(
       {
-        telegramId,
+        id: Number(telegramId),
         [`config.premium_commands.${sanitizedKey}`]: { $exists: true },
-        'pro_features.custom_commands.used_commands': { $gt: 0 }
+        $or: [
+          { "pro_features.custom_commands.used_commands": { $gt: 0 } },
+          { "pro_features.custom_commands.used_commands": { $exists: false } }
+        ]
       },
       {
-        $unset: { [`config.premium_commands.${sanitizedKey}`]: '' },
-        $inc: { 'pro_features.custom_commands.used_commands': -1 }
+        $unset: { [`config.premium_commands.${sanitizedKey}`]: "" },
+        $inc: { "pro_features.custom_commands.used_commands": -1 },
       },
     ).exec();
   }
+
 
 
   async updateLocale(telegramId: number, locale: Record<string, any>) {
@@ -473,7 +476,7 @@ export class UserService {
           status: 'completed',
         },
       };
-      return this.userModel.updateOne({ telegramId }, { $set: { pro_features: template } }).exec();
+      return this.userModel.updateOne({ id: telegramId }, { $set: { pro_features: template } }).exec();
     } else {
       // Downgrade — schedule pending
       const change = {
@@ -487,7 +490,7 @@ export class UserService {
         status: 'pending' as const,
       };
       return this.userModel.updateOne(
-        { telegramId },
+        { id: telegramId },
         { $set: { 'pro_features.subscription.change': change } },
       ).exec();
     }
@@ -496,7 +499,7 @@ export class UserService {
   /** Cancel a pending plan change */
   async cancelPlanChange(telegramId: number) {
     return this.userModel.updateOne(
-      { telegramId, 'pro_features.subscription.change.status': 'pending' },
+      { id: telegramId, 'pro_features.subscription.change.status': 'pending' },
       { $set: { 'pro_features.subscription.change.status': 'canceled', 'pro_features.subscription.change.confirmed': false } },
     ).exec();
   }
@@ -504,7 +507,7 @@ export class UserService {
   /** Toggle auto-renew */
   async setAutoRenew(telegramId: number, autoRenew: boolean) {
     return this.userModel.updateOne(
-      { telegramId },
+      { id: telegramId },
       { $set: { 'pro_features.subscription.auto_renew': autoRenew } },
     ).exec();
   }
@@ -514,7 +517,7 @@ export class UserService {
     // First ensure daily reset
     await this.ensureDailyReset(telegramId);
 
-    const user = await this.userModel.findOne({ telegramId }).select('pro_features').lean().exec();
+    const user = await this.userModel.findOne({ id: telegramId }).select('pro_features').lean().exec();
     if (!user?.pro_features) return false;
 
     // Navigate the nested path to check total vs used
@@ -526,7 +529,7 @@ export class UserService {
     if (obj.used >= obj.total) return false; // limit exceeded
 
     const mongoPath = `pro_features.limits.${limitPath}.used`;
-    await this.userModel.updateOne({ telegramId }, { $inc: { [mongoPath]: 1 } }).exec();
+    await this.userModel.updateOne({ id: telegramId }, { $inc: { [mongoPath]: 1 } }).exec();
     return true;
   }
 

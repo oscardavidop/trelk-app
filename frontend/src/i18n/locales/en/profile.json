@@ -61,5 +61,13 @@
   "achievements": "Achievements",
   "view_all": "View all",
   "usage_streak": "Usage streak",
-  "streak_days": "{{count}} days in a row"
+  "streak_days": "{{count}} days in a row",
+  "my_reports": "My Reports",
+  "my_reports_desc": "View your submitted bug reports",
+  "alerts": "Alerts",
+  "alerts_desc": "Manage your scheduled alerts",
+  "tools": "Tools",
+  "ach_first_fav": "First fav",
+  "ach_first_cmd": "First cmd",
+  "ach_streak_3": "3-day streak"
 }

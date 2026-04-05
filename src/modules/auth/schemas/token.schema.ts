@@ -7,6 +7,9 @@ export type TokenDocument = Token & Document;
 
 @Schema({ timestamps: { createdAt: 'createdAt', updatedAt: false } })
 export class Token {
+  /** Auto-expire token documents after 7 days */
+  @Prop({ type: Date, default: () => new Date(), expires: 604800 })
+  expiresAt: Date;
   @Prop()
   type?: string;
 
@@ -40,7 +43,7 @@ export class Token {
   @Prop()
   deviceId?: string;
 
-  @Prop({ unique: true, required: true })
+  @Prop({ unique: true, required: true, index: true })
   token: string;
 
   @Prop()

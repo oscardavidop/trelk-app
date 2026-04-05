@@ -1,3 +1,5 @@
+import { authFetch } from '../lib/authFetch';
+
 export interface BotStatus {
   status: 'online' | 'degraded' | 'down';
   latency_ms: number;
@@ -6,7 +8,7 @@ export interface BotStatus {
 }
 
 export async function fetchBotStatus(): Promise<BotStatus> {
-  const res = await fetch('/api/v1/status', { credentials: 'include' });
+  const res = await authFetch('/api/v1/status');
   if (!res.ok) throw new Error('Status fetch failed');
   return res.json();
 }

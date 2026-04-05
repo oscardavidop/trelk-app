@@ -10,12 +10,13 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserService } from '../users/user.service';
 import { ChangePlanDto, AutoRenewDto } from '../users/dto/subscription.dto';
+import { AppError, ErrorCode } from '../../common/errors';
 
 @Controller('api/v1/ui/subscription')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class SubscriptionController {
   constructor(private readonly userService: UserService) {}
 
@@ -24,7 +25,7 @@ export class SubscriptionController {
   async getSubscription(@Req() req: any) {
     const telegramId = this.extractTelegramId(req);
     const data = await this.userService.getSubscription(telegramId);
-    if (!data) return { ok: false, error: 'User not found' };
+    if (!data) throw new AppError(ErrorCode.USER_NOT_FOUND, 'User not found', 404);
     return { ok: true, ...data };
   }
 

@@ -1,8 +1,9 @@
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/history';
 
 async function json<T = any>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    credentials: 'include',
+  const res = await authFetch(url, {
     headers: { Accept: 'application/json' },
   });
   if (!res.ok) {
@@ -38,6 +39,7 @@ export interface ActivityStats {
   commandsTotal: number;
   favoritesTotal: number;
   achievementsTotal: number;
+  streakDays: number;
 }
 
 export interface GlobalStats {

@@ -38,7 +38,7 @@ export class FavoritesService {
   private readonly apiMode: 'local' | 'prod';
 
   constructor(
-    @InjectModel(Favorite.name) private readonly favoriteModel: Model<FavoriteDocument>,
+    @InjectModel(Favorite.name, 'mbot') private readonly favoriteModel: Model<FavoriteDocument>,
     @InjectModel(FavCollection.name) private readonly collectionModel: Model<FavCollectionDocument>,
     private readonly configService: ConfigService,
   ) {

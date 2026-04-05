@@ -9,11 +9,11 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { NotificationService } from './notification.service';
 
 @Controller('api/v1/ui/notifications')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 

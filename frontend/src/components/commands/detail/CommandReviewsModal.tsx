@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft,Hourglass 
+ } from 'lucide-react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTelegram } from '../../../hooks/useTelegram';
 import { useToastStore, useUserStore } from '../../../stores';
@@ -15,6 +16,7 @@ import {
 import {
   ReviewSummaryCard, ReviewCard, WriteReview, ReviewFilters,
   ReviewListSkeleton, ReviewSummarySkeleton, ReviewAISummary, ReviewHighlights,
+  
   type ReviewFilterType, type ReviewSortType,
 } from '../reviews';
 import { StickySectionHeader } from '@/components/StickyHeader';
@@ -291,7 +293,9 @@ export default function CommandReviewsModal({ slug }: Props) {
             {/* Pending moderation banner */}
             {myReview?.status === 'pending' && (
               <div className="mx-5 mt-3 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <span className="text-amber-500 text-lg">⏳</span>
+                <span className="text-amber-500 text-lg">
+                  <Hourglass size={16} />
+                </span>
                 <div>
                   <p className="text-[13px] font-semibold text-amber-600">{t('reviews_pending_title')}</p>
                   <p className="text-[11.5px] text-amber-600/70">{t('reviews_pending_desc')}</p>

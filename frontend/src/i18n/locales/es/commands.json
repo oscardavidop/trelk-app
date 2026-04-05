@@ -49,5 +49,16 @@
   "opt_bitly": "Bitly",
   "opt_direct": "Envío directo",
   "opt_callback": "Callback",
-  "my_commands_today": "Mis comandos hoy"
+  "my_commands_today": "Mis comandos hoy",
+  "my_commands": "Mis comandos",
+  "manage": "Gestionar",
+  "create_first": "Crea tu primer comando",
+  "automate_searches": "Automatiza tus búsquedas",
+  "no_premium": "Sin comandos premium",
+  "explore_premium": "Explora las funciones premium disponibles",
+  "unlock_features": "Desbloquear funciones",
+  "premium_command": "Comando premium",
+  "engine_label": "Motor: {{engine}}",
+  "mode_label": "Modo: {{mode}}",
+  "results_label": "{{count}} resultados"
 }

@@ -253,7 +253,7 @@ export default function FavoritesPage() {
                             ))}
                             <button
                                 onClick={() => { haptic?.impactOccurred('light'); setShowNewCol(true); }}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-tg-secondary/40 text-tg-accent border border-tg-accent text-[13px] font-medium whitespace-nowrap active:scale-95 transition-all"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-tg-secondary/40 text-tg-accent border-1 border-tg-accent/90 text-[13px] font-medium whitespace-nowrap active:scale-95 transition-all"
                             >
                                 <FolderPlus size={14} /> {t('new')}
                             </button>
@@ -421,7 +421,7 @@ export default function FavoritesPage() {
                             onChange={(e) => setNewColName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleCreateCol(); }}
                             maxLength={60}
-                            className="w-full px-4 py-3 rounded-xl bg-tg-surface border border-tg-border text-[15px] text-tg-text placeholder:text-tg-hint outline-none focus:border-tg-accent/50 transition-all mb-5"
+                            className="w-full px-4 py-3 rounded-xl bg-tg-surface border border-tg-border text-[15px] text-tg-text placeholder:text-tg-hint outline-none focus:border-tg-accent focus:border-2 transition-all mb-5"
                         />
 
                         <div className="flex gap-2.5 mt-auto">

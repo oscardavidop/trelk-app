@@ -5,6 +5,7 @@ import { useGlobalErrorStore } from '../stores/globalError';
 export default function GlobalErrorToast() {
   const { message, severity, visible, retryFn, dismiss } = useGlobalErrorStore();
   const { t } = useTranslation('errors');
+  console.log('GlobalErrorToast render', { message, severity, visible });
 
   if (!message) return null;
 

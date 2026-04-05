@@ -51,5 +51,14 @@
   "opt_callback": "Callback",
   "my_commands_today": "My commands today",
   "my_commands": "My commands",
-  "premium_command": "Premium command"
+  "manage": "Manage",
+  "create_first": "Create your first command",
+  "automate_searches": "Automate your searches",
+  "no_premium": "No premium commands",
+  "explore_premium": "Explore available premium features",
+  "unlock_features": "Unlock Features",
+  "premium_command": "Premium command",
+  "engine_label": "Engine: {{engine}}",
+  "mode_label": "Mode: {{mode}}",
+  "results_label": "{{count}} results"
 }

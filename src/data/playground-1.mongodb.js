@@ -201,7 +201,7 @@
 
 // // Mostrar el conteo final para confirmar
 // print(`Se han insertado ${db.getCollection('command_ratings').countDocuments({ userId: userId })} registros para el usuario ${userId}`);
-use('mbot');
+use('miniapp');
 
 // 25 frases con tono más humano y variado
 const reviewsPool = [

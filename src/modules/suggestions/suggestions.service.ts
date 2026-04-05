@@ -8,6 +8,7 @@ import { SuggestionVote, SuggestionVoteDocument } from './schemas/suggestion-vot
 import { SuggestionComment, SuggestionCommentDocument } from './schemas/suggestion-comment.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
+import { CacheInvalidationService } from '../../core/resilience/cache-invalidation.service';
 
 const LIST_TTL = 30;           // 30s cache for lists
 const DETAIL_TTL = 15;         // 15s cache for single suggestion
@@ -35,6 +36,7 @@ export class SuggestionsService implements OnModuleInit, OnModuleDestroy {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly redis: RedisCacheService,
     private readonly configService: ConfigService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {
     const adminIdsStr = this.configService.get<string>('ADMIN_IDS', '');
     this.adminIds = new Set(adminIdsStr.split(',').map(Number).filter(Boolean));
@@ -428,17 +430,11 @@ export class SuggestionsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async invalidateListCache() {
-    // Invalidate known sort/page combos
-    for (const sort of ['trending', 'top', 'new']) {
-      for (const offset of [0, 10, 20, 30]) {
-        await this.redis.del(`suggestions:list:${sort}:10:${offset}:all`).catch(() => {});
-        await this.redis.del(`suggestions:list:${sort}:20:${offset}:all`).catch(() => {});
-      }
-    }
+    await this.cacheInvalidation.emit({ type: 'suggestion_list_changed' });
   }
 
   private async invalidateDetailCache(id: string) {
-    await this.redis.del(`suggestions:detail:${id}`).catch(() => {});
+    await this.cacheInvalidation.emit({ type: 'suggestion_updated', suggestionId: id });
   }
 
   private async enqueueSuggestion(suggestionId: string): Promise<void> {

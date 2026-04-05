@@ -12,5 +12,81 @@
   "dismiss": "Dismiss",
   "retry": "Retry",
   "request_failed": "The request failed. Please try again.",
-  "connection_lost": "Connection lost. Check your internet."
+  "connection_lost": "Connection lost. Check your internet.",
+  "rate_limited": "Too many requests. Please wait.",
+  "rate_limited_seconds": "Too many requests. Try again in {{seconds}}s.",
+
+  "unknown": "An unexpected error occurred.",
+  "validation": "The data provided is invalid.",
+  "payloadTooLarge": "The request is too large.",
+  "notFound": "The requested resource was not found.",
+  "adminOnly": "This action requires admin privileges.",
+  "authRequired": "Authentication required.",
+  "aiUnavailable": "AI service is temporarily unavailable.",
+  "limitExceeded": "Limit exceeded.",
+  "rateLimited": "Too many requests. Please wait.",
+
+  "auth.unauthorized": "You are not authorized.",
+  "auth.sessionExpired": "Your session has expired.",
+  "auth.initDataMissing": "Authentication data is missing. Open the app from Telegram.",
+  "auth.initDataInvalid": "Authentication data is invalid.",
+  "auth.initDataExpired": "Authentication data has expired. Reopen the app.",
+  "auth.tokenExpired": "Your token has expired. Please log in again.",
+  "auth.tokenInvalid": "Invalid authentication token.",
+  "auth.tokenRevoked": "Your session was revoked.",
+  "auth.userNotFound": "User not found.",
+
+  "security.pinIncorrect": "Incorrect PIN.",
+  "security.pinInvalidFormat": "PIN must be 4 digits.",
+  "security.accountLocked": "Account locked due to too many attempts.",
+  "security.recoveryLocked": "Recovery is temporarily locked.",
+  "security.recoveryNotVerified": "Recovery not verified.",
+  "security.currentPinRequired": "Current PIN is required.",
+  "security.questionsInvalid": "Security answers are incorrect.",
+
+  "review.notFound": "Review not found.",
+  "review.invalidId": "Invalid review ID.",
+  "review.ratingInvalid": "Rating must be between 1 and 5.",
+  "review.textTooLong": "Review text is too long.",
+  "review.editPending": "Cannot edit while a previous edit is pending moderation.",
+
+  "report.duplicate": "You already reported this recently.",
+  "report.notFound": "Report not found.",
+  "report.invalidCategory": "Invalid report category.",
+  "report.messageInvalid": "Report message is invalid.",
+
+  "reply.notFound": "Reply not found.",
+  "reply.invalidLength": "Reply is too short or too long.",
+
+  "favorite.notFound": "Favorite not found.",
+  "favorite.notYours": "This favorite doesn't belong to you.",
+  "favorite.collectionNotFound": "Collection not found.",
+  "favorite.collectionExists": "A collection with that name already exists.",
+  "favorite.collectionNameInvalid": "Collection name is invalid.",
+
+  "command.invalid": "Invalid command.",
+  "command.notFound": "Command not found.",
+
+  "suggestion.notFound": "Suggestion not found.",
+  "suggestion.titleInvalid": "Suggestion title is invalid.",
+  "suggestion.descInvalid": "Suggestion description is invalid.",
+  "suggestion.invalidStatus": "Invalid suggestion status.",
+  "suggestion.commentInvalid": "Comment is invalid.",
+
+  "subscription.notFound": "Subscription not found.",
+  "subscription.notActive": "Subscription is not active.",
+  "subscription.noAccess": "You don't have access to this subscription.",
+  "subscription.limitPremium": "This feature requires a premium subscription.",
+
+  "file.notFound": "File not found.",
+  "file.tooLarge": "File is too large.",
+  "file.invalidType": "File type is not supported.",
+  "file.limitExceeded": "File upload limit exceeded.",
+
+  "alert.notFound": "Alert not found.",
+  "notification.invalid": "Invalid notification.",
+
+  "session.notFound": "Session not found.",
+
+  "config.invalid": "Invalid configuration."
 }

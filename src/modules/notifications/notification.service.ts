@@ -44,7 +44,7 @@ export class NotificationService implements OnModuleDestroy {
   private batchTimer: NodeJS.Timeout | null = null;
 
   constructor(
-    @InjectModel(Notification.name, 'miniapp') 
+    @InjectModel(Notification.name) 
     private readonly notificationModel: Model<NotificationDocument>,
     private readonly redis: RedisCacheService,
   ) {

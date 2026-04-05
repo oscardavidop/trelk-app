@@ -10,7 +10,7 @@ const STATS_CACHE_TTL = 30; // 30s cache for stats
 @Injectable()
 export class HistoryService {
   constructor(
-    @InjectModel(History.name) private readonly historyModel: Model<HistoryDocument>,
+    @InjectModel(History.name, 'mbot') private readonly historyModel: Model<HistoryDocument>,
     private readonly redis: RedisCacheService,
   ) {}
 
@@ -63,7 +63,7 @@ export class HistoryService {
     todayStart.setHours(0, 0, 0, 0);
     const todayTs = todayStart.getTime();
 
-    const [commandsToday, commandsTotal, favoritesTotal, achievementsTotal] = await Promise.all([
+    const [commandsToday, commandsTotal, favoritesTotal, achievementsTotal, streakDays] = await Promise.all([
       this.historyModel.countDocuments({
         userId,
         type: 'command',
@@ -81,6 +81,7 @@ export class HistoryService {
         userId,
         type: 'achievement',
       }).exec(),
+      this.calcStreak(userId, todayTs),
     ]);
 
     const stats: ActivityStats = {
@@ -88,6 +89,7 @@ export class HistoryService {
       commandsTotal,
       favoritesTotal,
       achievementsTotal,
+      streakDays,
     };
 
     // Cache for 30s
@@ -189,6 +191,45 @@ export class HistoryService {
     await this.redis.set(cacheKey, recap, 300); // 5 min cache
     return recap;
   }
+
+  /**
+   * Calculate consecutive days streak ending today (or yesterday).
+   * Checks up to 30 days back. Counts today if there's activity.
+   */
+  private async calcStreak(userId: number, todayTs: number): Promise<number> {
+    const DAY_MS = 86_400_000;
+    let streak = 0;
+
+    // Check today first
+    const hasToday = await this.historyModel.exists({
+      userId,
+      type: 'command',
+      timestamp: { $gte: todayTs },
+    });
+
+    if (hasToday) streak = 1;
+
+    // Walk backwards from yesterday (up to 30 days)
+    for (let d = 1; d <= 30; d++) {
+      const dayStart = todayTs - d * DAY_MS;
+      const dayEnd = dayStart + DAY_MS;
+      const hasActivity = await this.historyModel.exists({
+        userId,
+        type: 'command',
+        timestamp: { $gte: dayStart, $lt: dayEnd },
+      });
+      if (hasActivity) {
+        streak++;
+      } else {
+        // If we had no activity today and no activity yesterday, streak is 0
+        if (d === 1 && !hasToday) break;
+        // Otherwise the streak ended
+        if (streak > 0) break;
+      }
+    }
+
+    return streak;
+  }
 }
 
 export interface ActivityStats {
@@ -196,6 +237,7 @@ export interface ActivityStats {
   commandsTotal: number;
   favoritesTotal: number;
   achievementsTotal: number;
+  streakDays: number;
 }
 
 export interface GlobalStats {

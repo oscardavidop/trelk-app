@@ -2,11 +2,11 @@ import {
   Controller, Get, Post, Delete, Patch,
   Query, Param, Body, Req, UseGuards, BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CommandFavoritesService } from './command-favorites.service';
 
 @Controller('api/v1/ui/command-favorites')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class CommandFavoritesController {
   constructor(private readonly svc: CommandFavoritesService) {}
 

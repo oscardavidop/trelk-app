@@ -55,7 +55,7 @@ export default function CommandAutocomplete({ onSelect, placeholder }: CommandAu
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder ?? t('type_a_command')}
-          className="w-full bg-tg-secondary border border-tg-border/20 rounded-[14px] py-3 pl-11 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent/40 transition-colors"
+          className="w-full bg-tg-secondary border border-tg-border/20 rounded-[14px] py-3 pl-11 pr-4 text-[14px] text-tg-text placeholder-tg-hint/50 outline-none focus:border-tg-accent transition-colors"
         />
         {value && (
           <button

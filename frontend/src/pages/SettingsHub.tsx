@@ -15,7 +15,8 @@ import {
   Palette,
   Crown,
   CreditCard,
-  Flag
+  Shield,
+  Smartphone,
 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
@@ -197,17 +198,37 @@ export default function SettingsHub() {
               <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
             </button>
 
-            <button onClick={() => go('/my-reports')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
-              <div className="w-9 h-9 rounded-[10px] bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
-                <Flag size={18} className="text-orange-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text ">{t('my_reports')}</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('my_reports_desc')}</div>
-              </div>
-              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
-            </button>
+          </div>
+        </div>
+      </section>
 
+      {/* ── Security ── */}
+      <section className="mt-8 px-5">
+        <h2 className="text-[12px] font-bold text-tg-hint uppercase mb-3 pl-2">{t('security')}</h2>
+
+        <div className="rounded-[20px] bg-tg-secondary border border-tg-border/30 overflow-hidden shadow-sm">
+          <div className="divide-y divide-tg-border/20">
+          <button onClick={() => go('/pin-settings')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
+            <div className="w-9 h-9 rounded-[10px] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <Shield size={18} className="text-emerald-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-bold text-tg-text">{t('pin_security')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('pin_security_desc')}</div>
+            </div>
+            <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
+          </button>
+
+          <button onClick={() => go('/sessions')} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-tg-surface/40 active:bg-tg-surface/60 transition-colors">
+            <div className="w-9 h-9 rounded-[10px] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <Smartphone size={18} className="text-blue-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-bold text-tg-text">{t('active_sessions', 'Active Sessions')}</div>
+              <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('active_sessions_desc', 'Manage your logged-in devices')}</div>
+            </div>
+            <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
+          </button>
           </div>
         </div>
       </section>

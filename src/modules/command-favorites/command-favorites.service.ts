@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { CommandFavorite, CommandFavoriteDocument } from './schemas/command-favorite.schema';
 import { History, HistoryDocument } from '../history/schemas/history.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
+import { CacheInvalidationService } from '../../core/resilience/cache-invalidation.service';
+import { AppError, ErrorCode } from '../../common/errors';
 
 const CACHE_PREFIX = 'cmd-fav';
 const LIST_TTL = 60;      // 60s cache for user favorites list
@@ -14,9 +16,10 @@ export class CommandFavoritesService {
   private readonly logger = new Logger(CommandFavoritesService.name);
 
   constructor(
-    @InjectModel(CommandFavorite.name, 'miniapp') private readonly favModel: Model<CommandFavoriteDocument>,
+    @InjectModel(CommandFavorite.name) private readonly favModel: Model<CommandFavoriteDocument>,
     @InjectModel(History.name) private readonly historyModel: Model<HistoryDocument>,
     private readonly redis: RedisCacheService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) { }
 
   // ════════════════════════════════════════════════
@@ -62,7 +65,7 @@ export class CommandFavoritesService {
   async toggle(userId: number, command: string): Promise<{ added: boolean }> {
     const trimmed = command.trim().toLowerCase();
     if (!trimmed || trimmed.length > 50) {
-      throw new Error('Invalid command name');
+      throw new AppError(ErrorCode.COMMAND_INVALID, 'Invalid command name', 400);
     }
 
     const existing = await this.favModel.findOne({ userId, command: trimmed }).lean().exec();
@@ -92,7 +95,7 @@ export class CommandFavoritesService {
   /** Toggle pin status */
   async togglePin(userId: number, command: string): Promise<{ pinned: boolean }> {
     const fav = await this.favModel.findOne({ userId, command: command.trim().toLowerCase() }).exec();
-    if (!fav) throw new Error('Favorite not found');
+    if (!fav) throw new AppError(ErrorCode.FAVORITE_NOT_FOUND, 'Favorite not found', 404);
     fav.pinned = !fav.pinned;
     await fav.save();
     await this.invalidateCache(userId);
@@ -176,6 +179,7 @@ export class CommandFavoritesService {
   private async invalidateCache(userId: number) {
     try {
       await this.redis.del(`${CACHE_PREFIX}:set:${userId}`);
+      await this.cacheInvalidation.emit({ type: 'favorite_toggled', command: '', userId });
     } catch {
       // Graceful — cache miss is not critical
     }

@@ -1,0 +1,11 @@
+{
+  "placeholder": "Search commands, categories...",
+  "cancel": "Cancel",
+  "trending": "Trending",
+  "recent": "Recent",
+  "no_results": "No results. Try a different term.",
+  "intent_category": "Showing category: {{category}}",
+  "intent_help": "Help for: {{command}}",
+  "search_title": "Search",
+  "search_description": "Search commands by name, alias, or category"
+}

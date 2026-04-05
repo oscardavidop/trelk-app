@@ -9,6 +9,7 @@ import { RedisCacheService } from '../redis/redis-cache.service';
 import { ReportUploadService } from '../uploads/report-upload.service';
 import { ReviewModerationService } from '../moderation/review-moderation.service';
 import { REPORT_LIMIT, REPORT_DEDUP_TTL } from '../../common/constants/command-stats.constants';
+import { AppError, ErrorCode } from '../../common/errors';
 
 @Injectable()
 export class ReportsService {
@@ -81,14 +82,14 @@ export class ReportsService {
     const dedupKey = `report:hash:${userId}:${cmd}`;
     const existing = await this.redis.get<string>(dedupKey);
     if (existing) {
-      throw new HttpException('Ya reportaste este comando recientemente', HttpStatus.TOO_MANY_REQUESTS);
+      throw new AppError(ErrorCode.REPORT_DUPLICATE, 'Already reported this command recently', 429, undefined, true);
     }
 
     const msgHash = createHash('sha256').update(`${userId}:${msg}`).digest('hex').slice(0, 16);
     const spamKey = `report:spam:${msgHash}`;
     const spamExists = await this.redis.get<string>(spamKey);
     if (spamExists) {
-      throw new HttpException('Mensaje duplicado detectado', HttpStatus.TOO_MANY_REQUESTS);
+      throw new AppError(ErrorCode.REPORT_DUPLICATE, 'Duplicate message detected', 429, undefined, true);
     }
 
     const ipHash = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 16) : undefined;

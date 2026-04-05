@@ -18,6 +18,7 @@ import {
     type ReviewFilterType, type ReviewSortType,
 } from '../components/commands/reviews';
 import { StickySectionHeader } from '@/components/StickyHeader';
+import { useScrollRestore } from '../hooks/usePageCache';
 
 const PAGE_SIZE = 10;
 
@@ -38,6 +39,7 @@ export default function CommandReviewsPage() {
     const [filter, setFilter] = useState<ReviewFilterType>('all');
     const [sort, setSort] = useState<ReviewSortType>('relevant');
     const loaderRef = useRef<HTMLDivElement>(null);
+    const { restore: restoreScroll } = useScrollRestore(`reviews-${slug}`);
 
     // ── Summary query ──
     const { data: summary, isLoading: summaryLoading } = useQuery<ReviewsSummary>({

@@ -1,11 +1,11 @@
 import {
   Controller, Get, Post, Param, Query, UseGuards,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaymentsService } from './payments.service';
 
 @Controller('api/v1/ui/payments')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class PaymentsController {
   constructor(private readonly svc: PaymentsService) {}
 

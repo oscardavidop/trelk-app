@@ -1,0 +1,11 @@
+{
+  "placeholder": "Buscar comandos, categorías...",
+  "cancel": "Cancelar",
+  "trending": "Tendencia",
+  "recent": "Recientes",
+  "no_results": "Sin resultados. Prueba con otro término.",
+  "intent_category": "Mostrando categoría: {{category}}",
+  "intent_help": "Ayuda para: {{command}}",
+  "search_title": "Búsqueda",
+  "search_description": "Busca comandos por nombre, alias o categoría"
+}

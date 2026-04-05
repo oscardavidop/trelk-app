@@ -71,6 +71,7 @@ export type Namespace =
   | 'payments'
   | 'profile'
   | 'settings'
+  | 'sessions'
   | 'subscription'
   | 'ui';
 

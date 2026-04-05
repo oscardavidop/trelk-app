@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserGamification, UserGamificationDocument } from './schemas/user-gamification.schema';
+import { History } from '../history/schemas/history.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import {
   ACHIEVEMENT_DEFINITIONS,
@@ -12,12 +13,15 @@ import {
 
 const CACHE_PREFIX = 'user:gamification:';
 const CACHE_TTL = 60;
+const XP_PER_COMMAND = 5;
 
 @Injectable()
 export class GamificationService {
   constructor(
     @InjectModel(UserGamification.name)
     private readonly model: Model<UserGamificationDocument>,
+    @InjectModel(History.name, 'mbot')
+    private readonly historyModel: Model<any>,
     private readonly redis: RedisCacheService,
   ) {}
 
@@ -30,7 +34,24 @@ export class GamificationService {
     const cached = await this.redis.get<GamificationProfile>(cacheKey);
     if (cached) return cached;
 
-    const doc = await this.model.findOne({ userId }).lean().exec();
+    let doc = await this.model.findOne({ userId }).lean().exec();
+
+    // Seed XP from actual command history if no gamification record exists
+    if (!doc || doc.xp === 0) {
+      const commandCount = await this.historyModel
+        .countDocuments({ userId, type: 'command' })
+        .exec()
+        .catch(() => 0);
+
+      if (commandCount > 0) {
+        const seedXP = commandCount * XP_PER_COMMAND;
+        doc = await this.model.findOneAndUpdate(
+          { userId },
+          { $set: { xp: seedXP }, $setOnInsert: { userId, streak: 0, achievements: [] } },
+          { upsert: true, new: true, lean: true },
+        ).exec();
+      }
+    }
 
     const xp = doc?.xp ?? 0;
     const streak = doc?.streak ?? 0;

@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import Toggle from '../Toggle';
+import Select from '../Select';
 import type { CommandConfigFieldSchema } from '../../config/commandConfigSchema';
 
 export type FieldSaveState = 'idle' | 'modified' | 'saving' | 'saved' | 'error';
@@ -20,6 +22,14 @@ const STATUS_CLASS: Record<FieldSaveState, string> = {
   error: 'text-red-400',
 };
 
+const STATUS_ICON: Record<FieldSaveState, string> = {
+  idle: '',
+  modified: '●',
+  saving: '↻',
+  saved: '✓',
+  error: '✕',
+};
+
 const STATUS_KEY: Record<FieldSaveState, string> = {
   idle: '',
   modified: 'status_modified',
@@ -38,20 +48,27 @@ export default function CommandConfigField({ field, value, status = 'idle', erro
   const description = field.descriptionKey ? t(field.descriptionKey) : undefined;
   const statusKey = STATUS_KEY[status];
 
+  const statusBadge = statusKey ? (
+    <motion.span
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={`text-[11px] font-bold flex items-center gap-1 ${STATUS_CLASS[status]}`}
+    >
+      <span className="text-[9px]">{STATUS_ICON[status]}</span>
+      {t(statusKey)}
+    </motion.span>
+  ) : null;
+
   if (field.type === 'boolean') {
     return (
-      <div className="px-4 py-3.5 flex items-center justify-between gap-3">
+      <div className="px-4 py-4 flex items-center justify-between gap-3 group">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-[14px] font-semibold text-tg-text">{label}</p>
-            {statusKey && (
-              <span className={`text-[11px] font-semibold ${STATUS_CLASS[status]}`}>
-                {t(statusKey)}
-              </span>
-            )}
+            {statusBadge}
           </div>
           {description && (
-            <p className="text-[12px] text-tg-hint mt-0.5">{description}</p>
+            <p className="text-[12px] text-tg-hint/70 mt-0.5 leading-relaxed">{description}</p>
           )}
         </div>
         <Toggle enabled={coerceBoolean(value)} onChange={(next) => onChange(next)} />
@@ -60,55 +77,63 @@ export default function CommandConfigField({ field, value, status = 'idle', erro
   }
 
   return (
-    <div className="px-4 py-3.5">
-      <div className="flex items-start justify-between gap-3 mb-2">
+    <div className="px-4 py-4">
+      <div className="flex items-start justify-between gap-3 mb-2.5">
         <div className="min-w-0">
           <p className="text-[14px] font-semibold text-tg-text">{label}</p>
           {description && (
-            <p className="text-[12px] text-tg-hint mt-0.5">{description}</p>
+            <p className="text-[12px] text-tg-hint/70 mt-0.5 leading-relaxed">{description}</p>
           )}
         </div>
-        {statusKey && (
-          <span className={`text-[11px] font-semibold shrink-0 ${STATUS_CLASS[status]}`}>
-            {t(statusKey)}
-          </span>
-        )}
+        {statusBadge}
       </div>
 
       {field.type === 'select' && (
-        <select
-          className="w-full rounded-[12px] bg-tg-surface border border-tg-border/40 px-3 py-2.5 text-[14px] text-tg-text outline-none focus:border-tg-accent/50 transition-colors"
+        <Select
+          options={(field.options ?? []).map((opt) => ({ label: t(opt.labelKey), value: opt.value }))}
           value={typeof value === 'string' ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {(field.options ?? []).map((opt) => (
-            <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
-          ))}
-        </select>
+          onChange={(v) => onChange(v)}
+        />
       )}
 
       {field.type === 'number' && (
-        <input
-          type="number"
-          className="w-full rounded-[12px] bg-tg-surface border border-tg-border/40 px-3 py-2.5 text-[14px] text-tg-text outline-none focus:border-tg-accent/50 transition-colors"
-          min={field.min}
-          max={field.max}
-          value={typeof value === 'number' ? value : ''}
-          onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
-        />
+        <div className="relative">
+          <input
+            type="number"
+            className="w-full rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 px-4 py-3 text-[14px] text-tg-text font-medium outline-none focus:border-tg-accent/50 focus:bg-tg-text/[0.01] transition-all placeholder:text-tg-hint/40"
+            min={field.min}
+            max={field.max}
+            value={typeof value === 'number' ? value : ''}
+            onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+            placeholder={field.placeholder}
+          />
+          {field.min !== undefined && field.max !== undefined && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-tg-hint/50 font-medium pointer-events-none">
+              {field.min}–{field.max}
+            </span>
+          )}
+        </div>
       )}
 
       {field.type === 'text' && (
         <input
           type="text"
-          className="w-full rounded-[12px] bg-tg-surface border border-tg-border/40 px-3 py-2.5 text-[14px] text-tg-text outline-none focus:border-tg-accent/50 transition-colors"
+          className="w-full rounded-[14px] bg-tg-text/[0.03] border border-tg-border/30 px-4 py-3 text-[14px] text-tg-text font-medium outline-none focus:border-tg-accent/50 focus:bg-tg-text/[0.01] transition-all placeholder:text-tg-hint/40"
           placeholder={field.placeholder}
           value={typeof value === 'string' ? value : ''}
           onChange={(e) => onChange(e.target.value)}
         />
       )}
 
-      {error && <p className="text-[12px] text-red-400 mt-2">{error}</p>}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-[12px] text-red-400 font-medium mt-2 pl-1"
+        >
+          {error}
+        </motion.p>
+      )}
     </div>
   );
 }

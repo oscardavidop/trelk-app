@@ -20,6 +20,12 @@ export class FeatureFlagsService {
     this.flags.set('rate_limit', this.envBool('ENABLE_RATE_LIMIT', true));
     this.flags.set('abuse_detection', this.envBool('ENABLE_ABUSE_DETECTION', true));
     this.flags.set('sse', this.envBool('ENABLE_SSE', true));
+    this.flags.set('pin_security', this.envBool('ENABLE_PIN_SECURITY', true));
+    this.flags.set('search_pro', this.envBool('ENABLE_SEARCH_PRO', true));
+    this.flags.set('deep_linking', this.envBool('ENABLE_DEEP_LINKING', true));
+    this.flags.set('personalization', this.envBool('ENABLE_PERSONALIZATION', true));
+    this.flags.set('analytics_tracking', this.envBool('ENABLE_ANALYTICS_TRACKING', true));
+    this.flags.set('offline_mode', this.envBool('ENABLE_OFFLINE_MODE', true));
   }
 
   isEnabled(flag: string): boolean {

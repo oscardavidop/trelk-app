@@ -12,14 +12,15 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserService } from '../users/user.service';
 import { LocaleDto } from '../users/dto/api.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { AppError, ErrorCode } from '../../common/errors';
 
 @Controller('api/v1/ui/config')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class ConfigController {
   constructor(private readonly userService: UserService) { }
 
@@ -28,7 +29,7 @@ export class ConfigController {
   async getConfig(@Req() req: any) {
     const telegramId = this.extractTelegramId(req);
     const data = await this.userService.getFullConfig(telegramId);
-    if (!data) return { ok: false, error: 'User not found' };
+    if (!data) throw new AppError(ErrorCode.USER_NOT_FOUND, 'User not found', 404);
     return { ok: true, ...data };
   }
 
@@ -42,7 +43,7 @@ export class ConfigController {
     @Req() req: any,
   ) {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      throw new BadRequestException('Invalid patch payload');
+      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid request body', 400, { expected: 'object' });
     }
     const telegramId = this.extractTelegramId(req);
     await this.userService.patchCommandConfig(telegramId, key, body);
@@ -58,7 +59,7 @@ export class ConfigController {
     @Body() body: { alias: string },
     @Req() req: any,
   ) {
-    if (!body.alias) throw new BadRequestException('alias is required');
+    if (!body.alias) throw new AppError(ErrorCode.VALIDATION_ERROR, 'alias is required', 400);
     const telegramId = this.extractTelegramId(req);
     await this.userService.upsertPremiumCommand(telegramId, key, body.alias, req.user.authUser.pro_features, req.user.authUser.config.premium_commands);
     return { ok: true };
@@ -68,10 +69,12 @@ export class ConfigController {
   @Delete('premium/:key')
   async deletePremiumCommand(@Param('key') key: string, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
-    await this.userService.deletePremiumCommand(telegramId, key);
+    const result = await this.userService.deletePremiumCommand(telegramId, key);
+    if (!result.modifiedCount) {
+      throw new AppError(ErrorCode.COMMAND_NOT_FOUND, 'Command not found', 404);
+    } 
     return { ok: true };
   }
-
   // ── Locale ──────────────────────────────────────
 
   /** PATCH /api/v1/ui/config/locale — partial update locale */
@@ -86,12 +89,7 @@ export class ConfigController {
     });
 
     if (errors.length > 0) {
-      throw new BadRequestException({
-        ok: false,
-        error: 'Bad Request',
-        details: this.formatErrors(errors),
-        error_code: 'VALIDATION_ERROR',
-      });
+      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid locale', 400, { errors: this.formatErrors(errors) });
     }
 
     await this.userService.updateLocale(telegramId, body);

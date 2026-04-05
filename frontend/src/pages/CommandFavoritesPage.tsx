@@ -11,6 +11,7 @@ import SmartEmptyState from '../components/SmartEmptyState';
 import {
   Star, Pin, HeartOff, ArrowUpDown,
   Search, TrendingUp, Flame, Loader2,
+  Sparkles, Filter,
 } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 
@@ -39,6 +40,7 @@ export default function CommandFavoritesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const offsetRef = useRef(0);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -114,9 +116,15 @@ export default function CommandFavoritesPage() {
     showToast(pinned ? t('pinned', 'Pinned') : t('unpinned', 'Unpinned'), 'info');
   };
 
-  // Apply client-side sort
+  // Apply client-side sort + category filter
   const sorted = useMemo(() => {
-    const list = [...items];
+    let list = [...items];
+    if (selectedCat) {
+      list = list.filter((i) => {
+        const cmd = findCommand(i.command);
+        return cmd?.category === selectedCat;
+      });
+    }
     if (sort === 'alpha') {
       list.sort((a, b) => {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -124,7 +132,7 @@ export default function CommandFavoritesPage() {
       });
     }
     return list;
-  }, [items, sort]);
+  }, [items, sort, selectedCat]);
 
   return (
     <div className="pb-28 animate-fade-in relative max-w-[480px] mx-auto min-h-screen">
@@ -132,6 +140,63 @@ export default function CommandFavoritesPage() {
         title={t('favorites:title', 'Favorites')} 
         subtitle={t('commands_saved', { count: total, defaultValue: `${total} Commands Saved` })}
       />
+
+      {/* ── Stats Summary ── */}
+      {!initialLoading && total > 0 && !search && (
+        <div className="px-5 mt-3 flex gap-2">
+          <div className="flex-1 bg-tg-secondary border border-tg-border/30 rounded-[14px] px-3 py-2.5 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-[10px] bg-pink-500/10 flex items-center justify-center">
+              <Star size={16} className="text-pink-500 fill-pink-500/20" />
+            </div>
+            <div>
+              <div className="text-[16px] font-extrabold text-tg-text leading-none">{total}</div>
+              <div className="text-[10px] font-bold text-tg-hint uppercase tracking-wider mt-0.5">{t('favorites:title', 'Favorites')}</div>
+            </div>
+          </div>
+          {trending.length > 0 && (
+            <div className="flex-1 bg-tg-secondary border border-tg-border/30 rounded-[14px] px-3 py-2.5 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-[10px] bg-orange-500/10 flex items-center justify-center">
+                <Flame size={16} className="text-orange-500" />
+              </div>
+              <div>
+                <div className="text-[16px] font-extrabold text-tg-text leading-none">{trending.length}</div>
+                <div className="text-[10px] font-bold text-tg-hint uppercase tracking-wider mt-0.5">{t('trending_week', 'Trending')}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Category Filter ── */}
+      {!initialLoading && total > 0 && !search && (
+        <div className="flex gap-2 overflow-x-auto px-5 mt-3 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <button
+            onClick={() => { haptic?.impactOccurred('light'); setSelectedCat(null); }}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all border ${
+              !selectedCat
+                ? 'bg-tg-accent text-white border-tg-accent shadow-sm'
+                : 'bg-tg-secondary text-tg-hint border-tg-border/40'
+            }`}
+          >
+            {t('all', 'All')}
+          </button>
+          {Object.entries(CATEGORY_META).map(([key, meta]) => (
+            <button
+              key={key}
+              onClick={() => { haptic?.impactOccurred('light'); setSelectedCat(key === selectedCat ? null : key); }}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all border flex items-center gap-1.5 ${
+                selectedCat === key
+                  ? 'text-white shadow-sm'
+                  : 'bg-tg-secondary text-tg-hint border-tg-border/40'
+              }`}
+              style={selectedCat === key ? { backgroundColor: meta.color, borderColor: meta.color } : {}}
+            >
+              <meta.icon size={12} />
+              {meta.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Buscador + Ordenamiento ── */}
       <div className="px-5 mt-4 flex gap-3 h-[42px]">

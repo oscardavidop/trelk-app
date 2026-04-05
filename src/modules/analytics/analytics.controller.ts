@@ -1,10 +1,10 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CommandRateLimit } from '../../common/decorators/rate-limit.decorator';
 import { AnalyticsService } from './analytics.service';
 
 @Controller('api/v1/ui/commands')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class AnalyticsController {
   constructor(private readonly analytics: AnalyticsService) {}
 

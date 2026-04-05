@@ -1,29 +1,41 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsOptional,
-  IsBoolean,
   IsArray,
   IsString,
   IsIn,
-  IsObject,
   ValidateNested,
-  IsBooleanString,
-  IsNumber,
   IsInt,
-  isTimeZone,
   IsISO31661Alpha2,
-  IsTimeZone,
-  Matches,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  Validate,
 } from 'class-validator';
 
-const ALLOWED_SETTINGS = new Set([
-  'auto_detect_lang',
-  'message_format',
-  'time_format',
-  'chat_actions',
-  'notifications_settings',
-  'notifications_settings.semanal_stats',
-]);
+
+@ValidatorConstraint({ name: 'isIanaTimezone', async: false })
+export class IsIanaTimezoneConstraint implements ValidatorConstraintInterface {
+  validate(value: any) {
+    if (typeof value !== 'string') return false;
+    let tz = value;
+    const match = value.match(/^(GMT|UTC)([+-])(\d{1,2})$/);
+    if (match) {
+      const sign = match[2] === '+' ? '-' : '+'; // Se invierte por estándar IANA
+      tz = `Etc/GMT${sign}${match[3]}`;
+    }
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: tz });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  defaultMessage(args: ValidationArguments) {
+    return `${args.value} is not a valid IANA or GMT offset`;
+  }
+}
+
 
 const ALLOWED_METHODS = new Set(['changeSettings', 'updateConfig', 'auth']);
 export class ConfigDto {
@@ -36,7 +48,6 @@ export class ConfigDto {
   "config.locale.lang"?: string;
 
   @IsOptional()
-  // @IsInt()
   bid: number;
 
 }
@@ -74,7 +85,7 @@ class DateTimeFormatDto {
 }
 
 export class LocaleDto {
-  @IsOptional() @IsString() @IsTimeZone()
+  @IsOptional() @IsString() @Validate(IsIanaTimezoneConstraint)
   tz?: string;
 
   @IsOptional()
@@ -91,17 +102,6 @@ export class LocaleDto {
 }
 
 
-function detectTimezone(): { key: string; name: string } | null {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (!isTimeZone(tz)) return null;
-    const key = tz;
-    return { key, name: tz };
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Transform que convierte cualquier representación booleana
  * (true, false, 0, 1, "true", "false", "0", "1") a boolean.
@@ -115,6 +115,8 @@ const ToBool = () => Transform(({ value }) => {
   }
   return !!value;
 });
+
+
 
 export class SettingsDto {
 

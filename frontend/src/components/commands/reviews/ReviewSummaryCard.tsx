@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Star, MessageSquarePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ReviewsSummary } from '../../../services/commandStatsApi';
+import ConfidenceLabel from '../../ui/ConfidenceLabel';
 
 interface Props {
   summary: ReviewsSummary;
@@ -135,6 +136,9 @@ function ReviewSummaryCard({ summary, onFilterStar, activeStar }: Props) {
             })}
           </div>
         </div>
+        {summary.confidence && (
+          <ConfidenceLabel confidence={summary.confidence} className="mt-3 justify-center" />
+        )}
       </div>
     </section>
   );

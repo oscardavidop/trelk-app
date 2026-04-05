@@ -10,7 +10,7 @@
     --trelk-intensity: 0.7;
 
     /* Legacy hex vars (kept for non-Tailwind CSS classes) */
-    --tg-bg: #1a2026;
+    --tg-bg: #1a1b1c;
     --tg-secondary: #212a33;
     --tg-surface: #293540;
     --tg-accent: #248BDA;
@@ -52,7 +52,7 @@
       --tg-destructive: #dc3545;
       --tg-success: #28a745;
       --tg-border: #d1d5db;
-
+   
       --tg-bg-rgb: 240 242 245;
       --tg-secondary-rgb: 255 255 255;
       --tg-surface-rgb: 232 234 237;
@@ -131,6 +131,27 @@
 }
 
 @layer utilities {
+
+  /* ── Safe Areas — mobile notch/gesture bar spacing ── */
+  .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-left { padding-left: env(safe-area-inset-left, 0px); }
+  .safe-right { padding-right: env(safe-area-inset-right, 0px); }
+  .safe-x { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+  .safe-y { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+  /* ── Momentum scroll — smooth iOS-like inertia ── */
+  .scroll-momentum {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+
+  /* ── Tap feedback — instant visual response ── */
+  .tap-highlight {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    touch-action: manipulation;
+  }
 
   /* ── TWEAK NATIVO 3: Clase global para ocultar el scrollbar (usado en los screenshots/ejemplos) ── */
   .no-scrollbar::-webkit-scrollbar {
@@ -530,6 +551,7 @@ body {
     height 0.15s ease,
     backdrop-filter 0.15s ease;
 }
+
 
 /* ── Delight glow effect ── */
 @keyframes delight-glow-pulse {

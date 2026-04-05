@@ -16,7 +16,9 @@ export const envValidationSchema = Joi.object({
   MONGODB_URI: Joi.string().uri().required().messages({
     'any.required': 'MONGODB_URI es obligatorio. Ejemplo: mongodb+srv://user:pass@cluster.mongodb.net/db',
   }),
-
+  MONGODB_URI_MINIAPP: Joi.string().uri().required().messages({
+    'any.required': 'MONGODB_URI_MINIAPP es obligatorio. Ejemplo: mongodb+srv://user:pass@cluster.mongodb.net/db',
+  }),
   // === JWT ===
   JWT_SECRET: Joi.string().min(32).required().messages({
     'any.required': 'JWT_SECRET es obligatorio y debe tener mínimo 32 caracteres',
@@ -78,6 +80,12 @@ export const envValidationSchema = Joi.object({
   ENABLE_RATE_LIMIT: Joi.boolean().default(true),
   ENABLE_ABUSE_DETECTION: Joi.boolean().default(true),
   ENABLE_SSE: Joi.boolean().default(true),
+  ENABLE_PIN_SECURITY: Joi.boolean().default(true),
+  ENABLE_SEARCH_PRO: Joi.boolean().default(true),
+  ENABLE_DEEP_LINKING: Joi.boolean().default(true),
+  ENABLE_PERSONALIZATION: Joi.boolean().default(true),
+  ENABLE_ANALYTICS_TRACKING: Joi.boolean().default(true),
+  ENABLE_OFFLINE_MODE: Joi.boolean().default(true),
 
   // === AI Cost Control ===
   AI_SUMMARY_MIN_REVIEWS: Joi.number().integer().min(1).default(10),

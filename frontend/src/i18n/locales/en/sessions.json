@@ -1,0 +1,21 @@
+{
+  "title": "Active Sessions",
+  "subtitle": "Devices with access to your account",
+  "current": "Current",
+  "active_now": "Active now",
+  "other_devices": "Other devices",
+  "revoke": "Revoke",
+  "revoke_all": "Revoke all other sessions",
+  "revoke_confirm": "Revoke this session?",
+  "revoke_all_confirm": "Revoke all other sessions?",
+  "confirm": "Confirm",
+  "revoked": "Session revoked",
+  "revoked_all": "{{count}} sessions revoked",
+  "no_other": "No other active sessions",
+  "last_active": "Last active {{time}}",
+  "just_now": "just now",
+  "mins_ago": "{{count}}m ago",
+  "hours_ago": "{{count}}h ago",
+  "days_ago": "{{count}}d ago",
+  "unknown_device": "Unknown device"
+}

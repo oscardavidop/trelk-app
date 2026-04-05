@@ -55,7 +55,7 @@ export class RedisCacheService implements OnModuleInit {
       });
 
       await this.client.connect();
-    } catch (err) {
+    } catch (err: any) {
       this.logger.warn(`No se pudo conectar a Redis: ${err.message}. Fallback a MongoDB.`);
       this.client = null;
     }

@@ -1,13 +1,13 @@
 import {
   Controller, Get, Post, Param, Body, Query, Req, UseGuards, BadRequestException, Headers,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReviewModerationService } from './review-moderation.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { extractUserId } from '../../common/utils/auth.utils';
 
 @Controller('api/v1/ui/commands')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class ModerationController {
   constructor(
     private readonly moderation: ReviewModerationService,

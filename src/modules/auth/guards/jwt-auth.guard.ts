@@ -13,13 +13,13 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
         if (user) {
             user.callHeaders = request.headers;
             user.location = {
-                ip: request.headers['cf-connecting-ip'] || "192.262.2.3",
-                country: request.headers['cf-ipcountry'] || "CO",
-                city: request.headers['cf-ipcity'] || "Medellin",
-                region: fixEncoding(request.headers['cf-region']) || "Antioquia",
-                latitude: request.headers['cf-iplatitude'] || "6.2442",
-                longitude: request.headers['cf-iplongitude'] || "-75.5812",
-                timezone: request.headers['cf-timezone'] || "America/Bogota",
+                ip: request.headers['cf-connecting-ip'] || request.ip || 'unknown',
+                country: request.headers['cf-ipcountry'] || 'UNKNOWN',
+                city: request.headers['cf-ipcity'] || 'unknown',
+                region: fixEncoding(request.headers['cf-region'] || 'unknown'),
+                latitude: request.headers['cf-iplatitude'] || '0',
+                longitude: request.headers['cf-iplongitude'] || '0',
+                timezone: request.headers['cf-timezone'] || 'UTC',
             }
 
             // if (user.session.userAgent !== request.headers['user-agent']) {
@@ -62,8 +62,9 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
 //     }
 // }
 
-function fixEncoding(text: string): string {
-    return decodeURIComponent(escape(text));
+function fixEncoding(text: string | undefined): string {
+    if (!text) return '';
+    try { return decodeURIComponent(escape(text)); } catch { return text; }
   }
 
 
@@ -71,4 +72,4 @@ function fixEncoding(text: string): string {
 export class TelegramAuthGuard extends AuthGuard('telegram') {}
 
 @Injectable()
-export class CookieAuthGuard extends AuthGuard('cookie') {}
+export class BearerAuthGuard extends AuthGuard('bearer') {}

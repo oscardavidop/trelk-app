@@ -269,7 +269,7 @@ export default function SuggestionDetailPage() {
             onChange={(e) => setCommentText(e.target.value)}
             placeholder={t('comment_placeholder')}
             maxLength={1000}
-            className="flex-1 h-11 px-4 rounded-full bg-tg-secondary border border-tg-border/30 text-[14px] text-tg-text placeholder:text-tg-hint/40 outline-none focus:border-tg-accent/40 transition-colors"
+            className="flex-1 h-11 px-4 rounded-full bg-tg-secondary border border-tg-border/30 text-[14px] text-tg-text placeholder:text-tg-hint/40 outline-none focus:border-tg-accent transition-colors"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && commentText.trim().length >= 3) {
                 commentMutation.mutate(commentText.trim());

@@ -1,13 +1,18 @@
-import { Controller, Get, Req, Res, Query, UseGuards } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Controller, Get, Req, Res, Query } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { FeatureFlagsService } from '../../common/services/feature-flags.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { Token, TokenDocument } from '../auth/schemas/token.schema';
 
 /**
  * SSE (Server-Sent Events) controller for realtime signals.
  * Efficient alternative to WebSockets — no persistent connection overhead.
  * Only sends when visible + dynamic interval.
+ * 
+ * Uses query param token auth since EventSource can't send custom headers.
  */
 @Controller('api/v1/sse')
 @SkipThrottle()
@@ -15,25 +20,53 @@ export class SSEController {
   constructor(
     private readonly redis: RedisCacheService,
     private readonly flags: FeatureFlagsService,
+    @InjectModel(User.name, 'mbot') private readonly userModel: Model<UserDocument>,
+    @InjectModel(Token.name) private readonly tokenModel: Model<TokenDocument>,
   ) {}
 
   /**
-   * GET /api/v1/sse/signals?commands=cmd1,cmd2
+   * GET /api/v1/sse/signals?commands=cmd1,cmd2&token=...
    * SSE stream for real-time signals (notifications count, command updates).
+   * Token passed as query param since EventSource doesn't support headers.
    */
   @Get('signals')
-  @UseGuards(CookieAuthGuard)
   async signals(
     @Req() req: any,
     @Res() res: any,
     @Query('commands') commandsStr: string,
+    @Query('token') token: string,
   ) {
     if (!this.flags.isEnabled('sse')) {
       res.status(503).send({ error: 'SSE disabled' });
       return;
     }
 
-    const userId = this.uid(req);
+    // Manual auth via query param token (EventSource can't send headers)
+    if (!token) {
+      res.status(401).send({ error: 'Token required' });
+      return;
+    }
+
+    // Validate token
+    const cached = await this.redis.getSession(token);
+    let userIdNum: number;
+    if (cached) {
+      userIdNum = cached.authTelegram?.id || cached.authUser?.telegramId || 0;
+    } else {
+      const tokenDoc = await this.tokenModel.findOne({ session_id: token, revoked: false }).exec();
+      if (!tokenDoc) {
+        res.status(401).send({ error: 'Invalid token' });
+        return;
+      }
+      userIdNum = tokenDoc.sub;
+    }
+
+    if (!userIdNum) {
+      res.status(401).send({ error: 'Invalid user' });
+      return;
+    }
+
+    const userId = String(userIdNum);
     const commands = (commandsStr || '').split(',').filter(Boolean).slice(0, 10);
 
     // SSE headers

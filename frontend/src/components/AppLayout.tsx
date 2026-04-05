@@ -7,6 +7,7 @@ import NotificationToast from './ui/NotificationToast';
 import NotificationDebugPanel from './ui/NotificationDebugPanel';
 import { useLiveNotifications } from '../hooks/useLiveNotifications';
 import { useUserStore } from '../stores';
+import { useSwipeBack } from '../hooks/useGestures';
 import { Suspense, useState } from 'react';
 import SettingsPageFallback from '@/pages/fallbacks/SettingsPageFallback';
 import CommandsHubFallback from '@/pages/fallbacks/CommandsHubFallback';
@@ -22,8 +23,8 @@ const PAGE_FALLBACKS: Record<string, React.ReactNode> = {
 };
 
 
-/* Routes where the bottom nav should be visible (main 4 tabs) */
-const TAB_SUFFIXES = ['', '/', '/hub', '/settings-hub', '/profile-tab'];
+/* Routes where the bottom nav should be visible (main 4 tabs + notifications) */
+const TAB_SUFFIXES = ['', '/', '/hub', '/settings-hub', '/profile-tab', '/notifications'];
 
 export function PageFallback() {
   return (
@@ -65,6 +66,7 @@ export function PageFallback() {
 
 export default function AppLayout() {
   useBackButton();
+  useSwipeBack();
   const location = useLocation();
   const user = useUserStore((s) => s.user);
   useLiveNotifications();

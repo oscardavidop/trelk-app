@@ -89,10 +89,3 @@ export default function TopIsland({ name, avatarUrl }: TopIslandProps) {
     </div>
   );
 }
-
-// Nota: Corregí el nombre de 'Hiden' a 'Hidden'. Asegúrate de actualizar la importación donde lo uses.
-export function HiddenTopIsland() {
-  return (
-    <div className="h-10 w-full flex-shrink-0" aria-hidden="true" />
-  );
-}

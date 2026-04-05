@@ -8,6 +8,7 @@ import { ReviewSummary, ReviewSummaryDocument } from '../review-summary/schemas/
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { ReviewModerationService } from '../moderation/review-moderation.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
+import { CacheInvalidationService } from '../../core/resilience';
 import { REVIEW_SUMMARY_TTL } from '../../common/constants/command-stats.constants';
 import { ReviewsSummary } from '../../common/types/command-stats.types';
 
@@ -23,6 +24,7 @@ export class ReviewsService {
     private readonly redis: RedisCacheService,
     private readonly moderation: ReviewModerationService,
     private readonly userStats: UserStatsService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {}
 
   async getReviewsSummary(command: string) {
@@ -202,9 +204,7 @@ export class ReviewsService {
     await this.helpfulModel.deleteMany({ reviewId }).exec();
     await this.replyModel.deleteMany({ reviewId }).exec();
 
-    await this.redis.del(`command:rating:${cmd}`);
-    await this.redis.del(`command:stats:${cmd}`);
-    await this.redis.del(`command:reviews:summary:${cmd}`);
+    await this.cacheInvalidation.emit({ type: 'review_deleted', command: cmd, userId });
   }
 
   async adminDeleteReview(adminUserId: number, reviewId: string): Promise<void> {
@@ -225,9 +225,7 @@ export class ReviewsService {
 
     const cmd = (doc as any).command;
     if (cmd) {
-      await this.redis.del(`command:rating:${cmd}`);
-      await this.redis.del(`command:stats:${cmd}`);
-      await this.redis.del(`command:reviews:summary:${cmd}`);
+      await this.cacheInvalidation.emit({ type: 'review_deleted', command: cmd, userId: doc.userId });
     }
   }
 }

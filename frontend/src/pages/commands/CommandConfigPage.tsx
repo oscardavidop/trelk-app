@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Settings2, Package, Link, Video, type LucideIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Settings2, Package, Link, Video, Zap, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useToastStore } from '../../stores';
 import { useTelegram } from '../../hooks/useTelegram';
@@ -16,6 +17,8 @@ import {
 } from '../../services/commandConfigApi';
 import CommandConfigForm from '../../components/command-config/CommandConfigForm';
 import type { FieldSaveState } from '../../components/command-config/CommandConfigField';
+import StickyHeader from '../../components/StickyHeader';
+import { staggerContainer, staggerItem } from '../../design';
 
 const USER_COMMAND_CONFIG_QUERY_KEY = ['user-command-config'];
 
@@ -91,6 +94,7 @@ export default function CommandConfigPage() {
   const showToast = useToastStore((s) => s.show);
   const { t } = useTranslation('commands');
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const [statuses, setStatuses] = useState<Record<string, FieldSaveState>>({});
   const [errors, setErrors] = useState<Record<string, string | null>>({});
@@ -115,28 +119,11 @@ export default function CommandConfigPage() {
     return (data?.commands?.[command] ?? {}) as Record<string, unknown>;
   }, [command, data]);
 
-  const handleFieldChange = async (field: CommandConfigFieldSchema, nextValue: unknown) => {
+  const saveField = async (field: CommandConfigFieldSchema, nextValue: unknown) => {
     if (!command) return;
-
-    const validationError = validateField(field, nextValue, t);
-    setErrors((prev) => ({ ...prev, [field.key]: validationError }));
-    if (validationError) {
-      setStatuses((prev) => ({ ...prev, [field.key]: 'error' }));
-      return;
-    }
-
-    setStatuses((prev) => ({ ...prev, [field.key]: 'modified' }));
 
     const payload = buildPatchFromPath(field.key, nextValue);
     const prevData = queryClient.getQueryData<UserCommandConfig>(USER_COMMAND_CONFIG_QUERY_KEY);
-    queryClient.setQueryData<UserCommandConfig>(USER_COMMAND_CONFIG_QUERY_KEY, (current) => {
-      const base = current ?? { commands: {} };
-      const currentCmd = (base.commands[command] ?? {}) as Record<string, unknown>;
-      return {
-        ...base,
-        commands: { ...base.commands, [command]: setByPath(currentCmd, field.key, nextValue) },
-      };
-    });
 
     setStatuses((prev) => ({ ...prev, [field.key]: 'saving' }));
 
@@ -152,6 +139,38 @@ export default function CommandConfigPage() {
       setStatuses((prev) => ({ ...prev, [field.key]: 'error' }));
       showToast(t('common:save_error'), 'error');
       haptic?.notificationOccurred('error');
+    }
+  };
+
+  const handleFieldChange = (field: CommandConfigFieldSchema, nextValue: unknown) => {
+    if (!command) return;
+
+    const validationError = validateField(field, nextValue, t);
+    setErrors((prev) => ({ ...prev, [field.key]: validationError }));
+    if (validationError) {
+      setStatuses((prev) => ({ ...prev, [field.key]: 'error' }));
+      return;
+    }
+
+    setStatuses((prev) => ({ ...prev, [field.key]: 'modified' }));
+
+    // Optimistic local update
+    queryClient.setQueryData<UserCommandConfig>(USER_COMMAND_CONFIG_QUERY_KEY, (current) => {
+      const base = current ?? { commands: {} };
+      const currentCmd = (base.commands[command] ?? {}) as Record<string, unknown>;
+      return {
+        ...base,
+        commands: { ...base.commands, [command]: setByPath(currentCmd, field.key, nextValue) },
+      };
+    });
+
+    // Save immediately for boolean/select, debounce 600ms for text/number
+    const needsDebounce = field.type === 'number' || field.type === 'text';
+    if (needsDebounce) {
+      if (debounceTimers.current[field.key]) clearTimeout(debounceTimers.current[field.key]);
+      debounceTimers.current[field.key] = setTimeout(() => saveField(field, nextValue), 600);
+    } else {
+      saveField(field, nextValue);
     }
   };
 
@@ -173,55 +192,65 @@ export default function CommandConfigPage() {
   const colors = COLOR_MAP[schemaEntry.color] ?? COLOR_MAP.emerald;
 
   return (
-    <main className="pb-24 animate-fade-in">
-      {/* Header */}
-      <div className="px-5 pt-6 pb-4 flex items-center gap-3.5">
-        <button
-          onClick={() => {
-            haptic?.impactOccurred('light');
-            navigate(-1);
-          }}
-          className="w-10 h-10 rounded-full bg-tg-text/[0.02] border border-tg-border/40 flex items-center justify-center shrink-0 active:scale-90 hover:bg-tg-text/[0.06] transition-all"
-          aria-label={t('back_to_commands')}
-        >
-          <ArrowLeft size={18} className="text-tg-text" />
-        </button>
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className={`w-10 h-10 rounded-[12px] ${colors.bg} border ${colors.border} flex items-center justify-center shrink-0`}>
-            <Icon size={20} className={colors.text} />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-[22px] font-extrabold text-tg-text tracking-tight leading-none truncate">
-              {t(schemaEntry.titleKey)}
-            </h1>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[12px] font-bold font-mono text-tg-accent bg-tg-accent/10 px-2 py-0.5 rounded-[6px]">
-                /{command}
-              </span>
+    <motion.main
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="pb-24 relative max-w-[480px] mx-auto"
+    >
+      {/* ── Header with back + icon ── */}
+      <div className="px-5 pt-5 pb-3">
+        <motion.div variants={staggerItem} className="flex items-center gap-3.5">
+          <button
+            onClick={() => { haptic?.impactOccurred('light'); navigate(-1); }}
+            className="w-10 h-10 rounded-full bg-tg-secondary/60 border border-tg-border/30 flex items-center justify-center shrink-0 active:scale-90 hover:bg-tg-secondary transition-all"
+            aria-label={t('back_to_commands')}
+          >
+            <ArrowLeft size={18} className="text-tg-text" />
+          </button>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className={`w-11 h-11 rounded-[14px] ${colors.bg} border ${colors.border} flex items-center justify-center shrink-0 shadow-sm`}>
+              <Icon size={22} className={colors.text} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[22px] font-extrabold text-tg-text tracking-tight leading-none truncate">
+                {t(schemaEntry.titleKey)}
+              </h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[12px] font-bold font-mono text-tg-accent bg-tg-accent/10 px-2 py-0.5 rounded-[6px] border border-tg-accent/15">
+                  /{command}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Description card */}
-      <div className="px-5 mb-6">
-        <div className="bg-tg-text/[0.02] border border-tg-border/30 rounded-[16px] p-4 shadow-inner">
+      {/* ── Description card ── */}
+      <motion.div variants={staggerItem} className="px-5 mb-6">
+        <div className="bg-tg-secondary/50 backdrop-blur-xl border border-tg-border/20 rounded-[18px] p-4 shadow-sm">
           <p className="text-[13px] font-medium text-tg-text/90 leading-relaxed">
             {t(schemaEntry.descriptionKey)}
           </p>
-          <p className="text-[11px] text-tg-hint/60 mt-2">{t('real_time_save_desc')}</p>
+          <div className="flex items-center gap-1.5 mt-2.5">
+            <Zap size={11} className="text-tg-accent" />
+            <span className="text-[11px] font-semibold text-tg-accent/80">{t('real_time_save_desc')}</span>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Form */}
-      <div className="px-5">
+      {/* ── Form ── */}
+      <motion.div variants={staggerItem} className="px-5">
         {isLoading ? (
           <div className="space-y-5">
             {[1, 2].map((i) => (
-              <div key={i} className="rounded-[18px] bg-tg-secondary border border-tg-border/40 p-5 space-y-4 animate-pulse">
-                <div className="h-3 w-20 bg-tg-text/[0.06] rounded" />
-                <div className="h-4 w-1/3 bg-tg-text/[0.05] rounded" />
-                <div className="h-10 w-full bg-tg-text/[0.05] rounded-[12px]" />
+              <div key={i} className="rounded-[20px] bg-tg-secondary/60 border border-tg-border/30 p-5 space-y-4 animate-pulse">
+                <div className="h-3 w-24 bg-tg-text/[0.06] rounded" />
+                <div className="space-y-3">
+                  <div className="h-4 w-1/3 bg-tg-text/[0.05] rounded" />
+                  <div className="h-2.5 w-2/3 bg-tg-text/[0.04] rounded" />
+                  <div className="h-[48px] w-full bg-tg-text/[0.04] rounded-[14px]" />
+                </div>
               </div>
             ))}
           </div>
@@ -234,7 +263,7 @@ export default function CommandConfigPage() {
             onFieldChange={handleFieldChange}
           />
         )}
-      </div>
-    </main>
+      </motion.div>
+    </motion.main>
   );
 }

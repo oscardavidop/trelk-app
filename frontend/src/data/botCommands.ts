@@ -104,179 +104,27 @@ import commands from "./commands.json";
 export const BOT_COMMANDS: BotCommand[]  = commands as BotCommand[];
 
 export const TOTAL_BOT_COMMANDS = BOT_COMMANDS.length;
-// = [
-//   {
-//     name: ['apk', 'apkinfo', 'apk-info', 'appinfo', 'app-info'],
-//     uniqueName: 'apk',
-//     category: 'utilities',
-//     description: 'Busca información y descarga archivos APK.',
-//     requireArgs: true,
-//     supportsInline: true,
-//     usage: '/apk <package_name | term>',
-//   },
-//   {
-//     name: ['alert', 'alerta', 'task', 'reminder', 'notify'],
-//     uniqueName: 'alert',
-//     description: 'Establece una alerta o recordatorio.',
-//     requireArgs: true,
-//     supportInlineQuery: false,
-//     supportInGroups: false,
-//     category: 'utilities',
-//     usage: '/alert <time> <message>',
-//   },
-//   {
-//     name: ['akinator', 'aki', 'adivina', 'guess'],
-//     uniqueName: 'akinator',
-//     description: 'Juego de Akinator — ¡adivina en qué personaje piensas!',
-//     requireArgs: false,
-//     category: 'entertainment',
-//     usage: '/akinator <mood>',
-//     supportsInline: true,
-//     supportInGroups: false,
-//     maxLengthArgs: 2,
-//   },
-//   {
-//     name: ['play', 'song', 'cancion', 'musica', 'music'],
-//     uniqueName: 'play',
-//     description: 'Reproduce una canción o lista de reproducción desde YouTube.',
-//     requireArgs: false,
-//     keyMissingArgs: 'music_missing_args',
-//     supportsInline: true,
-//     category: 'music',
-//     usage: '/play <song name or artist>',
-//   },
-//   {
-//     name: ['ssweb', 'screenshotweb', 'screenshot', 'webss', 'captura'],
-//     uniqueName: 'ssweb',
-//     description: 'Toma una captura de pantalla de un sitio web.',
-//     requireArgs: true,
-//     keyMissingArgs: 'missing_info_screenshot',
-//     supportsInline: false,
-//     category: 'utilities',
-//     usage: '/ssweb <url>',
-//   },
-//   {
-//     name: ['t', 'traductor', 'translate', 'translator'],
-//     uniqueName: 'translate',
-//     description: 'Traduce un texto a otro idioma.',
-//     requireArgs: true,
-//     supportsInline: false,
-//     category: 'utilities',
-//     usage: '/translate <target_lang> <text to translate>',
-//     maxLengthArgs: 500,
-//   },
-//   {
-//     name: ['chatgpt', 'gpt', 'ai', 'ask'],
-//     uniqueName: 'chatgpt',
-//     description: 'Consulta a ChatGPT con cualquier pregunta o tema.',
-//     requireArgs: true,
-//     supportsInline: true,
-//     category: 'ai',
-//     usage: '/chatgpt <tu pregunta>',
-//     maxLengthArgs: 2000,
-//   },
-//   {
-//     name: ['img', 'image', 'foto', 'photo', 'pic'],
-//     uniqueName: 'img',
-//     description: 'Busca y descarga imágenes de alta calidad.',
-//     requireArgs: true,
-//     supportsInline: true,
-//     category: 'media',
-//     usage: '/img <search term>',
-//   },
-//   {
-//     name: ['sticker', 'stk', 'pegatina'],
-//     uniqueName: 'sticker',
-//     description: 'Busca y envía stickers de Telegram.',
-//     requireArgs: true,
-//     supportsInline: true,
-//     category: 'entertainment',
-//     usage: '/sticker <search term>',
-//   },
-//   {
-//     name: ['qr', 'qrcode', 'codigo'],
-//     uniqueName: 'qr',
-//     description: 'Genera un código QR a partir de un texto o URL.',
-//     requireArgs: true,
-//     supportsInline: false,
-//     category: 'utilities',
-//     usage: '/qr <text or url>',
-//   },
-//   {
-//     name: ['dl', 'download', 'descargar', 'save'],
-//     uniqueName: 'dl',
-//     description: 'Descarga videos o archivos multimedia de múltiples plataformas.',
-//     requireArgs: true,
-//     supportsInline: false,
-//     category: 'media',
-//     usage: '/dl <url>',
-//   },
-//   {
-//     name: ['tts', 'speak', 'voz', 'voice'],
-//     uniqueName: 'tts',
-//     description: 'Convierte texto a audio con voz natural.',
-//     requireArgs: true,
-//     supportsInline: false,
-//     category: 'ai',
-//     usage: '/tts <texto>',
-//     maxLengthArgs: 500,
-//   },
-//   {
-//     name: ['weather', 'clima', 'tiempo'],
-//     uniqueName: 'weather',
-//     description: 'Consulta el clima actual de cualquier ciudad.',
-//     requireArgs: true,
-//     supportsInline: true,
-//     category: 'utilities',
-//     usage: '/weather <city>',
-//   },
-//   {
-//     name: ['wiki', 'wikipedia', 'define'],
-//     uniqueName: 'wiki',
-//     description: 'Busca información en Wikipedia.',
-//     requireArgs: true,
-//     supportsInline: true,
-//     category: 'utilities',
-//     usage: '/wiki <term>',
-//   },
-//   {
-//     name: ['lyrics', 'letra', 'song-lyrics'],
-//     uniqueName: 'lyrics',
-//     description: 'Busca la letra de cualquier canción.',
-//     requireArgs: true,
-//     supportsInline: false,
-//     category: 'music',
-//     usage: '/lyrics <song name>',
-//   },
-//   {
-//     name: ['meme', 'funny', 'humor'],
-//     uniqueName: 'meme',
-//     description: 'Genera o busca memes aleatorios.',
-//     requireArgs: false,
-//     supportsInline: true,
-//     category: 'entertainment',
-//     usage: '/meme [category]',
-//   },
-//   {
-//     name: ['ping', 'status', 'health'],
-//     uniqueName: 'ping',
-//     description: 'Verifica el estado del bot y la latencia.',
-//     requireArgs: false,
-//     supportsInline: false,
-//     category: 'tools',
-//     usage: '/ping',
-//   },
-//   {
-//     name: ['shorten', 'short', 'url', 'acortar'],
-//     uniqueName: 'shorten',
-//     description: 'Acorta una URL larga con un enlace personalizado.',
-//     requireArgs: true,
-//     supportsInline: false,
-//     category: 'utilities',
-//     usage: '/shorten <url>',
-//   },
-// ];
 
+function checkPhotos(){
+  const missingPhotos: string[] = [];
+  BOT_COMMANDS.forEach(cmd => {
+    if(!cmd.photos){
+      missingPhotos.push(cmd.uniqueName || cmd.name[0]);
+      // cmd.photos.forEach(photo => {
+      //   const path = `https://cdn.trelkbot.com/assets/img/commands/${cmdSlug(cmd)}/${photo}`;
+      //   fetch(path).then(res => {
+      //     if(!res.ok) missingPhotos.push(path);
+      //   }).catch(() => missingPhotos.push(path));
+      // });
+    }
+  });
+  if(missingPhotos.length > 0){
+    console.warn("Missing command photos:", missingPhotos);
+  }
+  console.log(`Checked command photos, ${missingPhotos.length} missing out of ${BOT_COMMANDS.length}`);
+}
+
+checkPhotos();
 /** Get the primary name (first alias) */
 export function cmdSlug(cmd: BotCommand): string {
   return cmd.uniqueName || cmd.name[0];

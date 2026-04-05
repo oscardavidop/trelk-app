@@ -1,11 +1,11 @@
 import {
   Controller, Get, Param, UseGuards, BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReviewSummaryService } from './review-summary.service';
 
 @Controller('api/v1/ui/commands')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class ReviewSummaryController {
   constructor(private readonly reviewSummary: ReviewSummaryService) {}
 

@@ -37,7 +37,7 @@ export class AbuseService {
     }
 
     await this.redis.set(cacheKey, record, CACHE_TTL);
-    return record as AbuseRecordDocument;
+    return record as unknown as AbuseRecordDocument;
   }
 
   /** Track an abuse event */

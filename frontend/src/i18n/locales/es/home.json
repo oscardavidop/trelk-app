@@ -1,5 +1,8 @@
 {
   "welcome_back": "¡Bienvenido de nuevo!",
+  "welcome_new": "¡Empecemos!",
+  "welcome_back_missed": "¡Te echamos de menos!",
+  "welcome_power": "Modo experto activado",
   "control_panel": "Panel de Control",
   "quick_actions": "Acciones rápidas",
   "commands": "Comandos",
@@ -35,5 +38,57 @@
   "week_commands": "comandos",
   "week_unique": "Únicos",
   "week_favorites": "Favoritos",
-  "week_achievements": "Logros"
+  "week_achievements": "Logros",
+
+  "live_now": "En vivo ahora",
+  "live_users": "{{count}} usuarios usando comandos ahora",
+  "live_users_label": "usuarios activos ahora",
+  "live_commands": "{{count}} comandos ejecutados en el \u00faltimo minuto",
+  "live_cmds_label": "comandos este minuto",
+  "trending_now": "En tendencia",
+
+  "recommended_for_you": "Recomendado para ti",
+  "get_started_quickly": "Empieza r\u00e1pido",
+  "explore_commands": "Explora comandos",
+  "try_something_fun": "Prueba algo divertido",
+
+  "welcome_title": "Bienvenido a Trelk",
+  "welcome_desc": "A\u00fan no has usado ning\u00fan comando.",
+  "welcome_start": "Empieza con:",
+  "play_desc": "Reproduce m\u00fasica al instante",
+  "translate_desc": "Traduce texto",
+  "ssweb_desc": "Captura sitios web",
+  "explore_commands_cta": "Explorar Comandos",
+
+  "streak_title": "Tu racha",
+  "streak_day": "D\u00eda {{count}} usando comandos",
+  "streak_encourage": "\u00a1Sigue as\u00ed para desbloquear recompensas!",
+  "streak_cta": "Probar un comando",
+
+  "feature_title": "Funci\u00f3n del d\u00eda",
+  "feature_cta": "Probar ahora",
+
+  "did_you_know": "\u00bfSab\u00edas que?",
+
+  "no_premium": "Esta es una funci\u00f3n premium",
+  "explore_premium": "Explorar Premium",
+
+  "feature_feedback_title": "Deja feedback en los comandos",
+  "feature_feedback_desc": "Ayuda a mejorar la experiencia del bot",
+  "feature_collections_title": "Organiza tus favoritos",
+  "feature_collections_desc": "Crea colecciones para ordenar contenido guardado",
+  "feature_inline_title": "Usa el modo inline",
+  "feature_inline_desc": "Escribe @trelkbot en cualquier chat para usar comandos inline",
+  "feature_alerts_title": "Configura alertas personalizadas",
+  "feature_alerts_desc": "Recibe notificaciones cuando tus comandos favoritos est\u00e9n en tendencia",
+  "feature_achievements_title": "Desbloquea logros",
+  "feature_achievements_desc": "Completa desaf\u00edos y gana recompensas mientras exploras",
+
+  "tip_tts": "Puedes usar /tts para convertir texto en voz al instante.",
+  "tip_alert": "Usa /alert 10m estudiar para programar un recordatorio en 10 minutos.",
+  "tip_ssweb": "Usa /ssweb para capturar cualquier sitio web como imagen.",
+  "tip_inline": "Escribe @trelkbot en cualquier chat para usar comandos sin abrir el bot.",
+  "tip_translate": "Usa /translate para traducir texto a cualquier idioma.",
+  "tip_play": "Usa /play para buscar y reproducir m\u00fasica directamente en cualquier chat.",
+  "tip_sticker": "Usa /sticker para buscar stickers con cualquier palabra al instante."
 }

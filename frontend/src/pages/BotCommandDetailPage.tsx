@@ -422,7 +422,7 @@ export default function BotCommandDetailPage() {
 
           {/* Screenshots */}
           <motion.div variants={sectionVariant}>
-            <CommandScreenshots photos={cmd.photos} />
+            <CommandScreenshots photos={cmd.photos} cmdName={cmdSlug(cmd)} />
           </motion.div>
 
           {/* How it works */}

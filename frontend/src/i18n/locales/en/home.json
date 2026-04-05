@@ -1,5 +1,8 @@
 {
   "welcome_back": "Welcome back!",
+  "welcome_new": "Let's get you started!",
+  "welcome_back_missed": "We missed you!",
+  "welcome_power": "Power mode activated",
   "control_panel": "Control Panel",
   "quick_actions": "Quick actions",
   "commands": "Commands",
@@ -35,5 +38,57 @@
   "week_commands": "commands",
   "week_unique": "Unique",
   "week_favorites": "Favorites",
-  "week_achievements": "Achievements"
+  "week_achievements": "Achievements",
+
+  "live_now": "Live now",
+  "live_users": "{{count}} users using commands right now",
+  "live_users_label": "users active right now",
+  "live_commands": "{{count}} commands executed in the last minute",
+  "live_cmds_label": "commands this minute",
+  "trending_now": "Trending now",
+
+  "recommended_for_you": "Recommended for you",
+  "get_started_quickly": "Get started quickly",
+  "explore_commands": "Explore commands",
+  "try_something_fun": "Try something fun",
+
+  "welcome_title": "Welcome to Trelk",
+  "welcome_desc": "You haven't used any commands yet.",
+  "welcome_start": "Start with:",
+  "play_desc": "Play music instantly",
+  "translate_desc": "Translate text",
+  "ssweb_desc": "Capture websites",
+  "explore_commands_cta": "Explore Commands",
+
+  "streak_title": "Your streak",
+  "streak_day": "Day {{count}} of using commands",
+  "streak_encourage": "Keep going to unlock rewards!",
+  "streak_cta": "Try a command",
+
+  "feature_title": "Feature of the day",
+  "feature_cta": "Try now",
+
+  "did_you_know": "Did you know?",
+
+  "no_premium": "This is a premium feature",
+  "explore_premium": "Explore Premium",
+
+  "feature_feedback_title": "Leave feedback on commands",
+  "feature_feedback_desc": "Help improve the bot experience",
+  "feature_collections_title": "Organize your favorites",
+  "feature_collections_desc": "Create collections to sort saved content",
+  "feature_inline_title": "Use inline mode",
+  "feature_inline_desc": "Type @trelkbot in any chat to use commands inline",
+  "feature_alerts_title": "Set custom alerts",
+  "feature_alerts_desc": "Get notified when your favorite commands are trending",
+  "feature_achievements_title": "Unlock achievements",
+  "feature_achievements_desc": "Complete challenges and earn rewards as you explore",
+
+  "tip_tts": "You can use /tts to convert text into voice instantly.",
+  "tip_alert": "Use /alert 10m study to set a reminder in 10 minutes.",
+  "tip_ssweb": "Use /ssweb to capture any website as an image.",
+  "tip_inline": "Type @trelkbot in any chat to use commands without opening the bot.",
+  "tip_translate": "Use /translate to translate text into any language.",
+  "tip_play": "Use /play to search and play music directly in any chat.",
+  "tip_sticker": "Use /sticker to search stickers from any keyword instantly."
 }

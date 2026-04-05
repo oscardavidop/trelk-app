@@ -3,6 +3,8 @@ import type { BotCommand } from '../../data/botCommands';
 import { cmdSlug, CATEGORY_META } from '../../data/botCommands';
 import { getCategoryBrand } from '../../design';
 import { ChevronRight, UnlinkIcon } from 'lucide-react';
+import { usePrefetch } from '../../hooks/usePrefetch';
+import { fetchCommandStats, fetchReviewsSummary } from '../../services/commandStatsApi';
 
 interface Props {
     cmd: BotCommand;
@@ -15,12 +17,28 @@ export default function CommandCard({ cmd, onClick, compact }: Props) {
     const cat = CATEGORY_META[cmd.category] ?? { label: cmd.category, color: '#6b7280', icon: UnlinkIcon };
     const brand = getCategoryBrand(cmd.category);
 
+    const { prefetch } = usePrefetch({
+        queryKey: ['command-stats', slug],
+        queryFn: () => fetchCommandStats(slug),
+        staleTime: 60_000,
+    });
+
+    const { prefetch: prefetchSummary } = usePrefetch({
+        queryKey: ['reviews-summary', slug],
+        queryFn: () => fetchReviewsSummary(slug),
+        staleTime: 60_000,
+    });
+
+    const handlePrefetch = () => { prefetch(); prefetchSummary(); };
+
     // -- MODO COMPACTO --
     if (compact) {
         return (
             <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onClick(slug)}
+                onMouseEnter={handlePrefetch}
+                onTouchStart={handlePrefetch}
                 className="w-full flex items-center gap-3.5 p-3.5 text-left transition-colors border-b border-tg-border/20 last:border-0"
             >
                 <div
@@ -42,8 +60,8 @@ export default function CommandCard({ cmd, onClick, compact }: Props) {
     return (
         <motion.button
             whileTap={{ scale: 0.97 }}
-            onClick={() => onClick(slug)}
-            className="w-full relative rounded-[20px] p-4 text-left overflow-hidden bg-tg-secondary/70 backdrop-blur-xl border border-tg-border/30 shadow-sm group transition-all duration-200"
+            onClick={() => onClick(slug)}            onMouseEnter={handlePrefetch}
+            onTouchStart={handlePrefetch}            className="w-full relative rounded-[20px] p-4 text-left overflow-hidden bg-tg-secondary/70 backdrop-blur-xl border border-tg-border/30 shadow-sm group transition-all duration-200"
         >
             {/* Category glow */}
             <div

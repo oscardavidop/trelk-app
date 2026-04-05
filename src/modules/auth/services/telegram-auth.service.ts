@@ -61,7 +61,6 @@ export class TelegramAuthService {
    * @throws UnauthorizedException si la firma, fecha o datos son inválidos
    */
   validateInitData(initData: string): TelegramInitDataResult {
-    console.log('Validando initData:', initData);
     if (!initData || typeof initData !== 'string') {
       throw new UnauthorizedException('INIT_DATA_MISSING');
     }

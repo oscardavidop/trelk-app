@@ -20,9 +20,19 @@ import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { NotificationModule } from './modules/notifications/notification.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { GithubWebhookModule } from './modules/github-webhook/github-webhook.module';
+import { AlertsModule } from './modules/alerts/alerts.module';
 import { AbuseModule } from './modules/abuse/abuse.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
+import { LiveModule } from './modules/live/live.module';
+import { SecurityModule } from './modules/security/security.module';
+import { SearchModule } from './modules/search/search.module';
+import { DeepLinkModule } from './modules/deep-link/deep-link.module';
+import { PersonalizationModule } from './modules/personalization/personalization.module';
+import { AnalyticsTrackingModule } from './modules/analytics-tracking/analytics-tracking.module';
+import { ResilienceModule } from './core/resilience';
+import { UserStateModule } from './core/user-state';
+import { LiveTrackingInterceptor } from './modules/live/live-tracking.interceptor';
 import { MetricsInterceptor } from './modules/metrics/metrics.interceptor';
 import { SanitizationInterceptor } from './common/interceptors/sanitization.interceptor';
 import { FeatureFlagsService } from './common/services/feature-flags.service';
@@ -43,21 +53,17 @@ import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config'
       },
     }),
 
-    // === MongoDB con configuración optimizada para +1M DAU ===
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => getMongoMiniAppConfig(config),
+      inject: [ConfigService]
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => getMongoConfig(config),
       inject: [ConfigService],
-      // connectionName: 'mbot',
+      connectionName: 'mbot',
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService) => getMongoMiniAppConfig(config),
-      inject: [ConfigService],
-      connectionName: 'miniapp',
-    }),
-
-
     // === Rate Limiting global ===
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
@@ -84,9 +90,18 @@ import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config'
     NotificationModule,
     RecommendationsModule,
     GithubWebhookModule,
+    AlertsModule,
     AbuseModule,
     MetricsModule,
     RealtimeModule,
+    LiveModule,
+    SecurityModule,
+    SearchModule,
+    DeepLinkModule,
+    PersonalizationModule,
+    AnalyticsTrackingModule,
+    ResilienceModule,
+    UserStateModule,
   ],
   controllers: [AppController],
   providers: [
@@ -106,6 +121,11 @@ import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config'
     {
       provide: APP_INTERCEPTOR,
       useClass: SanitizationInterceptor,
+    },
+    // Live metrics — track active users & command usage
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LiveTrackingInterceptor,
     },
   ],
   exports: [

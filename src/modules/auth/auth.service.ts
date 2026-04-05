@@ -57,11 +57,15 @@ export class AuthService {
   }
 
   private get jwtSecret(): string {
-    return this.configService.get<string>('JWT_SECRET', 'secret');
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new Error('JWT_SECRET environment variable is required');
+    }
+    return secret;
   }
 
   constructor(
-    @InjectModel(User.name)
+    @InjectModel(User.name, 'mbot')
     private readonly userModel: Model<UserDocument>,
 
     @InjectModel(Token.name,)

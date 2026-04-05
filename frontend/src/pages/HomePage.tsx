@@ -3,13 +3,14 @@ import { useTelegram } from '../hooks/useTelegram';
 import { useTranslation } from 'react-i18next';
 import SectionHeader from '../components/SectionHeader';
 import MenuRow from '../components/MenuRow';
+import LiveActivitySection from '../components/home/LiveActivitySection';
+import ForYouSection from '../components/home/ForYouSection';
+import SmartEmptyState from '../components/home/SmartEmptyState';
+import StreakSection from '../components/home/StreakSection';
+import FeatureSpotlight from '../components/home/FeatureSpotlight';
+import QuickLearn from '../components/home/QuickLearn';
 import {
   User,
-  UserIcon,
-  Settings,
-  Terminal,
-  AppWindow,
-  Gamepad2,
   CreditCard,
   Star,
   Crown,
@@ -18,6 +19,9 @@ import {
   Sliders,
   Heart,
 } from 'lucide-react';
+
+// TODO: replace with real data from /api/v1/ui/me or a dashboard endpoint
+const IS_ACTIVE_USER = true; // flip to true once backend provides activity data
 
 export default function HomePage() {
   const { userId } = useParams();
@@ -46,7 +50,21 @@ export default function HomePage() {
         )}
       </div>
 
-  
+      {/* ── Dynamic sections (conditional) ── */}
+      {IS_ACTIVE_USER ? (
+        <>
+          <LiveActivitySection />
+          <StreakSection />
+          <FeatureSpotlight />
+        </>
+      ) : (
+        <>
+          <SmartEmptyState />
+          <ForYouSection />
+          <QuickLearn />
+        </>
+      )}
+
       <SectionHeader title={t('i_love_trelk')} />
       <div className="mx-4 animate-stagger">
         <MenuRow
@@ -64,7 +82,7 @@ export default function HomePage() {
         />
       </div>
 
-         {/* Ajustes Section */}
+      {/* Ajustes Section */}
       <SectionHeader title={t('settings:title')} />
       <div className="mx-4 animate-stagger">
         <MenuRow

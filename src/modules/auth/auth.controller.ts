@@ -8,10 +8,14 @@ import {
   UnauthorizedException,
   Logger,
   Get,
+  Delete,
+  Param,
   UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { BearerAuthGuard, JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { AppError, ErrorCode } from '../../common/errors';
 
 /**
  * DTO para el endpoint de login desde Telegram Mini App.
@@ -21,7 +25,8 @@ interface TelegramLoginDto {
   initData: string;
 }
 
-@Controller("auth")
+@Controller("api/v1/auth")
+@UseGuards(BearerAuthGuard)
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
@@ -39,6 +44,7 @@ export class AuthController {
    */
   @Post("telegram")
   @HttpCode(HttpStatus.OK)
+  @RateLimit({ limit: 10, window: 60, keyType: 'ip' })
   async loginFromTelegram(
     @Body() body: TelegramLoginDto,
     @Req() req: any,
@@ -66,7 +72,7 @@ export class AuthController {
   /**
    * GET /auth/me
    *
-   * Devuelve los datos del usuario autenticado.
+   * Devuelve los datos del uxsuario autenticado.
    * Requiere JWT válido en el header Authorization o en body._auth
    */
   @Get("me")
@@ -118,6 +124,7 @@ export class AuthController {
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
+  @RateLimit({ limit: 10, window: 60, keyType: 'ip' })
   async refreshFromTelegram(
     @Body() body: TelegramLoginDto,
     @Req() req: any,
@@ -140,5 +147,110 @@ export class AuthController {
       ok: true,
       data: result,
     };
+  }
+
+  // ─── Sessions Management ───
+
+  /** Extract session_id from Authorization: Bearer <session_id> header */
+  private extractSessionId(req: any): string | undefined {
+    const h = req.headers?.authorization;
+    return h?.startsWith('Bearer ') ? h.slice(7).trim() : undefined;
+  }
+
+  /**
+   * GET /auth/sessions
+   *
+   * Returns all active (non-revoked) sessions for the current user.
+   * Protected by class-level BearerAuthGuard (session_id based).
+   */
+  @Get("sessions")
+  async getSessions(@Req() req: any) {
+    const telegramId = req.user?.authUser?.telegramId ?? req.user?.authTelegram?.id;
+    if (!telegramId) throw new UnauthorizedException('USER_NOT_FOUND');
+
+    const currentSessionId = this.extractSessionId(req);
+    const sessions = await this.authService.tokenModel.find({
+      sub: telegramId,
+      revoked: false,
+    }).sort({ createdAt: -1 }).lean().exec();
+
+    return {
+      ok: true,
+      sessions: sessions.map((s: any) => ({
+        id: s.token,
+        device: s.device || this.parseDevice(s.userAgent),
+        browser: s.browser,
+        os: s.os,
+        ip: s.ip,
+        platform: s.platform,
+        location: s.locationCity
+          ? `${s.locationCity}, ${s.locationCountry || ''}`
+          : s.locationCountry || null,
+        createdAt: s.createdAt,
+        lastUsed: s.lastUsed || s.createdAt,
+        isCurrent: s.session_id === currentSessionId,
+      })),
+    };
+  }
+
+  /**
+   * DELETE /auth/sessions/:id
+   *
+   * Revoke a specific session (cannot revoke current session — use /logout).
+   * Protected by class-level BearerAuthGuard (session_id based).
+   */
+  @Delete("sessions/:id")
+  @HttpCode(HttpStatus.OK)
+  async revokeSession(@Param('id') sessionTokenId: string, @Req() req: any) {
+    const telegramId = req.user?.authUser?.telegramId ?? req.user?.authTelegram?.id;
+    if (!telegramId) throw new UnauthorizedException('USER_NOT_FOUND');
+
+    const token = await this.authService.tokenModel.findOne({
+      token: sessionTokenId,
+      sub: telegramId,
+      revoked: false,
+    }).exec();
+
+    if (!token) {
+      throw new AppError(ErrorCode.SESSION_NOT_FOUND, 'Session not found', 404);
+    }
+
+    token.revoked = true;
+    await token.save();
+
+    return { ok: true, message: 'Session revoked' };
+  }
+
+  /**
+   * DELETE /auth/sessions
+   *
+   * Revoke all sessions except current.
+   * Protected by class-level BearerAuthGuard (session_id based).
+   */
+  @Delete("sessions")
+  @HttpCode(HttpStatus.OK)
+  async revokeAllSessions(@Req() req: any) {
+    const telegramId = req.user?.authUser?.telegramId ?? req.user?.authTelegram?.id;
+    if (!telegramId) throw new UnauthorizedException('USER_NOT_FOUND');
+
+    const currentSessionId = this.extractSessionId(req);
+
+    const result = await this.authService.tokenModel.updateMany(
+      { sub: telegramId, revoked: false, ...(currentSessionId ? { session_id: { $ne: currentSessionId } } : {}) },
+      { $set: { revoked: true } },
+    ).exec();
+
+    return { ok: true, revoked: result.modifiedCount };
+  }
+
+  private parseDevice(ua?: string): string {
+    if (!ua) return 'Unknown device';
+    if (ua.includes('iPhone')) return 'iPhone';
+    if (ua.includes('iPad')) return 'iPad';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('Windows')) return 'Windows PC';
+    if (ua.includes('Macintosh')) return 'Mac';
+    if (ua.includes('Linux')) return 'Linux';
+    return 'Unknown device';
   }
 }

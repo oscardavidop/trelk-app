@@ -1,8 +1,9 @@
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/commands';
 
 async function json<T = any>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    credentials: 'include',
+  const res = await authFetch(url, {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     ...init,
   });
@@ -70,6 +71,8 @@ export interface Review {
   isVerified?: boolean;
   isTrustedUser?: boolean;
   isAIModerated?: boolean;
+  username?: string;
+  isAdmin?: boolean;
 }
 
 export interface ReviewReply {
@@ -108,16 +111,26 @@ export interface ReviewSummaryText {
   negativeCount: number;
 }
 
+export interface ConfidenceData {
+  level: 'high' | 'medium' | 'low';
+  score: number;
+  basedOn: number;
+  lastUpdated: number;
+  source?: 'cache' | 'live' | 'computed';
+}
+
 export interface ReviewsPage {
   items: Review[];
   total: number;
   hasMore: boolean;
+  confidence?: ConfidenceData;
 }
 
 export interface ReviewsSummary {
   avgRating: number;
   totalReviews: number;
   distribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
+  confidence?: ConfidenceData;
 }
 
 export interface MyReview {
@@ -285,9 +298,8 @@ export function submitReport(
     }
   }
 
-  return fetch(`${BASE}/${encodeURIComponent(command)}/report`, {
+  return authFetch(`${BASE}/${encodeURIComponent(command)}/report`, {
     method: 'POST',
-    credentials: 'include',
     body: formData,
   }).then(async (res) => {
     if (!res.ok) {

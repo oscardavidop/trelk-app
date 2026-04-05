@@ -1,9 +1,9 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { HistoryService } from './history.service';
 
 @Controller('api/v1/ui/history')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class HistoryController {
   constructor(private readonly svc: HistoryService) {}
 

@@ -1,14 +1,15 @@
 import {
   Controller, Get, Post, Param, Body, Query, Req, UseGuards, BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReviewsService } from './reviews.service';
 import { ReviewHelpfulService } from '../review-helpful/review-helpful.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { extractUserId } from '../../common/utils/auth.utils';
+import { buildConfidence } from '../../common/types/confidence.types';
 
 @Controller('api/v1/ui/commands')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class ReviewsController {
   constructor(
     private readonly reviewsSvc: ReviewsService,
@@ -19,7 +20,17 @@ export class ReviewsController {
   @Get(':command/reviews/summary')
   async reviewsSummary(@Param('command') command: string) {
     if (!command?.trim()) throw new BadRequestException('command required');
-    return { ok: true, ...(await this.reviewsSvc.getReviewsSummary(command)) };
+    const summary = await this.reviewsSvc.getReviewsSummary(command);
+    return {
+      ok: true,
+      ...summary,
+      confidence: buildConfidence({
+        dataPoints: summary.totalReviews,
+        source: 'live',
+        highThreshold: 50,
+        mediumThreshold: 10,
+      }),
+    };
   }
 
   @Get(':command/reviews/highlights')
@@ -68,10 +79,20 @@ export class ReviewsController {
         myHelpful: myHelpfuls.includes(r.id),
         userName: userInfo ? [userInfo.firstName, userInfo.lastName].filter(Boolean).join(' ') : undefined,
         userPhoto: userInfo?.photoUrl,
+        username: userInfo?.username || undefined,
+        isAdmin: this.userStats.checkIsAdmin(r.userId),
       };
     });
 
-    return { ok: true, ...result, items: itemsWithMeta };
+    return {
+      ok: true,
+      ...result,
+      items: itemsWithMeta,
+      confidence: buildConfidence({
+        dataPoints: result.total,
+        source: 'live',
+      }),
+    };
   }
 
   @Post(':command/delete-review')

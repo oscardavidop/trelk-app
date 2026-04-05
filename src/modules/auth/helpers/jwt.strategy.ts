@@ -11,7 +11,7 @@ import { Token, TokenDocument } from '../schemas/token.schema';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(User.name, 'mbot') private readonly userModel: Model<UserDocument>,
     @InjectModel(Token.name) private readonly tokenModel: Model<TokenDocument>,
     configService: ConfigService,
   ) {

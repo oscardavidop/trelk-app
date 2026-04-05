@@ -27,11 +27,14 @@ import {
   Shield,
   Star,
   Activity,
+  Flag,
+  Bell,
 } from 'lucide-react';
 import ShareModal from '@/components/ShareModal';
 import { staggerContainer, staggerItem, MOTION } from '../design';
 import { fetchSubscription, type ProFeatures } from '@/services/subscriptionApi';
 import { fetchActivityStats, type ActivityStats } from '@/services/historyApi';
+import { useGamificationStore } from '@/stores/gamification';
 
 /* ─── Animated count-up number ─── */
 function AnimatedNumber({ value, className }: { value: number; className?: string }) {
@@ -50,6 +53,22 @@ function AnimatedNumber({ value, className }: { value: number; className?: strin
   return <span className={className}>{displayed}</span>;
 }
 
+/* ─── XP-based level calculation (progressive curve) ─── */
+function calcLevel(totalXP: number) {
+  // Each level requires: base 10 + level * 5 XP to advance
+  // L1 → 10 XP, L2 → 15 XP, L3 → 20 XP, etc.
+  let level = 1;
+  let xpUsed = 0;
+  while (true) {
+    const needed = 10 + level * 5;
+    if (xpUsed + needed > totalXP) {
+      return { level, currentXP: totalXP - xpUsed, neededXP: needed };
+    }
+    xpUsed += needed;
+    level++;
+  }
+}
+
 /* ─── User level badge logic ─── */
 function getUserBadge(commandsUsed: number, daysActive: number) {
   if (commandsUsed >= 100 || daysActive >= 60) return { key: 'power_user', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' };
@@ -65,6 +84,8 @@ export default function ProfilePage() {
   const appUser = useUserStore((s) => s.user);
   const showToast = useToastStore((s) => s.show);
   const { items, total, load: loadFavs } = useFavoritesStore();
+  const { xp, streak, level, currentLevelXP: currentXP, nextLevelXP: nextXP, levelProgress: progress, achievements } = useGamificationStore();
+
   const [shareOpen, setShareOpen] = useState(false);
 
   const firstName = tgUser?.first_name || 'User';
@@ -75,8 +96,11 @@ export default function ProfilePage() {
   const tgId = appUser?.authTelegram?.id || appUser?.id;
   const isPremium = (tgUser as any)?.is_premium;
 
+  // Load favorites on mount
+  useEffect(() => { loadFavs(); }, [loadFavs]);
+
   // Calculate days since account creation
-  const createdAt = (appUser as any)?.createdAt;
+  const createdAt = (appUser as any)?.authUser?.createdAt;
   const daysActive = createdAt ? Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000) : 0;
   const memberDate = createdAt ? new Date(createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 
@@ -87,6 +111,10 @@ export default function ProfilePage() {
     staleTime: 30_000,
   });
   const commandsUsed = activityStats?.commandsTotal ?? 0;
+  const streakDays = activityStats?.streakDays ?? 0;
+  const apiFavsTotal = activityStats?.favoritesTotal ?? 0;
+
+  // XP = commands * 2 + favorites * 3 + days * 1 + streak bonus
 
   const badge = getUserBadge(commandsUsed, daysActive);
 
@@ -190,6 +218,50 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
+
+      {/* ── Premium Section ── */}
+      <motion.section variants={staggerItem} className="my-6 px-5">
+        {proFeatures && proFeatures.subscription.tier !== 'free' ? (
+          <motion.div
+            whileTap={MOTION.tapLight}
+            onClick={() => go('/subscription')}
+            className="rounded-[20px] bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 p-4 shadow-sm relative overflow-hidden cursor-pointer"
+          >
+            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 relative z-10">
+              <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                <Crown size={20} className="text-white fill-white/20" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-bold text-tg-text">{t('premium_active')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">
+                  {t('current_plan')}: <span className="text-amber-500 font-bold uppercase">{proFeatures.subscription.tier}</span>
+                </div>
+              </div>
+              <ChevronRight size={20} className="text-amber-500/40 flex-shrink-0" />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.button
+            whileTap={MOTION.tap}
+            onClick={() => go('/subscription')}
+            className="w-full rounded-[20px] bg-tg-secondary/70 backdrop-blur-xl border border-tg-border/30 p-4 shadow-sm relative overflow-hidden text-left"
+          >
+            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-tg-accent/8 blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 relative z-10">
+              <div className="w-11 h-11 rounded-[14px] bg-tg-accent/10 flex items-center justify-center">
+                <Shield size={20} className="text-tg-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-bold text-tg-text">{t('upgrade_premium')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('unlock_features')}</div>
+              </div>
+              <ChevronRight size={20} className="text-tg-hint/40 flex-shrink-0" />
+            </div>
+          </motion.button>
+        )}
+      </motion.section>
+
       {/* ── Stats Grid (2x2) ── */}
       <motion.section variants={staggerItem} className="px-5 mt-1">
         <div className="grid grid-cols-2 gap-3">
@@ -226,14 +298,14 @@ export default function ProfilePage() {
               {[
                 {
                   label: t('last_generation'),
-                  time: t('recently'),
+                  time: commandsUsed > 0 ? t('recently') : '—',
                   icon: <Sparkles size={18} className="text-purple-500" />,
                 },
                 {
                   label: t('last_favorite'),
                   time: items[0]?.createdAt
                     ? new Date(items[0].createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
-                    : '—',
+                    : favsCount > 0 ? t('recently') : '—',
                   icon: <Heart size={18} className="text-pink-500" />,
                 },
                 {
@@ -277,13 +349,13 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-semibold text-tg-text">{t('usage_streak')}</div>
-              <div className="text-[11px] text-tg-hint">{t('streak_days', { count: Math.min(daysActive, 5) })}</div>
+              <div className="text-[11px] text-tg-hint">{t('streak_days', { count: streakDays })}</div>
             </div>
             <div className="flex gap-0.5">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div
                   key={i}
-                  className={`w-[6px] h-[18px] rounded-full ${i < Math.min(daysActive, 5) ? 'bg-orange-500' : 'bg-tg-border/30'}`}
+                  className={`w-[6px] h-[18px] rounded-full ${i < streakDays ? 'bg-orange-500' : 'bg-tg-border/30'}`}
                 />
               ))}
             </div>
@@ -296,13 +368,13 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[13px] font-semibold text-tg-text">{t('level')} {Math.floor(commandsUsed / 5) + 1}</span>
-                <span className="text-[11px] text-tg-hint font-medium">{commandsUsed % 5}/5 XP</span>
+                <span className="text-[13px] font-semibold text-tg-text">{t('level')} {level}</span>
+                <span className="text-[11px] text-tg-hint font-medium">{currentXP}/{nextXP} XP</span>
               </div>
               <div className="h-[5px] rounded-full bg-tg-border/30 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${((commandsUsed % 5) / 5) * 100}%` }}
+                  animate={{ width: `${(currentXP / nextXP) * 100}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                   className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
                 />
@@ -321,17 +393,16 @@ export default function ProfilePage() {
             </div>
             <div className="flex gap-2">
               {[
-                { icon: Star, earned: favsCount > 0, label: 'First fav' },
-                { icon: Terminal, earned: commandsUsed > 0, label: 'First cmd' },
-                { icon: Flame, earned: daysActive >= 3, label: '3-day streak' },
+                { icon: Star, earned: favsCount > 0 || apiFavsTotal > 0, label: t('ach_first_fav') },
+                { icon: Terminal, earned: commandsUsed > 0, label: t('ach_first_cmd') },
+                { icon: Flame, earned: streakDays >= 3, label: t('ach_streak_3') },
               ].map((ach, i) => (
                 <div
                   key={i}
-                  className={`flex-1 flex flex-col items-center p-2.5 rounded-[14px] border transition-all ${
-                    ach.earned
-                      ? 'bg-amber-500/8 border-amber-500/20'
-                      : 'bg-tg-hint/5 border-tg-border/20 opacity-40'
-                  }`}
+                  className={`flex-1 flex flex-col items-center p-2.5 rounded-[14px] border transition-all ${ach.earned
+                    ? 'bg-amber-500/8 border-amber-500/20'
+                    : 'bg-tg-hint/5 border-tg-border/20 opacity-40'
+                    }`}
                 >
                   <ach.icon size={18} className={ach.earned ? 'text-amber-500' : 'text-tg-hint/40'} />
                   <span className="text-[9px] font-bold text-tg-hint mt-1 uppercase tracking-wider">{ach.label}</span>
@@ -342,47 +413,34 @@ export default function ProfilePage() {
         </div>
       </motion.section>
 
-      {/* ── Premium Section ── */}
+
+      {/* ── Tools (Reports + Alerts) ── */}
       <motion.section variants={staggerItem} className="mt-7 px-5">
-        {proFeatures && proFeatures.subscription.tier !== 'free' ? (
-          <motion.div
-            whileTap={MOTION.tapLight}
-            onClick={() => go('/subscription')}
-            className="rounded-[20px] bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 p-4 shadow-sm relative overflow-hidden cursor-pointer"
-          >
-            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
-            <div className="flex items-center gap-3.5 relative z-10">
-              <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-                <Crown size={20} className="text-white fill-white/20" />
+        <h2 className="text-[13px] font-semibold text-tg-hint uppercase tracking-wider mb-2.5 pl-1">{t('tools')}</h2>
+        <div className="rounded-[20px] bg-tg-secondary/70 backdrop-blur-xl border border-tg-border/30 overflow-hidden shadow-sm">
+          <div className="divide-y divide-tg-border/20">
+            <button onClick={() => go('/my-reports')} className="w-full flex items-center gap-3.5 p-4 text-left active:bg-tg-hint/10 transition-colors">
+              <div className="w-9 h-9 rounded-[10px] bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <Flag size={18} className="text-orange-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text">{t('premium_active')}</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">
-                  {t('current_plan')}: <span className="text-amber-500 font-bold uppercase">{proFeatures.subscription.tier}</span>
-                </div>
+                <div className="text-[15px] font-bold text-tg-text">{t('my_reports')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('my_reports_desc')}</div>
               </div>
-              <ChevronRight size={20} className="text-amber-500/40 flex-shrink-0" />
-            </div>
-          </motion.div>
-        ) : (
-          <motion.button
-            whileTap={MOTION.tap}
-            onClick={() => go('/subscription')}
-            className="w-full rounded-[20px] bg-tg-secondary/70 backdrop-blur-xl border border-tg-border/30 p-4 shadow-sm relative overflow-hidden text-left"
-          >
-            <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-tg-accent/8 blur-2xl pointer-events-none" />
-            <div className="flex items-center gap-3.5 relative z-10">
-              <div className="w-11 h-11 rounded-[14px] bg-tg-accent/10 flex items-center justify-center">
-                <Shield size={20} className="text-tg-accent" />
+              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
+            </button>
+            <button onClick={() => go('/alerts')} className="w-full flex items-center gap-3.5 p-4 text-left active:bg-tg-hint/10 transition-colors">
+              <div className="w-9 h-9 rounded-[10px] bg-tg-accent/10 border border-tg-accent/20 flex items-center justify-center flex-shrink-0">
+                <Bell size={18} className="text-tg-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-bold text-tg-text">{t('upgrade_premium')}</div>
-                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('unlock_features')}</div>
+                <div className="text-[15px] font-bold text-tg-text">{t('alerts')}</div>
+                <div className="text-[12px] font-medium text-tg-hint mt-0.5">{t('alerts_desc')}</div>
               </div>
-              <ChevronRight size={20} className="text-tg-hint/40 flex-shrink-0" />
-            </div>
-          </motion.button>
-        )}
+              <ChevronRight size={18} className="text-tg-hint/50 flex-shrink-0" />
+            </button>
+          </div>
+        </div>
       </motion.section>
 
       {/* ── Quick Actions Grid ── */}

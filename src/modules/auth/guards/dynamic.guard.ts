@@ -25,8 +25,8 @@ export class DynamicAuthGuard implements CanActivate {
     const method = req.body?.method;
 
     if (['changeSettings', 'updateConfig'].includes(method)) {
-      // Usa la estrategia de cookie para acciones autenticadas vía sesión
-      const guard = new (AuthGuard('cookie'))();
+      // Usa la estrategia Bearer para acciones autenticadas vía sesión
+      const guard = new (AuthGuard('bearer'))();
       return guard.canActivate(context) as Promise<boolean>;
     }
 

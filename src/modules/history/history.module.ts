@@ -8,7 +8,7 @@ import { HistoryController } from './history.controller';
   imports: [
     MongooseModule.forFeature([
       { name: History.name, schema: HistorySchema },
-    ]),
+    ], 'mbot'),
   ],
   controllers: [HistoryController],
   providers: [HistoryService],

@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { authenticate as apiAuth } from '../services/api';
 import { useCallback } from 'react';
 import { useUserStore } from '../stores';
+import { setSessionToken } from '../lib/authFetch';
+import { authFetch } from '../lib/authFetch';
 import i18n from '../i18n';
 
 interface AuthState {
@@ -41,11 +43,15 @@ export function useAuth() {
       if (res.ok) {
         setAuthError(null);
 
+        // Store session token for Bearer auth
+        const sessionId = (res as any).sessionId;
+        if (sessionId) {
+          setSessionToken(sessionId);
+        }
+
         // Fetch user profile ANTES de marcar isAuthenticated
-        // (TrelkEntry necesita user.id para redirigir correctamente)
         try {
-          const meRes = await fetch('/api/v1/ui/me', {
-            credentials: 'include',
+          const meRes = await authFetch('/api/v1/ui/me', {
             headers: { 'Accept': 'application/json' },
           });
           if (meRes.ok) {

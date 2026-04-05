@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useTelegram } from '../../../hooks/useTelegram';
 import type { Review, ReviewBadge } from '../../../services/commandStatsApi';
 import ReviewReplyThread from './ReviewReplyThread';
+import UserBadge from '../../ui/UserBadge';
 
 interface Props {
   review: Review;
@@ -165,10 +166,12 @@ function ReviewCard({ review, isOwn, isAdmin, onToggleHelpful, onEdit, onDelete,
                 </span>
                 {/* Badge chip */}
                 {badge && review.badge !== 'new_user' && (
-                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${badge.bg}`}>
-                    <badge.icon size={9} className={badge.color} />
-                    <span className={badge.color}>{t(`reviews_badge_${review.badge}`)}</span>
-                  </span>
+                  <UserBadge
+                    badge={review.badge}
+                    isAdmin={review.isAdmin}
+                    isVerified={review.isVerified}
+                    isTrustedUser={review.isTrustedUser}
+                  />
                 )}
                 {/* Trust badges */}
                 {review.isVerified && (

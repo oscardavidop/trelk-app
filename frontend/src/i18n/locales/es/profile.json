@@ -61,5 +61,13 @@
   "achievements": "Logros",
   "view_all": "Ver todos",
   "usage_streak": "Racha de uso",
-  "streak_days": "{{count}} días seguidos"
+  "streak_days": "{{count}} días seguidos",
+  "my_reports": "Mis Reportes",
+  "my_reports_desc": "Ver tus reportes de errores enviados",
+  "alerts": "Alertas",
+  "alerts_desc": "Gestiona tus alertas programadas",
+  "tools": "Herramientas",
+  "ach_first_fav": "Primer favorito",
+  "ach_first_cmd": "Primer comando",
+  "ach_streak_3": "Racha de 3 días"
 }

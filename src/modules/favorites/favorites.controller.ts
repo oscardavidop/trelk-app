@@ -1,13 +1,13 @@
 import {
   Controller, Get, Delete, Post, Patch, Param, Query, Body, Req, Res, UseGuards, BadRequestException,
 } from '@nestjs/common';
-import { CookieAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FavoritesService } from './favorites.service';
 import type { FastifyReply } from 'fastify';
 import { Readable } from 'stream';
 
 @Controller('api/v1/ui/favorites')
-@UseGuards(CookieAuthGuard)
+@UseGuards(BearerAuthGuard)
 export class FavoritesController {
   constructor(private readonly svc: FavoritesService) { }
 

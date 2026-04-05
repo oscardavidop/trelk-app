@@ -1,0 +1,43 @@
+/**
+ * Centralized authenticated fetch wrapper.
+ * Stores the session token in memory (NOT localStorage — XSS-safe).
+ * All API calls go through this to automatically include Authorization: Bearer header.
+ */
+
+let _sessionToken: string | null = null;
+
+/** Store the session token (called after login) */
+export function setSessionToken(token: string | null) {
+  _sessionToken = token;
+}
+
+/** Get current session token */
+export function getSessionToken(): string | null {
+  return _sessionToken;
+}
+
+/** Check if a session token exists */
+export function hasSessionToken(): boolean {
+  return _sessionToken !== null && _sessionToken.length > 0;
+}
+
+/**
+ * Authenticated fetch — same API as native fetch() but automatically
+ * adds Authorization: Bearer header when a session token is available.
+ * Removes credentials: 'include' (no cookies).
+ */
+export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const headers = new Headers(init?.headers);
+
+  if (_sessionToken) {
+    headers.set('Authorization', `Bearer ${_sessionToken}`);
+  }
+
+  // Remove credentials to avoid sending cookies
+  const { credentials, ...restInit } = init ?? {};
+
+  return fetch(input, {
+    ...restInit,
+    headers,
+  });
+}

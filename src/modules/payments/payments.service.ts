@@ -1,4 +1,5 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { AppError, ErrorCode } from '../../common/errors';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Subscription, SubscriptionDocument } from './schemas/subscription.schema';
@@ -130,7 +131,7 @@ export class PaymentsService {
     const filter: any = { paypal_subscription_id: subscriptionId };
     if (userId) filter.user_id = userId;
     const sub = await this.subscriptionModel.findOne(filter).lean();
-    if (!sub) throw new ForbiddenException('Sin acceso a esta suscripción');
+    if (!sub) throw new AppError(ErrorCode.SUBSCRIPTION_NOT_FOUND, 'No access to this subscription', 403);
 
     // Events can have subscriptionId = paypal_subscription_id (for BILLING.*) 
     // or billing_agreement_id (for PAYMENT.SALE.*)
@@ -200,9 +201,9 @@ export class PaymentsService {
     if (userId) filter.user_id = userId;
     const sub = await this.subscriptionModel.findOne(filter).lean();
 
-    if (!sub) throw new NotFoundException('Suscripción no encontrada');
+    if (!sub) throw new AppError(ErrorCode.SUBSCRIPTION_NOT_FOUND, 'Subscription not found', 404);
     if (sub.status !== 'ACTIVE') {
-      throw new ForbiddenException('Solo se pueden cancelar suscripciones activas');
+      throw new AppError(ErrorCode.SUBSCRIPTION_NOT_ACTIVE, 'Only active subscriptions can be cancelled', 403);
     }
 
     // Mark as cancelled locally — the webhook will confirm from PayPal

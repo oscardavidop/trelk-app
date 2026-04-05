@@ -7,11 +7,12 @@
  * POST /api/v1/ui/commands/:command/feedback   — submit new feedback
  */
 
+import { authFetch } from '../lib/authFetch';
+
 const BASE = '/api/v1/ui/commands';
 
 async function json<T = unknown>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    credentials: 'include',
+  const res = await authFetch(url, {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     ...init,
   });

@@ -1,3 +1,5 @@
+import { authFetch } from '../lib/authFetch';
+
 const API_BASE = '/api/users';
 
 interface ApiRequestBody {
@@ -29,13 +31,12 @@ export async function apiRequest<T = Record<string, unknown>>(
     }
   }
 
-  const response = await fetch(API_BASE, {
+  const response = await authFetch(API_BASE, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'X-Requested-With': 'XMLHttpRequest',
     },
-    credentials: 'include',
     body: body.toString(),
   });
 
@@ -62,10 +63,9 @@ export async function updateConfig(config: Record<string, unknown>) {
 
 /** Update user profile via REST API */
 export async function updateProfile(fields: Record<string, string>): Promise<ApiResponse> {
-  const res = await fetch('/api/v1/ui/profile', {
+  const res = await authFetch('/api/v1/ui/profile', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(fields),
   });
   if (!res.ok) {

@@ -5,9 +5,13 @@ import { useAuth } from './hooks/useAuth';
 import { useTelegram } from './hooks/useTelegram';
 import AppLayout from './components/AppLayout';
 import Toast from './components/Toast';
-import GlobalErrorToast from './components/GlobalErrorToast';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingOverlay, { useOnboarding } from './components/onboarding/OnboardingOverlay';
+import PinLockScreen from './components/security/PinLockScreen';
+import OfflineBanner from './components/offline/OfflineBanner';
+import { usePinGate } from './hooks/usePinGate';
+import { useDeepLink } from './hooks/useDeepLink';
+import { initOfflineListeners } from './lib/offline';
 import { useThemeStore } from './stores/theme';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -75,6 +79,9 @@ import LabsPage from './pages/SuggestionsPage';
 import SuggestionDetailPage from './pages/SuggestionDetailPage';
 import NotificationsPage from './pages/NotificationsPage';
 import MyReportsPage from './pages/MyReportsPage';
+import AlertsPage from './pages/AlertsPage';
+import PinSettingsPage from './pages/PinSettingsPage';
+import SessionsPage from './pages/SessionsPage';
 import AuthExpiredPage from './pages/AuthExpiredPage';
 import TrelkEntry from './pages/TrelkEntry';
 import HomePage from './pages/HomePage';
@@ -86,10 +93,18 @@ function App() {
   const navigate = useNavigate();
   const initTheme = useThemeStore((s) => s.init);
   const { showOnboarding, completeOnboarding } = useOnboarding();
+  const { needsPin, checking: pinChecking } = usePinGate(isAuthenticated);
+  useDeepLink();
 
   useEffect(() => {
     initTheme();
   }, [initTheme]);
+
+  // Initialize offline detection and auto-sync
+  useEffect(() => {
+    const cleanup = initOfflineListeners();
+    return cleanup;
+  }, []);
 
   const handleBack = () => navigate(-1);
   useEffect(() => {
@@ -124,11 +139,44 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="space-y-3 w-full max-w-[200px]">
-          <div className="h-12 w-12 mx-auto rounded-full bg-tg-accent/20 animate-pulse" />
-          <div className="h-3 w-full bg-tg-text/[0.05] rounded animate-pulse" />
-          <div className="h-3 w-2/3 mx-auto bg-tg-text/[0.04] rounded animate-pulse" />
+      <div className="min-h-screen bg-tg-bg animate-pulse">
+        {/* Hero skeleton */}
+        <div className="px-4 pt-8 pb-3 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-tg-text/[0.06]" />
+          <div className="flex-1 space-y-2">
+            <div className="h-6 w-36 bg-tg-text/[0.06] rounded-lg" />
+            <div className="h-4 w-24 bg-tg-text/[0.04] rounded" />
+          </div>
+        </div>
+        {/* Stats card skeleton */}
+        <div className="px-4 mt-3">
+          <div className="h-20 rounded-[20px] bg-tg-text/[0.04]" />
+        </div>
+        {/* XP bar skeleton */}
+        <div className="px-6 mt-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[12px] bg-tg-text/[0.06]" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3 w-20 bg-tg-text/[0.05] rounded" />
+            <div className="h-1.5 w-full bg-tg-text/[0.04] rounded-full" />
+          </div>
+        </div>
+        {/* Quick access grid skeleton */}
+        <div className="px-4 mt-8 grid grid-cols-4 gap-2.5">
+          {[1,2,3,4].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-2 py-3.5">
+              <div className="w-11 h-11 rounded-[14px] bg-tg-text/[0.06]" />
+              <div className="h-3 w-10 bg-tg-text/[0.04] rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Content skeletons */}
+        <div className="px-4 mt-6 space-y-3">
+          <div className="h-4 w-24 bg-tg-text/[0.05] rounded" />
+          <div className="flex gap-3 overflow-hidden">
+            {[1,2,3].map((i) => (
+              <div key={i} className="w-28 h-16 rounded-[14px] bg-tg-text/[0.04] shrink-0" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -142,9 +190,15 @@ function App() {
     );
   }
 
+  // PIN security gate — blocks all routes until PIN is verified
+  if (needsPin) {
+    return <PinLockScreen />;
+  }
+
   return (
     <ErrorBoundary>
       <ScrollToTop />
+      <OfflineBanner />
 
       <AnimatePresence>
         {showOnboarding && <OnboardingOverlay onComplete={completeOnboarding} />}
@@ -185,6 +239,9 @@ function App() {
           <Route path="/users/ui/:userId/labs/:id" element={<SuggestionDetailPage />} />
           <Route path="/users/ui/:userId/notifications" element={<NotificationsPage />} />
           <Route path="/users/ui/:userId/my-reports" element={<MyReportsPage />} />
+          <Route path="/users/ui/:userId/alerts" element={<AlertsPage />} />
+          <Route path="/users/ui/:userId/pin-settings" element={<PinSettingsPage />} />
+          <Route path="/users/ui/:userId/sessions" element={<SessionsPage />} />
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />
@@ -192,7 +249,6 @@ function App() {
       </Routes>
 
       <Toast />
-      <GlobalErrorToast />
     </ErrorBoundary>
   );
 }

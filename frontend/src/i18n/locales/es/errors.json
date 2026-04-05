@@ -12,5 +12,81 @@
   "dismiss": "Cerrar",
   "retry": "Reintentar",
   "request_failed": "La solicitud falló. Por favor, inténtalo de nuevo.",
-  "connection_lost": "Conexión perdida. Revisa tu internet."
+  "connection_lost": "Conexión perdida. Revisa tu internet.",
+  "rate_limited": "Demasiadas solicitudes. Espera un momento.",
+  "rate_limited_seconds": "Demasiadas solicitudes. Intenta en {{seconds}}s.",
+
+  "unknown": "Ocurrió un error inesperado.",
+  "validation": "Los datos proporcionados no son válidos.",
+  "payloadTooLarge": "La solicitud es demasiado grande.",
+  "notFound": "El recurso solicitado no fue encontrado.",
+  "adminOnly": "Esta acción requiere permisos de administrador.",
+  "authRequired": "Se requiere autenticación.",
+  "aiUnavailable": "El servicio de IA no está disponible temporalmente.",
+  "limitExceeded": "Límite excedido.",
+  "rateLimited": "Demasiadas solicitudes. Espera un momento.",
+
+  "auth.unauthorized": "No estás autorizado.",
+  "auth.sessionExpired": "Tu sesión ha expirado.",
+  "auth.initDataMissing": "Faltan datos de autenticación. Abre la app desde Telegram.",
+  "auth.initDataInvalid": "Datos de autenticación inválidos.",
+  "auth.initDataExpired": "Los datos de autenticación expiraron. Reabre la app.",
+  "auth.tokenExpired": "Tu token ha expirado. Inicia sesión de nuevo.",
+  "auth.tokenInvalid": "Token de autenticación inválido.",
+  "auth.tokenRevoked": "Tu sesión fue revocada.",
+  "auth.userNotFound": "Usuario no encontrado.",
+
+  "security.pinIncorrect": "PIN incorrecto.",
+  "security.pinInvalidFormat": "El PIN debe tener 4 dígitos.",
+  "security.accountLocked": "Cuenta bloqueada por demasiados intentos.",
+  "security.recoveryLocked": "La recuperación está temporalmente bloqueada.",
+  "security.recoveryNotVerified": "Recuperación no verificada.",
+  "security.currentPinRequired": "Se requiere el PIN actual.",
+  "security.questionsInvalid": "Las respuestas de seguridad son incorrectas.",
+
+  "review.notFound": "Reseña no encontrada.",
+  "review.invalidId": "ID de reseña inválido.",
+  "review.ratingInvalid": "La calificación debe ser entre 1 y 5.",
+  "review.textTooLong": "El texto de la reseña es demasiado largo.",
+  "review.editPending": "No puedes editar mientras una edición anterior está en moderación.",
+
+  "report.duplicate": "Ya reportaste esto recientemente.",
+  "report.notFound": "Reporte no encontrado.",
+  "report.invalidCategory": "Categoría de reporte inválida.",
+  "report.messageInvalid": "El mensaje del reporte es inválido.",
+
+  "reply.notFound": "Respuesta no encontrada.",
+  "reply.invalidLength": "La respuesta es muy corta o muy larga.",
+
+  "favorite.notFound": "Favorito no encontrado.",
+  "favorite.notYours": "Este favorito no te pertenece.",
+  "favorite.collectionNotFound": "Colección no encontrada.",
+  "favorite.collectionExists": "Ya existe una colección con ese nombre.",
+  "favorite.collectionNameInvalid": "Nombre de colección inválido.",
+
+  "command.invalid": "Comando inválido.",
+  "command.notFound": "Comando no encontrado.",
+
+  "suggestion.notFound": "Sugerencia no encontrada.",
+  "suggestion.titleInvalid": "Título de sugerencia inválido.",
+  "suggestion.descInvalid": "Descripción de sugerencia inválida.",
+  "suggestion.invalidStatus": "Estado de sugerencia inválido.",
+  "suggestion.commentInvalid": "Comentario inválido.",
+
+  "subscription.notFound": "Suscripción no encontrada.",
+  "subscription.notActive": "La suscripción no está activa.",
+  "subscription.noAccess": "No tienes acceso a esta suscripción.",
+  "subscription.limitPremium": "Esta función requiere una suscripción premium.",
+
+  "file.notFound": "Archivo no encontrado.",
+  "file.tooLarge": "El archivo es demasiado grande.",
+  "file.invalidType": "Tipo de archivo no soportado.",
+  "file.limitExceeded": "Límite de carga de archivos excedido.",
+
+  "alert.notFound": "Alerta no encontrada.",
+  "notification.invalid": "Notificación inválida.",
+
+  "session.notFound": "Sesión no encontrada.",
+
+  "config.invalid": "Configuración inválida."
 }

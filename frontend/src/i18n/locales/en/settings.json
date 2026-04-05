@@ -43,11 +43,18 @@
   "lang_subtitle": "Choose your preferred language",
   "my_reports": "My Reports",
   "my_reports_desc": "View your submitted bug reports",
+  "alerts": "Alerts",
+  "alerts_desc": "Manage your scheduled alerts",
   "animation_intensity": "Animation intensity",
   "intensity_low": "Subtle",
   "intensity_low_desc": "Minimal animations and effects",
   "intensity_medium": "Balanced",
   "intensity_medium_desc": "Recommended experience",
   "intensity_high": "Vivid",
-  "intensity_high_desc": "Full animations and glow effects"
+  "intensity_high_desc": "Full animations and glow effects",
+  "security": "Security",
+  "pin_security": "PIN Security",
+  "pin_security_desc": "Protect your account with a 4-digit PIN",
+  "active_sessions": "Active Sessions",
+  "active_sessions_desc": "Manage your logged-in devices"
 }

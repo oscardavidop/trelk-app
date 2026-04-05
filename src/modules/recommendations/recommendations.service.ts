@@ -5,7 +5,7 @@ import { History, HistoryDocument } from '../history/schemas/history.schema';
 import { CommandRating, CommandRatingDocument } from '../ratings/schemas/command-rating.schema';
 import { CommandFavorite, CommandFavoriteDocument } from '../command-favorites/schemas/command-favorite.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
-import { BOT_COMMANDS } from '../../data/commands';
+import { BOT_COMMANDS } from '../../data/bot-commands';
 
 interface ScoredCommand {
   command: string;
@@ -29,6 +29,7 @@ const CACHE_TTL = 300; // 5 min
 @Injectable()
 export class RecommendationsService {
   private readonly logger = new Logger(RecommendationsService.name);
+  private readonly commands = Array.isArray(BOT_COMMANDS) ? BOT_COMMANDS : [];
 
   // Pre-built lookup maps
   private readonly commandMeta = new Map<string, { category: string; group: string }>();
@@ -40,8 +41,12 @@ export class RecommendationsService {
     @InjectModel(CommandFavorite.name) private readonly favoriteModel: Model<CommandFavoriteDocument>,
     private readonly redis: RedisCacheService,
   ) {
+    if (this.commands.length === 0) {
+      this.logger.warn('BOT_COMMANDS is empty or invalid; recommendations will use fallbacks.');
+    }
+
     // Build lookup tables from BOT_COMMANDS
-    for (const cmd of BOT_COMMANDS) {
+    for (const cmd of this.commands) {
       const slug = cmd.uniqueName;
       const cat = cmd.category || cmd.group || 'general';
       this.commandMeta.set(slug, { category: cat, group: cmd.group });
@@ -141,7 +146,7 @@ export class RecommendationsService {
 
     // 4. Score every candidate command
     const scores = new Map<string, ScoredCommand>();
-    const allCommands = BOT_COMMANDS.map((c) => c.uniqueName);
+    const allCommands = this.commands.map((c) => c.uniqueName);
 
     for (const cmd of allCommands) {
       if (usedCommands.has(cmd)) continue; // Skip already used

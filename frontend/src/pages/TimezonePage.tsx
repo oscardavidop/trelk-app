@@ -5,6 +5,7 @@ import { useTelegram } from '../hooks/useTelegram';
 import { Search, Check, Clock, Sparkles } from 'lucide-react';
 import StickyHeader from '@/components/StickyHeader';
 import { useConfigStore } from '@/stores/config';
+import { useApiError } from '@/hooks/useApiError';
 
 const TIMEZONES: Record<string, { label: string; description: string }> = {
   'GMT-12': { label: 'GMT-12', description: 'Baker Island, Howland Island' },
@@ -53,6 +54,7 @@ export default function TimezonePage() {
   const { haptic } = useTelegram();
   const { user, updateConfig: updateUserConfig } = useUserStore();
   const { saveLocale } = useConfigStore();
+  const { handleError } = useApiError();
 
 
   const [search, setSearch] = useState('');
@@ -91,8 +93,8 @@ export default function TimezonePage() {
       } else {
         showToast(t('common:error', 'Error'), 'error');
       }
-    } catch {
-      showToast(t('common:error', 'Error'), 'error');
+    } catch (error: any) {
+      handleError(error);
     }
   };
 

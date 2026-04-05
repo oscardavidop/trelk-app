@@ -8,10 +8,9 @@ import fastifyCompress from '@fastify/compress';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyMultipart from '@fastify/multipart';
-import cookie from '@fastify/cookie';
 import { join } from 'path';
 import * as qs from 'qs';
-import { AuthExceptionFilter, SpaFallbackFilter } from "./common/filters";
+import { GlobalExceptionFilter } from "./common/filters/global-error.filter";
 import { setupSwagger } from "./config/swagger.config";
 
 import * as dotenv from 'dotenv';
@@ -48,7 +47,7 @@ async function bootstrap() {
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-telegram-init-data'],
   });
 
@@ -66,17 +65,17 @@ async function bootstrap() {
           "https://telegram.org", "https://webappinternal.telegram.org",
         ],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
-        connectSrc: ["'self'", "https://app.trelk.site", "wss:"],
+        connectSrc: ["'self'", "https://apps-telegram.trelkbot.com", "wss:"],
         frameSrc: ["'self'", "https://*.telegram.org", "https://*.t.me"],
         frameAncestors: ["'self'", "https://*.telegram.org", "https://*.t.me"],
       },
     },
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    xContentTypeOptions: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   });
-
-  // === Cookie parser ===
-  await fastify.register(cookie as any);
 
   // === Multipart (file uploads) ===
   await fastify.register(fastifyMultipart as any, {
@@ -144,10 +143,10 @@ async function bootstrap() {
     return payload;
   });
 
-  // === Global exception filters ===
-  // SpaFallbackFilter DEBE ir primero: intercepta NotFoundException para servir el SPA
-  // AuthExceptionFilter maneja UnauthorizedException
-  app.useGlobalFilters(new SpaFallbackFilter(), new AuthExceptionFilter());
+  // === Global exception filter ===
+  // Catches ALL exceptions → standard { ok: false, error: { code, message, i18nKey, ... } }
+  // Also handles SPA fallback for non-API 404 routes
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   // === Swagger (solo en desarrollo) ===
   if (configService.get('NODE_ENV') !== 'production') {

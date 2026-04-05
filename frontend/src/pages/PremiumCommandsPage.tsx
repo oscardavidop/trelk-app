@@ -6,6 +6,7 @@ import { Star, Plus, Trash2, Search, Zap, Loader2, Shield, Crown, Gauge, Termina
 import { useConfigStore } from '../stores/config';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
+import { useApiError } from '../hooks/useApiError';
 import Select from '@/components/Select';
 import { useHideIsland } from '@/hooks/useHideIsland';
 import { BOT_COMMANDS } from '@/data/botCommands';
@@ -21,6 +22,7 @@ export default function PremiumCommandsPage() {
   const { haptic } = useTelegram();
   const { t } = useTranslation('subscription');
   const showToast = useToastStore((s) => s.show);
+  const { handleError } = useApiError();
   const { config, loading, load, savePremiumCommand, removePremiumCommand } = useConfigStore();
   useHideIsland();
   useNoSafeProps();
@@ -53,8 +55,8 @@ export default function PremiumCommandsPage() {
       setNewAlias('');
       setShowAdd(false);
       haptic?.notificationOccurred('success');
-    } catch (error: any) {
-      showToast(error.message || t('common:create_error'), 'error');
+    } catch (err) {
+      handleError(err, () => handleAdd());
     }
   };
 
@@ -63,8 +65,8 @@ export default function PremiumCommandsPage() {
       await removePremiumCommand(key);
       showToast(t('common:deleted'), 'success');
       haptic?.notificationOccurred('warning');
-    } catch (error: any) {
-      showToast(error.message || t('common:delete_error'), 'error');
+    } catch (err) {
+      handleError(err, () => handleDelete(key));
     }
   };
 
@@ -76,7 +78,8 @@ export default function PremiumCommandsPage() {
     );
   }
 
-  const usedCommands = proFeatures?.custom_commands.used_commands ?? 0;
+  // Use local state count for used commands (reflects deletions immediately)
+  const usedCommands = Object.keys(premiumCmds).length;
   const maxCommands = proFeatures?.custom_commands.max_commands ?? 0;
   const pct = maxCommands > 0 ? Math.min((usedCommands / maxCommands) * 100, 100) : 0;
 

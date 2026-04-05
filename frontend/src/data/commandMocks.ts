@@ -54,8 +54,11 @@ export const COMMAND_EXAMPLES: Record<string, CommandExample[]> = {
   minus:    [{ text: '/minus MAKE THIS LOWERCASE' }],
   reverse:  [{ text: '/reverse Hello world' }],
   capitalize: [{ text: '/capitalize make this capitalized' }],
+  ipinfo: [{ text: '/ipinfo 8.8.8.8' }, { text: '/ipinfo 1.1.1.1' }],
 
 };
+
+
 
 export const COMMAND_WORKS_STEPS: Record<string, string[]> = {
   play: ['User sends /play command', 'Bot processes the request', 'Bot returns the audio file or stream link'],
@@ -89,6 +92,7 @@ export const COMMAND_WORKS_STEPS: Record<string, string[]> = {
   minus: ['User sends /minus command with text', 'Bot converts the text to lowercase', 'Bot sends the lowercase text back to the user'],
   reverse: ['User sends /reverse command with text', 'Bot reverses the text string', 'Bot sends the reversed text back to the user'],
   capitalize: ['User sends /capitalize command with text', 'Bot capitalizes the first letter of each word in the text', 'Bot sends the capitalized text back to the user'],
+  ipinfo: ['User sends /ipinfo command with an IP address', 'Bot retrieves geolocation and other information about the IP address', 'Bot sends this information back to the user'],
 };
 
 export function getExamples(slug: string): CommandExample[] {

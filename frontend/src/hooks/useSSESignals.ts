@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { getSessionToken } from '../lib/authFetch';
 
 const SSE_RECONNECT_DELAY = 5000;
 const MAX_RECONNECT_ATTEMPTS = 10;
@@ -21,10 +22,12 @@ export function useSSESignals(
       esRef.current.close();
     }
 
-    const params = commands.length ? `?commands=${commands.join(',')}` : '';
-    const es = new EventSource(`/api/v1/sse/signals${params}`, {
-      withCredentials: true,
-    });
+    const token = getSessionToken();
+    const queryParts: string[] = [];
+    if (commands.length) queryParts.push(`commands=${commands.join(',')}`);
+    if (token) queryParts.push(`token=${encodeURIComponent(token)}`);
+    const params = queryParts.length ? `?${queryParts.join('&')}` : '';
+    const es = new EventSource(`/api/v1/sse/signals${params}`);
 
     es.addEventListener('signals', (event) => {
       try {
