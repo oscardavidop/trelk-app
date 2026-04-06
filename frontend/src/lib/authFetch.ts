@@ -26,17 +26,45 @@ export function hasSessionToken(): boolean {
  * adds Authorization: Bearer header when a session token is available.
  * Removes credentials: 'include' (no cookies).
  */
-export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+// export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+//   const headers = new Headers(init?.headers);
+
+//   if (_sessionToken) {
+//     headers.set('Authorization', `Bearer ${_sessionToken}`);
+//   }
+
+//   // Remove credentials to avoid sending cookies
+//   const { credentials, ...restInit } = init ?? {};
+
+//   return fetch(input, {
+//     ...restInit,
+//     headers,
+//   });
+// }
+
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api-telegram.prod.trelkbot.com';
+
+export async function authFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
   const headers = new Headers(init?.headers);
 
   if (_sessionToken) {
     headers.set('Authorization', `Bearer ${_sessionToken}`);
   }
 
-  // Remove credentials to avoid sending cookies
   const { credentials, ...restInit } = init ?? {};
 
-  return fetch(input, {
+  // 🔥 Resolver URL
+  let url = typeof input === 'string' ? input : input.toString();
+
+  // Si es relativa (/api/...)
+  if (url.startsWith('/')) {
+    url = `${API_BASE}${url}`;
+  }
+
+  return fetch(url, {
     ...restInit,
     headers,
   });
