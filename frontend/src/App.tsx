@@ -15,6 +15,7 @@ import { useDeepLink } from './hooks/useDeepLink';
 import { useAutoLock } from './hooks/useAutoLock';
 import { initOfflineListeners } from './lib/offline';
 import { useThemeStore } from './stores/theme';
+import { useUserStore } from './stores';
 import ScrollToTop from './components/ScrollToTop';
 
 /* ── Lazy-loaded pages ── */
@@ -96,6 +97,7 @@ function App() {
   const { webApp } = useTelegram();
   const navigate = useNavigate();
   const initTheme = useThemeStore((s) => s.init);
+  const user = useUserStore((s) => s.user);
   const { showOnboarding, completeOnboarding } = useOnboarding();
   const { needsPin, checking: pinChecking } = usePinGate(isAuthenticated);
   useDeepLink();
@@ -187,11 +189,25 @@ function App() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && authError) {
     return (
       <Suspense fallback={null}>
         <AuthExpiredPage />
       </Suspense>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-tg-bg animate-pulse">
+        <div className="px-4 pt-8 pb-3 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-tg-text/[0.06]" />
+          <div className="flex-1 space-y-2">
+            <div className="h-6 w-36 bg-tg-text/[0.06] rounded-lg" />
+            <div className="h-4 w-24 bg-tg-text/[0.04] rounded" />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -250,7 +266,11 @@ function App() {
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        <Route path="*" element={
+          user?.id
+            ? <Navigate to={`/users/ui/${user.id}`} replace />
+            : <Navigate to="/auth" replace />
+        } />
       </Routes>
 
       <UndoToast />

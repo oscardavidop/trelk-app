@@ -17,7 +17,11 @@ export default function AuthExpiredPage() {
   };
 
   const getErrorMessage = () => {
-    console.error('Authentication error:', authError);
+    if (!authError) {
+      console.warn('[AuthExpiredPage] Rendered without authError — likely a routing fallback. Path:', window.location.pathname);
+      return t('session_expired_msg', 'Your session has expired. Please restart the app.');
+    }
+    console.error('[AuthExpiredPage] Authentication error:', authError);
     switch (authError) {
       case 'no-init-data':
         return t('no_auth_data', 'Authentication data is missing.');
@@ -26,10 +30,10 @@ export default function AuthExpiredPage() {
       case 'network-error':
         return t('network_error', 'Network error. Check your connection.');
       default:
-        if (authError?.startsWith('HTTP')) {
+        if (authError.startsWith('HTTP')) {
           return t('server_error', { error: authError, defaultValue: `Server error: ${authError}` });
         }
-        return t('session_expired_msg', 'Your session has expired. Please restart the app.');
+        return authError;
     }
   };
 

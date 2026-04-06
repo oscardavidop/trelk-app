@@ -36,13 +36,14 @@ async function bootstrap() {
   });
 
   // === CORS restrictivo ===
-  const corsOrigins = configService.get<string>('CORS_ORIGINS', 'https://app.trelk.site,https://web.telegram.org');
+  const corsOrigins = configService.get<string>('CORS_ORIGINS', 'https://apps-telegram.trelkbot.com,https://apps-telegram.prod.trelkbot.com,https://web.telegram.org');
   await fastify.register(fastifyCors as any, {
     origin: (origin: string, callback: Function) => {
       const allowed = corsOrigins.split(',').map((s: string) => s.trim());
       if (!origin || allowed.includes(origin) || configService.get('NODE_ENV') === 'development') {
         callback(null, true);
       } else {
+        logger.warn(`CORS blocked origin: ${origin} (allowed: ${allowed.join(', ')})`);
         callback(new Error('CORS not allowed'), false);
       }
     },
@@ -65,7 +66,7 @@ async function bootstrap() {
           "https://telegram.org", "https://webappinternal.telegram.org",
         ],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
-        connectSrc: ["'self'", "https://apps-telegram.trelkbot.com", "wss:"],
+        connectSrc: ["'self'", "https://apps-telegram.trelkbot.com", "https://apps-telegram.prod.trelkbot.com", "https://api-telegram-prod.trelkbot.com", "wss:"],
         frameSrc: ["'self'", "https://*.telegram.org", "https://*.t.me"],
         frameAncestors: ["'self'", "https://*.telegram.org", "https://*.t.me"],
       },

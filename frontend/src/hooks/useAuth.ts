@@ -13,6 +13,9 @@ interface AuthState {
   setAuthenticated: (value: boolean) => void;
   setLoading: (value: boolean) => void;
   setAuthError: (error: string | null) => void;
+  /** Batch update to avoid intermediate renders */
+  setAuthSuccess: () => void;
+  setAuthFailure: (error: string) => void;
 }
 
 const useAuthStore = create<AuthState>((set) => ({
@@ -22,10 +25,12 @@ const useAuthStore = create<AuthState>((set) => ({
   setAuthenticated: (value) => set({ isAuthenticated: value }),
   setLoading: (value) => set({ isLoading: value }),
   setAuthError: (error) => set({ authError: error }),
+  setAuthSuccess: () => set({ isAuthenticated: true, authError: null, isLoading: false }),
+  setAuthFailure: (error) => set({ isAuthenticated: false, authError: error, isLoading: false }),
 }));
 
 export function useAuth() {
-  const { isAuthenticated, isLoading, authError, setAuthenticated, setLoading, setAuthError } = useAuthStore();
+  const { isAuthenticated, isLoading, authError, setAuthenticated, setLoading, setAuthError, setAuthSuccess, setAuthFailure } = useAuthStore();
   const setUser = useUserStore((s) => s.setUser);
 
   const authenticate = useCallback(async () => {
@@ -39,14 +44,17 @@ export function useAuth() {
     }
 
     try {
+      console.log('[Auth] Starting authentication...');
       const res = await apiAuth(initData);
-      if (res.ok) {
-        setAuthError(null);
+      console.log('[Auth] Auth response:', { ok: res.ok, hasSessionId: !!(res as any).sessionId });
 
+      if (res.ok) {
         // Store session token for Bearer auth
         const sessionId = (res as any).sessionId;
         if (sessionId) {
           setSessionToken(sessionId);
+        } else {
+          console.warn('[Auth] Auth succeeded but no sessionId returned');
         }
 
         // Fetch user profile ANTES de marcar isAuthenticated
@@ -77,20 +85,18 @@ export function useAuth() {
           console.warn('[Auth] Failed to fetch user profile:', e);
         }
 
-        // Marcar autenticado DESPUÉS de cargar el perfil
-        setAuthenticated(true);
+        // Marcar autenticado DESPUÉS de cargar el perfil — single atomic update
+        setAuthSuccess();
+        console.log('[Auth] Authentication complete — isAuthenticated: true');
       } else {
         console.error('[Auth] Auth returned ok:false', res);
-        setAuthError(res.error || 'auth-failed');
+        setAuthFailure(res.msg || 'auth-failed');
       }
     } catch (err) {
       console.error('[Auth] Auth request failed:', err);
-      setAuthError(err instanceof Error ? err.message : 'network-error');
-      setAuthenticated(false);
-    } finally {
-      setLoading(false);
+      setAuthFailure(err instanceof Error ? err.message : 'network-error');
     }
-  }, [setAuthenticated, setLoading, setAuthError, setUser]);
+  }, [setAuthSuccess, setAuthFailure, setLoading, setAuthError, setUser]);
 
   return { isAuthenticated, isLoading, authError, authenticate };
 }

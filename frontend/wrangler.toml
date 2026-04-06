@@ -1,0 +1,12 @@
+name = "apps-telegram"
+compatibility_date = "2024-01-01"
+
+# 🔥 Esto es clave
+[assets]
+directory = "./dist"
+
+# Opcional (pero recomendado)
+[env.production]
+routes = [
+  { pattern = "apps-telegram.prod.trelkbot.com/*", zone_name = "trelkbot.com" }
+]

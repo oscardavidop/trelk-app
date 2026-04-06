@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "deploy": "vite build && wrangler deploy --env production",
     "preview": "vite preview",
     "i18n:build": "npx tsx scripts/i18n-build.ts"
   },
