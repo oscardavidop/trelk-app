@@ -110,12 +110,6 @@ function checkPhotos(){
   BOT_COMMANDS.forEach(cmd => {
     if(!cmd.photos){
       missingPhotos.push(cmd.uniqueName || cmd.name[0]);
-      // cmd.photos.forEach(photo => {
-      //   const path = `https://cdn.trelkbot.com/assets/img/commands/${cmdSlug(cmd)}/${photo}`;
-      //   fetch(path).then(res => {
-      //     if(!res.ok) missingPhotos.push(path);
-      //   }).catch(() => missingPhotos.push(path));
-      // });
     }
   });
   if(missingPhotos.length > 0){

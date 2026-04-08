@@ -70,6 +70,7 @@ interface ImportMetaEnv {
   readonly VITE_UNDO_MODE?: 'aware' | 'persistent' = 'persistent';
   readonly VITE_UNDO_DELAY_MS?: string;
   readonly VITE_UNDO_MAX_STACK?: string;
+  readonly VITE_API_URL?: string = 'https://api-telegram-prod.trelkbot.com';
 }
 
 interface ImportMeta {

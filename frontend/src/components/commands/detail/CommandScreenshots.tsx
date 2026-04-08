@@ -2,6 +2,7 @@ import { memo, useState, useCallback, useRef, TouchEvent, useEffect } from 'reac
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MOCK_SCREENSHOTS = [
@@ -21,6 +22,8 @@ const card = {
 
 function CommandScreenshots({ photos, cmdName }: Props) {
   const { t } = useTranslation('commandDetail');
+  const location = useLocation();
+  const navigate = useNavigate();
   const hasReal = photos && photos.length > 0;
   const images = hasReal ? photos : MOCK_SCREENSHOTS;
 
@@ -37,15 +40,31 @@ function CommandScreenshots({ photos, cmdName }: Props) {
   const hasDragged = useRef(false); // <-- NUEVO: Detecta si hubo movimiento real
   const startX = useRef(0);
   const scrollLeft = useRef(0);
-  
+
+  // ── Hash-based gallery state ──
+  const isGalleryHash = location.hash === '#gallery';
+
+  // Sync hash → local state: close gallery when back removes #gallery
+  useEffect(() => {
+    if (!isGalleryHash && galleryIdx !== null) {
+      setGalleryIdx(null);
+    }
+  }, [isGalleryHash]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openGallery = useCallback((i: number) => {
     // Si hubo un arrastre real, ignoramos el click
     if (hasDragged.current) return;
-    setGalleryIdx(i)
-  }, []);
+    setGalleryIdx(i);
+    navigate('#gallery');
+  }, [navigate]);
 
-  const closeGallery = useCallback(() => setGalleryIdx(null), []);
+  const closeGallery = useCallback(() => {
+    setGalleryIdx(null);
+    // If we're on #gallery, go back to remove the hash
+    if (window.location.hash === '#gallery') {
+      navigate(-1);
+    }
+  }, [navigate]);
 
   const goPrev = useCallback(() => {
     setGalleryIdx((prev) => (prev !== null && prev > 0 ? prev - 1 : prev));
@@ -144,7 +163,7 @@ function CommandScreenshots({ photos, cmdName }: Props) {
     };
   }, [galleryIdx]);
 
-  
+
 
   if (images.length > 0 && failedToLoad.some(status => status === true)) {
     return (
@@ -184,7 +203,7 @@ function CommandScreenshots({ photos, cmdName }: Props) {
             <motion.img
               key={i}
               variants={card}
-              src={`https://cdn.trelkbot.com/assets/img/commands/${cmdName}/${url}`}
+              src={`/assets/img/commands/${cmdName}/${url}`}
               alt={`Screenshot ${i + 1}`}
               className="flex-shrink-0 w-[235px] h-[500px] rounded-[20px] cursor-pointer"
               loading="lazy"
@@ -227,8 +246,8 @@ function CommandScreenshots({ photos, cmdName }: Props) {
               el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }}
             className={`transition-all duration-300 rounded-full ${i === activeIdx
-                ? 'w-5 h-2 bg-tg-text'
-                : 'w-2 h-2 bg-tg-hint/40'
+              ? 'w-5 h-2 bg-tg-text'
+              : 'w-2 h-2 bg-tg-hint/40'
               }`}
           />
         ))}
@@ -246,9 +265,12 @@ function CommandScreenshots({ photos, cmdName }: Props) {
               onClick={closeGallery}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
+              style={{
+                top: 'var(--tg-top-offset, var(--tg-top-offset, env(--tg-top2-offset, 0px)))'
+              }}
             >
               <button
-                onClick={closeGallery}
+                onClick={(e) => { e.stopPropagation(); closeGallery(); }}
                 className="absolute top-10 right-4 z-10 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
               >
                 <X size={20} className="text-white" />
@@ -281,7 +303,7 @@ function CommandScreenshots({ photos, cmdName }: Props) {
                   key={galleryIdx}
                   src={
                     hasReal
-                      ? `https://cdn.trelkbot.com/assets/img/commands/${cmdName}/${images[galleryIdx]}`
+                      ? `/assets/img/commands/${cmdName}/${images[galleryIdx]}`
                       : images[galleryIdx]
                   }
                   alt={`Screenshot ${galleryIdx + 1}`}
@@ -304,8 +326,8 @@ function CommandScreenshots({ photos, cmdName }: Props) {
                       setGalleryIdx(i);
                     }}
                     className={`transition-all duration-300 rounded-full ${i === galleryIdx
-                        ? 'w-5 h-2 bg-white'
-                        : 'w-2 h-2 bg-white/40'
+                      ? 'w-5 h-2 bg-white'
+                      : 'w-2 h-2 bg-white/40'
                       }`}
                   />
                 ))}

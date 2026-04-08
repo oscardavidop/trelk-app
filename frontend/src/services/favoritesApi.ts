@@ -1,6 +1,6 @@
 import { authFetch } from '../lib/authFetch';
 
-const BASE = '/api/v1/ui/favorites';
+const BASE = import.meta.env.VITE_API_URL || 'https://api-telegram-prod.trelkbot.com';
 
 async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
   const res = await authFetch(url, {
