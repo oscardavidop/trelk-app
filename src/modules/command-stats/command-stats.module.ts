@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { UploadsModule } from '../uploads/uploads.module';
+// import { UploadsModule } from '../uploads/uploads.module';
 import { UserStatsModule } from '../user-stats/user-stats.module';
 import { ModerationModule } from '../moderation/moderation.module';
 import { RatingsModule } from '../ratings/ratings.module';
@@ -16,7 +16,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
  */
 @Module({
   imports: [
-    UploadsModule,
+    // UploadModule,
     UserStatsModule,
     ModerationModule,
     RatingsModule,
@@ -28,7 +28,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AnalyticsModule,
   ],
   exports: [
-    UploadsModule,
+    // UploadsModule,
     UserStatsModule,
     ModerationModule,
     RatingsModule,

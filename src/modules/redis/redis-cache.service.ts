@@ -23,21 +23,7 @@ export class RedisCacheService implements OnModuleInit {
     }
 
     try {
-      this.client = new Redis({
-        host: this.configService.get<string>('REDIS_HOST', 'localhost'),
-        port: this.configService.get<number>('REDIS_PORT', 6379),
-        username: this.configService.get<string>('REDIS_USERNAME', '') || undefined,
-        password: this.configService.get<string>('REDIS_PASSWORD', '') || undefined,
-        maxRetriesPerRequest: 3,
-        retryStrategy: (times) => {
-          if (times > 5) {
-            this.logger.error('Redis: máximo de reintentos alcanzado, deshabilitando caché');
-            return null; // Deja de reintentar
-          }
-          return Math.min(times * 200, 2000);
-        },
-        lazyConnect: true,
-      });
+      this.client = new Redis(this.configService.get<string>('REDIS_URL'));
 
       this.client.on('connect', () => {
         this.isConnected = true;

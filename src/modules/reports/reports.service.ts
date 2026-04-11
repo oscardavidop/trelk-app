@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 import { CommandReport, CommandReportDocument } from './schemas/command-report.schema';
 import { ReportEvent, ReportEventDocument } from './schemas/report-event.schema';
 import { RedisCacheService } from '../redis/redis-cache.service';
-import { ReportUploadService } from '../uploads/report-upload.service';
+// import { ReportUploadService } from '../uploads/report-upload.service';
 import { ReviewModerationService } from '../moderation/review-moderation.service';
 import { REPORT_LIMIT, REPORT_DEDUP_TTL } from '../../common/constants/command-stats.constants';
 import { AppError, ErrorCode } from '../../common/errors';
@@ -23,7 +23,7 @@ export class ReportsService {
     @InjectModel(ReportEvent.name) private readonly reportEventModel: Model<ReportEventDocument>,
     private readonly redis: RedisCacheService,
     private readonly configService: ConfigService,
-    private readonly reportUpload: ReportUploadService,
+    // private readonly reportUpload: ReportUploadService,
     private readonly moderation: ReviewModerationService,
   ) {
     this.botToken = this.configService.get<string>('BOT_TOKEN', '');
@@ -55,7 +55,8 @@ export class ReportsService {
     files: Array<{ filename: string; mimetype: string; data: Buffer }>,
   ): Promise<string[]> {
     if (!files.length) return [];
-    return this.reportUpload.saveFiles(files);
+    // return this.reportUpload.saveFiles(files);
+    return [];
   }
 
   async submitReport(

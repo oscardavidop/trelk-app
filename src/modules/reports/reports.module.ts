@@ -4,12 +4,12 @@ import { CommandReport, CommandReportSchema } from './schemas/command-report.sch
 import { ReportEvent, ReportEventSchema } from './schemas/report-event.schema';
 import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';
-import { UploadsModule } from '../uploads/uploads.module';
+// import { UploadsModule } from '../uploads/uploads.module';
 import { ModerationModule } from '../moderation/moderation.module';
 
 @Module({
   imports: [
-    UploadsModule,
+    // UploadsModule,
     ModerationModule,
     MongooseModule.forFeature([
       { name: CommandReport.name, schema: CommandReportSchema },

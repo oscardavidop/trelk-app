@@ -37,14 +37,12 @@ export class AlertsService {
         private readonly redisCache: RedisCacheService,
     ) {
         // this.redis = this.redisCache.getClient() as Redis;
-        this.redis = new Redis({
-            host: config.get<string>('REDIS_HOST', 'localhost'),
-            port: config.get<number>('REDIS_PORT', 6379),
-            username: config.get<string>('REDIS_USERNAME') || undefined,
-            password: config.get<string>('REDIS_PASSWORD') || undefined,
-            maxRetriesPerRequest: 3,
-            lazyConnect: true,
+        this.redis = new Redis(this.config.get<string>('REDIS_URL'), {
+            maxRetriesPerRequest: this.config.get<number>('REDIS_MAX_RETRIES', 5),
+            tls: this.config.get<boolean>('REDIS_TLS', false) ? {} : undefined,
         });
+
+        this.redis.on('connect', () => this.logger.log('Connected to Redis for AlertsService'));
         this.redis.connect().catch((err) =>
             this.logger.warn(`Redis connect failed: ${err.message}`),
         );

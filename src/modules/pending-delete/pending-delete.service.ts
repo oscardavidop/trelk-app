@@ -33,9 +33,11 @@ export class PendingDeleteService implements OnModuleInit, OnModuleDestroy {
       const host = this.config.get<string>('REDIS_HOST', 'localhost');
       const port = this.config.get<number>('REDIS_PORT', 6379);
       const password = this.config.get<string>('REDIS_PASSWORD', '') || undefined;
+      const tls = this.config.get<boolean>('REDIS_TLS', false);
+
 
       this.queue = new Queue<PendingDeletePayload>('finalize-delete', {
-        connection: { host, port, password, maxRetriesPerRequest: null },
+        connection: { host, port, password, maxRetriesPerRequest: null, tls: tls ? {} : undefined },
         defaultJobOptions: {
           attempts: 3,
           backoff: { type: 'exponential', delay: 2000 },
