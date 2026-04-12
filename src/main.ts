@@ -141,6 +141,7 @@ async function bootstrap() {
     reply.header('x-frame-options', 'ALLOWALL');
     reply.header('X-Download-Options', 'noopen');
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+    reply.header('Access-Control-Max-Age', '86400');
     return payload;
   });
 

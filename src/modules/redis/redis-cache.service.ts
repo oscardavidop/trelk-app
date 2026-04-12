@@ -13,7 +13,7 @@ export class RedisCacheService implements OnModuleInit {
   private client: Redis | null = null;
   private isConnected = false;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async onModuleInit() {
     const enabled = this.configService.get<boolean>('REDIS_ENABLED', false);
@@ -23,7 +23,11 @@ export class RedisCacheService implements OnModuleInit {
     }
 
     try {
-      this.client = new Redis(this.configService.get<string>('REDIS_URL'));
+      this.client = new Redis(this.configService.get<string>('REDIS_URL'), {
+        maxRetriesPerRequest: this.configService.get<number>('REDIS_MAX_RETRIES', 5),
+        tls: this.configService.get<string>('REDIS_TLS') === 'true' ? {} : undefined,
+        lazyConnect: true,
+      });
 
       this.client.on('connect', () => {
         this.isConnected = true;
@@ -32,7 +36,7 @@ export class RedisCacheService implements OnModuleInit {
 
       this.client.on('error', (err) => {
         this.isConnected = false;
-        this.logger.warn(`Redis error: ${err.message}`);
+        this.logger.warn(`Redis error:`, err);
       });
 
       this.client.on('close', () => {

@@ -50,7 +50,7 @@ export class SuggestionsService implements OnModuleInit, OnModuleDestroy {
       const redisHost = this.configService.get<string>('REDIS_HOST', 'localhost');
       const redisPort = this.configService.get<number>('REDIS_PORT', 6379);
       const redisPassword = this.configService.get<string>('REDIS_PASSWORD', '') || undefined;
-      const redisTls = this.configService.get<boolean>('REDIS_TLS', false);
+      const redisTls = this.configService.get<string>('REDIS_TLS') === 'true';
 
 
       this.suggestionQueue = new Queue('process-suggestion', {

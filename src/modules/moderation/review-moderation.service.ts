@@ -91,7 +91,7 @@ export class ReviewModerationService implements OnModuleInit, OnModuleDestroy {
       const redisHost = this.configService.get<string>('REDIS_HOST', 'localhost');
       const redisPort = this.configService.get<number>('REDIS_PORT', 6379);
       const redisPassword = this.configService.get<string>('REDIS_PASSWORD', '') || undefined;
-      const redisTls = this.configService.get<boolean>('REDIS_TLS', false);
+      const redisTls = this.configService.get<string>('REDIS_TLS') === 'true';
 
       this.queue = new Queue('moderation', {
         connection: { url: this.configService.get<string>('REDIS_URL'), host: redisHost, port: redisPort, password: redisPassword, maxRetriesPerRequest: null, tls: redisTls ? {} : undefined },

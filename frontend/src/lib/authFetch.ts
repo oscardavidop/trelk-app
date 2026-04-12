@@ -43,6 +43,7 @@ export function hasSessionToken(): boolean {
 // }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api-telegram-prod.trelkbot.com';
+console.log('API_BASE:', API_BASE);
 
 export async function authFetch(
   input: RequestInfo | URL,
