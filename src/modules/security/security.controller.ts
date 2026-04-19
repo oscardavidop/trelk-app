@@ -1,5 +1,6 @@
 import {
   Controller, Get, Post, Patch, Body, Req, UseGuards, BadRequestException,
+  Res,
 } from '@nestjs/common';
 import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SecurityService, VALID_QUESTION_IDS } from './security.service';

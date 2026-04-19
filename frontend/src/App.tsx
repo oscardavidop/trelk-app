@@ -19,77 +19,78 @@ import { useUserStore } from './stores';
 import ScrollToTop from './components/ScrollToTop';
 
 /* ── Lazy-loaded pages ── */
-const DashboardHome = lazy(() => import('./pages/DashboardHome'));
-const CommandsHub = lazy(() => import('./pages/CommandsHub'));
-const SettingsHub = lazy(() => import('./pages/SettingsHub'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-const AccountPage = lazy(() => import('./pages/AccountPage'));
-const LangPage = lazy(() => import('./pages/LangPage'));
-const TimezonePage = lazy(() => import('./pages/TimezonePage'));
-const CountryPage = lazy(() => import('./pages/CountryPage'));
-const CommandsPage = lazy(() => import('./pages/commands/CommandsPage'));
-const CommandConfigPage = lazy(() => import('./pages/commands/CommandConfigPage'));
-const PremiumCommandsPage = lazy(() => import('./pages/PremiumCommandsPage'));
-const ThemePage = lazy(() => import('./pages/ThemePage'));
-const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
-const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
-const InspirationPage = lazy(() => import('./pages/InspirationPage'));
-const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
-const BotCommandsPage = lazy(() => import('./pages/BotCommandsPage'));
-const CommandListPage = lazy(() => import('./pages/CommandListPage'));
-const BotCommandDetailPage = lazy(() => import('./pages/BotCommandDetailPage'));
-const CommandReviewsPage = lazy(() => import('./pages/CommandReviewsPage'));
-const AchievementsPage = lazy(() => import('./pages/AchievementsPage'));
-const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
-const ActivityPage = lazy(() => import('./pages/ActivityPage'));
-const CommandFavoritesPage = lazy(() => import('./pages/CommandFavoritesPage'));
-const LabsPage = lazy(() => import('./pages/SuggestionsPage'));
-const SuggestionDetailPage = lazy(() => import('./pages/SuggestionDetailPage'));
-const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
-const MyReportsPage = lazy(() => import('./pages/MyReportsPage'));
-const AuthExpiredPage = lazy(() => import('./pages/AuthExpiredPage'));
-const TrelkEntry = lazy(() => import('./pages/TrelkEntry'));
-const CommandChangelogPage = lazy(() => import('./pages/CommandChangelogPage'));
-const AlertsPage = lazy(() => import('./pages/AlertsPage'));
-const PinSettingsPage = lazy(() => import('./pages/PinSettingsPage'));
-const SessionsPage = lazy(() => import('./pages/SessionsPage'));
+// const DashboardHome = lazy(() => import('./pages/DashboardHome'));
+// const CommandsHub = lazy(() => import('./pages/CommandsHub'));
+// const SettingsHub = lazy(() => import('./pages/SettingsHub'));
+// const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+// const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+// const AccountPage = lazy(() => import('./pages/AccountPage'));
+// const LangPage = lazy(() => import('./pages/LangPage'));
+// const TimezonePage = lazy(() => import('./pages/TimezonePage'));
+// const CountryPage = lazy(() => import('./pages/CountryPage'));
+// const CommandsPage = lazy(() => import('./pages/commands/CommandsPage'));
+// const CommandConfigPage = lazy(() => import('./pages/commands/CommandConfigPage'));
+// const PremiumCommandsPage = lazy(() => import('./pages/PremiumCommandsPage'));
+// const ThemePage = lazy(() => import('./pages/ThemePage'));
+// const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
+// const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
+// const InspirationPage = lazy(() => import('./pages/InspirationPage'));
+// const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
+// const BotCommandsPage = lazy(() => import('./pages/BotCommandsPage'));
+// const CommandListPage = lazy(() => import('./pages/CommandListPage'));
+// const BotCommandDetailPage = lazy(() => import('./pages/BotCommandDetailPage'));
+// const CommandReviewsPage = lazy(() => import('./pages/CommandReviewsPage'));
+// const AchievementsPage = lazy(() => import('./pages/AchievementsPage'));
+// const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
+// const ActivityPage = lazy(() => import('./pages/ActivityPage'));
+// const CommandFavoritesPage = lazy(() => import('./pages/CommandFavoritesPage'));
+// const LabsPage = lazy(() => import('./pages/SuggestionsPage'));
+// const SuggestionDetailPage = lazy(() => import('./pages/SuggestionDetailPage'));
+// const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+// const MyReportsPage = lazy(() => import('./pages/MyReportsPage'));
+// const AuthExpiredPage = lazy(() => import('./pages/AuthExpiredPage'));
+// const TrelkEntry = lazy(() => import('./pages/TrelkEntry'));
+// const CommandChangelogPage = lazy(() => import('./pages/CommandChangelogPage'));
+// const AlertsPage = lazy(() => import('./pages/AlertsPage'));
+// const PinSettingsPage = lazy(() => import('./pages/PinSettingsPage'));
+// const SessionsPage = lazy(() => import('./pages/SessionsPage'));
 
-// import DashboardHome from './pages/DashboardHome';
-// import CommandsHub from './pages/CommandsHub';
-// import SettingsHub from './pages/SettingsHub';
-// import ProfilePage from './pages/ProfilePage';
-// import SettingsPage from './pages/SettingsPage';
-// import AccountPage from './pages/AccountPage';
-// import LangPage from './pages/LangPage';
-// import TimezonePage from './pages/TimezonePage';
-// import CountryPage from './pages/CountryPage';
-// import CommandsPage from './pages/commands/CommandsPage';
-// import CommandConfigPage from './pages/commands/CommandConfigPage';
-// import PremiumCommandsPage from './pages/PremiumCommandsPage';
-// import ThemePage from './pages/ThemePage';
-// import SubscriptionPage from './pages/SubscriptionPage';
-// import FavoritesPage from './pages/FavoritesPage';
-// import InspirationPage from './pages/InspirationPage';
-// import PaymentsPage from './pages/PaymentsPage';
-// import BotCommandsPage from './pages/BotCommandsPage';
-// import CommandListPage from './pages/CommandListPage';
-// import BotCommandDetailPage from './pages/BotCommandDetailPage';
-// import CommandReviewsPage from './pages/CommandReviewsPage';
-// import CommandChangelogPage from './pages/CommandChangelogPage';
-// import AchievementsPage from './pages/AchievementsPage';
-// import DiscoverPage from './pages/DiscoverPage';
-// import ActivityPage from './pages/ActivityPage';
-// import CommandFavoritesPage from './pages/CommandFavoritesPage';
-// import LabsPage from './pages/SuggestionsPage';
-// import SuggestionDetailPage from './pages/SuggestionDetailPage';
-// import NotificationsPage from './pages/NotificationsPage';
-// import MyReportsPage from './pages/MyReportsPage';
-// import AlertsPage from './pages/AlertsPage';
-// import PinSettingsPage from './pages/PinSettingsPage';
-// import SessionsPage from './pages/SessionsPage';
-// import AuthExpiredPage from './pages/AuthExpiredPage';
-// import TrelkEntry from './pages/TrelkEntry';
+import DashboardHome from './pages/DashboardHome';
+import CommandsHub from './pages/CommandsHub';
+import SettingsHub from './pages/SettingsHub';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import AccountPage from './pages/AccountPage';
+import LangPage from './pages/LangPage';
+import TimezonePage from './pages/TimezonePage';
+import CountryPage from './pages/CountryPage';
+import CommandsPage from './pages/commands/CommandsPage';
+import CommandConfigPage from './pages/commands/CommandConfigPage';
+import PremiumCommandsPage from './pages/PremiumCommandsPage';
+import ThemePage from './pages/ThemePage';
+import SubscriptionPage from './pages/SubscriptionPage';
+import FavoritesPage from './pages/FavoritesPage';
+import InspirationPage from './pages/InspirationPage';
+import PaymentsPage from './pages/PaymentsPage';
+import BotCommandsPage from './pages/BotCommandsPage';
+import CommandListPage from './pages/CommandListPage';
+import BotCommandDetailPage from './pages/BotCommandDetailPage';
+import CommandReviewsPage from './pages/CommandReviewsPage';
+import CommandChangelogPage from './pages/CommandChangelogPage';
+import AchievementsPage from './pages/AchievementsPage';
+import DiscoverPage from './pages/DiscoverPage';
+import ActivityPage from './pages/ActivityPage';
+import CommandFavoritesPage from './pages/CommandFavoritesPage';
+import LabsPage from './pages/SuggestionsPage';
+import SuggestionDetailPage from './pages/SuggestionDetailPage';
+import NotificationsPage from './pages/NotificationsPage';
+import MyReportsPage from './pages/MyReportsPage';
+import AlertsPage from './pages/AlertsPage';
+import PinSettingsPage from './pages/PinSettingsPage';
+import SessionsPage from './pages/SessionsPage';
+import AuthExpiredPage from './pages/AuthExpiredPage';
+import TrelkEntry from './pages/TrelkEntry';
+import { useBackButton } from './hooks/useBackButton';
 
 
 function App() {
@@ -102,6 +103,7 @@ function App() {
   const { needsPin, checking: pinChecking } = usePinGate(isAuthenticated);
   useDeepLink();
   useAutoLock();
+  useBackButton();
 
   useEffect(() => {
     initTheme();
@@ -113,7 +115,7 @@ function App() {
     return cleanup;
   }, []);
 
-  const handleBack = () => navigate(-1);
+  
   useEffect(() => {
     if (webApp) {
       webApp.ready();
@@ -127,6 +129,7 @@ function App() {
         webApp.setBackgroundColor('bg_color');
       } catch { /* older clients */ }
 
+      useBackButton
       if (['android', 'ios'].includes(webApp.platform)) {
         document.body.classList.add('mobile', `platform-${webApp.platform}`);
         webApp.requestFullscreen();
@@ -141,6 +144,7 @@ function App() {
       // cleanup not needed — useBackButton handles it
     };
   }, [webApp, authenticate]);
+
 
 
 
@@ -169,7 +173,7 @@ function App() {
         </div>
         {/* Quick access grid skeleton */}
         <div className="px-4 mt-8 grid grid-cols-4 gap-2.5">
-          {[1,2,3,4].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex flex-col items-center gap-2 py-3.5">
               <div className="w-11 h-11 rounded-[14px] bg-tg-text/[0.06]" />
               <div className="h-3 w-10 bg-tg-text/[0.04] rounded" />
@@ -180,7 +184,7 @@ function App() {
         <div className="px-4 mt-6 space-y-3">
           <div className="h-4 w-24 bg-tg-text/[0.05] rounded" />
           <div className="flex gap-3 overflow-hidden">
-            {[1,2,3].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="w-28 h-16 rounded-[14px] bg-tg-text/[0.04] shrink-0" />
             ))}
           </div>

@@ -928,7 +928,8 @@
       "tictactoe"
     ],
     "protected": false,
-    "uniqueName": "ttt"
+    "uniqueName": "ttt",
+    "beta": true
   },
   {
     "name": [

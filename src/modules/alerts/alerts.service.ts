@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import Redis from 'ioredis';
@@ -28,14 +28,20 @@ interface AlertJob {
 }
 
 @Injectable()
-export class AlertsService {
-    private readonly logger = new Logger(AlertsService.name);
-    private readonly redis: Redis;
+export class AlertsService implements OnModuleInit {
+    private redis: Redis;
 
     constructor(
         private readonly config: ConfigService,
         private readonly redisCache: RedisCacheService,
     ) {
+        this.redis = this.redisCache.getClient() as Redis;
+    }
+
+    async onModuleInit() {
+        if (!this.redisCache.available) {
+            throw new Error('Redis no disponible. AlertsService requiere Redis para funcionar.');
+        }
         this.redis = this.redisCache.getClient() as Redis;
     }
 

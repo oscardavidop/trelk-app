@@ -178,6 +178,11 @@ export class RedisCacheService implements OnModuleInit {
 
   /** Get the raw Redis client (for rate limit guard etc.) */
   getClient(): Redis | null {
+    if (!this.available) return null;
+    if (!this.client) {
+      this.logger.warn('Redis client no disponible');
+      return null;
+    }
     return this.client;
   }
 

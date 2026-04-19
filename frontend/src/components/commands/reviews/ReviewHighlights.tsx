@@ -19,7 +19,7 @@ function ReviewHighlights({ command }: Props) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  
+
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   // drag state
@@ -158,20 +158,19 @@ function ReviewHighlights({ command }: Props) {
           onMouseUp={stopDragging}
           onMouseLeave={stopDragging}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          className={`flex gap-2 overflow-x-auto px-5 pb-3 pt-1 hide-native-scrollbar relative z-10 items-start cursor-${
-            isDragging.current ? 'grabbing' : 'grab'
-          }`}
+          className={`flex gap-2 overflow-x-auto px-5 pb-3 pt-1 hide-native-scrollbar relative z-10 items-start cursor-${isDragging.current ? 'grabbing' : 'grab'
+            }`}
         >
           {data.highlights.map((text: string, i: number) => {
             const isExpanded = expandedIndex === i;
-            
+
             return (
               <motion.div
                 key={i}
                 layout
                 initial={{ opacity: 0, scale: 0.60 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ 
+                transition={{
                   layout: { duration: 0.3, type: "spring", bounce: 0.2 },
                   opacity: { duration: 0.2, delay: i * 0.05 }
                 }}
@@ -183,13 +182,17 @@ function ReviewHighlights({ command }: Props) {
                   ${isExpanded ? 'rounded-[16px] px-3.5 py-2.5 max-w-[300px]' : 'rounded-full px-3 py-1.5 max-w-[200px]'}
                 `}
               >
-                <motion.div layout className="shrink-0 self-start mt-[2px]">
+                <motion.div 
+                 className="shrink-0 self-start mt-[2px]">
                   <MessageCircle size={12} className="text-tg-accent" />
                 </motion.div>
-                <motion.span 
-                  layout
-                  className={`text-[12px] text-tg-text/80 ${isExpanded ? 'whitespace-normal leading-snug' : 'truncate'}`}
-                >
+                <motion.span
+                  key={isExpanded ? 'expanded' : 'collapsed'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15 }}
+                  className={`text-[12px] text-tg-text/80 ${isExpanded ? 'whitespace-normal leading-snug' : 'truncate'
+                    }`}>
                   {text}
                 </motion.span>
               </motion.div>

@@ -109,11 +109,10 @@ function CommandHero({ cmd, stats, isFav, onToggleFav, onCollapseChange }: Props
             <div ref={sentinelRef} className="h-px w-full" aria-hidden="true" />
 
             <div
-                className={`sticky z-30 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                    collapsed
-                        ? 'bg-tg-bg backdrop-blur-xl border-b border-tg-border/50 shadow-sm'
-                        : 'bg-tg-bg border-b border-transparent'
-                }`}
+                className={`sticky z-30 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${collapsed
+                    ? 'bg-tg-bg backdrop-blur-xl border-b border-tg-border/50 shadow-sm'
+                    : 'bg-tg-bg border-b border-transparent'
+                    }`}
                 style={{ top: 'var(--tg-top-offset, 0px)' }}
                 onTouchStart={onTouchStart}
                 onTouchEnd={onTouchEnd}
@@ -129,26 +128,14 @@ function CommandHero({ cmd, stats, isFav, onToggleFav, onCollapseChange }: Props
                     }}
                 />
 
-                {/* Unified background with fixed gradient */}
-                {/* <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <div
-                        className="absolute inset-0 transition-opacity duration-300 ease-out"
-                        style={{
-                            background: `radial-gradient(120% 120% at 20% 0%, ${cat.color}, transparent 70%)`,
-                            opacity: collapsed ? 0 : 0.12,
-                        }}
-                    />
-                </div> */}
-
                 <div className={`relative px-5 transition-[padding] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${collapsed ? 'py-2' : 'pt-5 pb-3'}`}>
                     <div className="flex items-start gap-4">
                         {/* Icon */}
                         <div
-                            className={`flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                                collapsed
-                                    ? 'w-[42px] h-[42px] rounded-[12px] text-[20px]'
-                                    : 'w-[72px] h-[72px] rounded-[22px] text-[32px]'
-                            }`}
+                            className={`flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${collapsed
+                                ? 'w-[42px] h-[42px] rounded-[12px] text-[20px]'
+                                : 'w-[72px] h-[72px] rounded-[22px] text-[32px]'
+                                }`}
                             style={{
                                 backgroundColor: `${cat.color}18`,
                                 border: `1.5px solid ${cat.color}35`,
@@ -167,18 +154,35 @@ function CommandHero({ cmd, stats, isFav, onToggleFav, onCollapseChange }: Props
 
                         {/* Text Content */}
                         <div className="flex-1 min-w-0 pr-12">
-                            <h1 className={`font-bold font-mono text-tg-text truncate transition-all duration-300 ${collapsed ? 'text-[18px]' : 'text-[26px]'}`}>
-                                /{slug}
-                            </h1>
+                            <div className='flex items-center gap-3 flex-wrap'>
+                                <h1 className={`font-bold font-mono text-tg-text truncate transition-all duration-300 ${collapsed ? 'text-[18px]' : 'text-[26px]'}`}>
+                                    /{slug}
+                                </h1>
+                                {
+                                    cmd.beta && (
+                                        <span
+                                            className="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider mt-1 inline-flex items-center gap-1 w-max"
+                                            style={{
+                                                color: '#2563eb',
+                                                backgroundColor: '#2563eb18',
+                                                border: '1px solid #2563eb35',
+                                            }}
+                                        >
+                                            <Star size={10} /> Beta
+                                        </span>
+                                    )
+                                }
+                            </div>
+
+
 
                             <p className={`text-tg-hint text-[13px] leading-snug transition-all duration-300 ${collapsed ? 'line-clamp-1 mt-0.5' : 'line-clamp-2 mt-1'}`}>
                                 {cmd.description}
                             </p>
 
                             {/* Smooth expansion using Grid trick */}
-                            <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                                collapsed ? 'grid-rows-[0fr] opacity-0 mt-0' : 'grid-rows-[1fr] opacity-100 mt-3'
-                            }`}>
+                            <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${collapsed ? 'grid-rows-[0fr] opacity-0 mt-0' : 'grid-rows-[1fr] opacity-100 mt-3'
+                                }`}>
                                 <div className="overflow-hidden flex flex-wrap gap-2 items-start">
                                     <span
                                         className="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider"
@@ -219,9 +223,8 @@ function CommandHero({ cmd, stats, isFav, onToggleFav, onCollapseChange }: Props
                     <motion.button
                         whileTap={{ scale: 0.85 }}
                         onClick={onToggleFav}
-                        className={`absolute right-5 flex items-center justify-center rounded-full bg-tg-secondary/80 backdrop-blur-md border border-tg-border/40 shadow-sm transition-all duration-300 ${
-                            collapsed ? 'top-2.5 w-[38px] h-[38px]' : 'top-6 w-[44px] h-[44px]'
-                        }`}
+                        className={`absolute right-5 flex items-center justify-center rounded-full bg-tg-secondary/80 backdrop-blur-md border border-tg-border/40 shadow-sm transition-all duration-300 ${collapsed ? 'top-2.5 w-[38px] h-[38px]' : 'top-6 w-[44px] h-[44px]'
+                            }`}
                     >
                         <motion.div
                             animate={isFav ? { scale: [1, 1.3, 1] } : {}}
@@ -236,9 +239,8 @@ function CommandHero({ cmd, stats, isFav, onToggleFav, onCollapseChange }: Props
 
                     {/* Drag indicator (only visible when collapsed) */}
                     <div
-                        className={`flex justify-center transition-all duration-300 overflow-hidden cursor-pointer ${
-                            collapsed ? 'max-h-4 opacity-60 mt-1' : 'max-h-0 opacity-0 mt-0'
-                        }`}
+                        className={`flex justify-center transition-all duration-300 overflow-hidden cursor-pointer ${collapsed ? 'max-h-4 opacity-60 mt-1' : 'max-h-0 opacity-0 mt-0'
+                            }`}
                         onClick={handleExpand}
                     >
                         <div className="w-8 h-[3px] rounded-full bg-tg-hint/40" />

@@ -42,7 +42,9 @@ export function hasSessionToken(): boolean {
 //   });
 // }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://api-telegram-prod.trelkbot.com';
+const API_BASE = import.meta.env.ENV === 'production'
+  ? import.meta.env.VITE_API_URL_PROD
+  : import.meta.env.VITE_API_URL_DEV;
 console.log('API_BASE:', API_BASE);
 
 export async function authFetch(

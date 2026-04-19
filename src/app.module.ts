@@ -38,7 +38,7 @@ import { LiveTrackingInterceptor } from './modules/live/live-tracking.intercepto
 import { MetricsInterceptor } from './modules/metrics/metrics.interceptor';
 import { SanitizationInterceptor } from './common/interceptors/sanitization.interceptor';
 import { FeatureFlagsService } from './common/services/feature-flags.service';
-import { envValidationSchema } from './config/env.validation';
+import { envValidationSchema } from './config';
 import { getMongoConfig, getMongoMiniAppConfig } from './config/database.config';
 
 @Global()

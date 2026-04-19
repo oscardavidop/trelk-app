@@ -28,6 +28,7 @@ export interface BotCommand {
   maxLengthArgs?: number;
   keyMissingArgs?: string;
   photos?: string[];
+  beta?: boolean;
 }
 
 export type CommandCategory = 'all' | 'utilities' | 'music' | 'entertainment' | 'media' | 'ai' | 'social' | 'tools' | 'fun' | 'downloader' | 'general' | 'information';
@@ -101,18 +102,18 @@ export const CATEGORY_META: Record<
 
 import commands from "./commands.json";
 
-export const BOT_COMMANDS: BotCommand[]  = commands as BotCommand[];
+export const BOT_COMMANDS: BotCommand[] = commands as BotCommand[];
 
 export const TOTAL_BOT_COMMANDS = BOT_COMMANDS.length;
 
-function checkPhotos(){
+function checkPhotos() {
   const missingPhotos: string[] = [];
   BOT_COMMANDS.forEach(cmd => {
-    if(!cmd.photos){
+    if (!cmd.photos) {
       missingPhotos.push(cmd.uniqueName || cmd.name[0]);
     }
   });
-  if(missingPhotos.length > 0){
+  if (missingPhotos.length > 0) {
     console.warn("Missing command photos:", missingPhotos);
   }
   console.log(`Checked command photos, ${missingPhotos.length} missing out of ${BOT_COMMANDS.length}`);

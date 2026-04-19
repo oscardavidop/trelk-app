@@ -1,6 +1,8 @@
 import { authFetch } from '../lib/authFetch';
 
 const BASE = import.meta.env.VITE_API_URL || 'https://api-telegram-prod.trelkbot.com';
+const BASE_FILE = import.meta.env.VITE_API_FILE_URL || 'https://files-telegram-prod.trelkbot.com';
+const PATH = 'api/v1/ui/favorites';
 
 async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
   const res = await authFetch(url, {
@@ -87,32 +89,32 @@ export const fetchFavorites = (p: {
     q.set('projections', projections);
   }
   const qs = q.toString();
-  return json(`${BASE}${qs ? `?${qs}` : ''}`);
+  return json(`${BASE}/${PATH}${qs ? `?${qs}` : ''}`);
 };
 
-export const fetchFilters = (): Promise<FiltersResponse> => json(`${BASE}/filters`);
-export const fetchRandom = (limit = 10): Promise<{ ok: boolean; items: FavoriteItem[] }> => json(`${BASE}/random?limit=${limit}`);
-export const deleteFavorite = (id: string): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string }> => json(`${BASE}/${id}`, { method: 'DELETE' });
+export const fetchFilters = (): Promise<FiltersResponse> => json(`${BASE}/${PATH}/filters`);
+export const fetchRandom = (limit = 10): Promise<{ ok: boolean; items: FavoriteItem[] }> => json(`${BASE}/${PATH}/random?limit=${limit}`);
+export const deleteFavorite = (id: string): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string }> => json(`${BASE}/${PATH}/${id}`, { method: 'DELETE' });
 export const batchDeleteFavorites = (ids: string[]): Promise<{ ok: boolean; status: string; expiresAt: number; jobId: string; count: number }> =>
-  json(`${BASE}/batch-delete`, { method: 'POST', body: JSON.stringify({ ids }) });
+  json(`${BASE}/${PATH}/batch-delete`, { method: 'POST', body: JSON.stringify({ ids }) });
 export const undoDeleteFavorites = (ids: string[]): Promise<{ ok: boolean; restored: number }> =>
-  json(`${BASE}/undo`, { method: 'POST', body: JSON.stringify({ ids }) });
+  json(`${BASE}/${PATH}/undo`, { method: 'POST', body: JSON.stringify({ ids }) });
 export const moveFavorites = (ids: string[], collectionId: string | null): Promise<{ ok: boolean }> =>
-  json(`${BASE}/move`, { method: 'PATCH', body: JSON.stringify({ ids, collectionId }) });
+  json(`${BASE}/${PATH}/move`, { method: 'PATCH', body: JSON.stringify({ ids, collectionId }) });
 
 // Collections
-export const fetchCollections = (): Promise<{ ok: boolean; items: Collection[] }> => json(`${BASE}/collections`);
+export const fetchCollections = (): Promise<{ ok: boolean; items: Collection[] }> => json(`${BASE}/${PATH}/collections`);
 export const createCollection = (name: string): Promise<{ ok: boolean; item: Collection }> =>
-  json(`${BASE}/collections`, { method: 'POST', body: JSON.stringify({ name }) });
+  json(`${BASE}/${PATH}/collections`, { method: 'POST', body: JSON.stringify({ name }) });
 export const updateCollection = (id: string, name: string): Promise<{ ok: boolean; item: Collection }> =>
-  json(`${BASE}/collections/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) });
+  json(`${BASE}/${PATH}/collections/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) });
 export const deleteCollection = (id: string): Promise<{ ok: boolean }> =>
-  json(`${BASE}/collections/${id}`, { method: 'DELETE' });
+  json(`${BASE}/${PATH}/collections/${id}`, { method: 'DELETE' });
 
 // File URL — includes token as query param so <img src> can authenticate
 import { getSessionToken } from '../lib/authFetch';
 export const fileUrl = (fileId: string) => {
-  const base = `${BASE}/file/${encodeURIComponent(fileId)}`;
+  const base = `${BASE_FILE}/file/${encodeURIComponent(fileId)}`;
   const token = getSessionToken();
   return token ? `${base}?token=${encodeURIComponent(token)}` : base;
 };

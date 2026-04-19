@@ -39,7 +39,17 @@ export function useBackButton() {
       tg.BackButton.show();
       const handler = () => {
         // Prefer explicit "from" state passed during navigation
+        const currentPath = location.pathname;
         const from = (location.state as any)?.from;
+
+        if (currentPath.includes('id')) {
+          navigate('/trelk', { replace: true });
+          // refresh the page to reset state, since some id pages might be "sticky"
+          // refresh title
+          setTimeout(() => {navigate(0)}, 100);
+          return;
+        }
+
         if (from) {
           navigate(from, { replace: true });
           return;
@@ -65,3 +75,46 @@ export function useBackButton() {
     }
   }, [location.pathname, location.state, navigate]);
 }
+
+// export function useBackButton() {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   useEffect(() => {
+//     const tg = window.Telegram?.WebApp;
+//     if (!tg) return;
+
+//     const isRoot =
+//       location.pathname === '/trelk' ||
+//       /^\/users\/ui\/[^/]+\/?$/.test(location.pathname);
+
+//     if (isRoot) {
+//       tg.BackButton.hide();
+//       return;
+//     }
+
+//     tg.BackButton.show();
+
+//     const handler = () => {
+//       console.log('[App] Back button clicked');
+
+//       const currentPath = location.pathname;
+
+//       // 🔥 TU LÓGICA AQUÍ
+//       if (currentPath.includes('id')) {
+//         navigate('/');
+//         return;
+//       }
+
+//       // fallback normal
+//       navigate(-1);
+//     };
+
+//     tg.onEvent('backButtonClicked', handler);
+
+
+//     return () => {
+//       tg.offEvent('backButtonClicked', handler);
+//     };
+//   }, [location.pathname, navigate]);
+// }

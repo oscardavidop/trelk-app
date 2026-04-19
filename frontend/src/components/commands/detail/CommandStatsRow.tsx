@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Flame, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -32,11 +32,13 @@ const statColors: Record<string, string> = {
 function CommandStatsRow({ stats }: Props) {
   const { t } = useTranslation('commandDetail');
 
-  const items = [
+  const items = useMemo(() => [
     { key: 'rating', icon: Star, value: stats.rating.toFixed(1), label: t('rating'), accent: 'text-amber-500', glow: statColors.rating },
     { key: 'weekly', icon: Flame, value: fmt(stats.weeklyUses), label: t('weekly'), accent: 'text-tg-accent', glow: statColors.weekly },
     { key: 'favorites', icon: Heart, value: fmt(stats.favorites), label: t('favorites_label'), accent: 'text-rose-400', glow: statColors.favorites },
-  ];
+  ], [stats, t])
+
+  if (items.filter(item => Number(stats[item.key as keyof CommandStatsData]) > 50).length === 0) return null;
 
   return (
     <motion.div
