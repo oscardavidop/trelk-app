@@ -11,7 +11,8 @@
     "start:prod": "node dist/main.js",
     "build": "nest build",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gh": "git add . && git commit -m 'Checkpoint' && git push origin main"
   },
   "dependencies": {
     "@fastify/compress": "^8.3.1",

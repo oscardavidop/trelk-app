@@ -179,9 +179,7 @@ export class UserService {
     if (!user) return null;
     return {
       config: user.config || { commands: {}, premium_commands: {}, locale: {} },
-      preferences: user.preferences || {},
-      lang: user.lang,
-      tz: user.tz,
+      preferences: user.preferences || {}
     };
   }
 

@@ -57,19 +57,19 @@ export interface IUserProFeatures {
   };
 }
 
-/** Default pro_features for free-tier users */
+/** Default pro_features for free-tier users — mirrors trelk/src/utils/pro.util.ts */
 export const FREE_PLAN_DEFAULTS: IUserProFeatures = {
   limits: {
     downloads_per_day: { total: 10, used: 0 },
-    ai_requests_per_day: { total: 15, used: 0 },
+    ai_requests_per_day: { total: 20, used: 0 },
     premium_ai_requests_per_day: { total: 0, used: 0 },
-    alerts: { per_day: { total: 3, used: 0 }, total: 10, used: 0 },
+    alerts: { per_day: { total: 5, used: 0 }, total: 20, used: 0 },
     ssweb: { per_day: { total: 5, used: 0 } },
-    qr: { per_day: { total: 10, used: 0 } },
-    file_upload_size_mb: 10,
+    qr: { per_day: { total: 15, used: 0 } },
+    file_upload_size_mb: 20,
   },
   performance: {
-    queue_priority: 'low',
+    queue_priority: 'normal',
     response_speed_multiplier: 1,
   },
   support: {
@@ -90,17 +90,17 @@ export const FREE_PLAN_DEFAULTS: IUserProFeatures = {
 
 export const PRO_PLAN_TEMPLATE: Partial<IUserProFeatures> = {
   limits: {
-    downloads_per_day: { total: 100, used: 0 },
-    ai_requests_per_day: { total: 200, used: 0 },
-    premium_ai_requests_per_day: { total: 50, used: 0 },
-    alerts: { per_day: { total: 25, used: 0 }, total: 500, used: 0 },
-    ssweb: { per_day: { total: 50, used: 0 } },
-    qr: { per_day: { total: 100, used: 0 } },
-    file_upload_size_mb: 50,
+    downloads_per_day: { total: 50, used: 0 },
+    ai_requests_per_day: { total: 100, used: 0 },
+    premium_ai_requests_per_day: { total: 0, used: 0 },
+    alerts: { per_day: { total: 20, used: 0 }, total: 100, used: 0 },
+    ssweb: { per_day: { total: 2, used: 0 } },
+    qr: { per_day: { total: 50, used: 0 } },
+    file_upload_size_mb: 200,
   },
   performance: {
-    queue_priority: 'normal',
-    response_speed_multiplier: 2,
+    queue_priority: 'high',
+    response_speed_multiplier: 1.5,
   },
   support: {
     priority: 'pro',
@@ -108,7 +108,7 @@ export const PRO_PLAN_TEMPLATE: Partial<IUserProFeatures> = {
   },
   custom_commands: {
     available: true,
-    max_commands: 25,
+    max_commands: 10,
     used_commands: 0,
   },
 };
@@ -175,17 +175,12 @@ export class User {
   @Prop({ type: Object, default: {} })
   preferences: Record<string, boolean>;
 
-  @Prop({ type: String, default: 'es' })
-  lang: string;
-
-  @Prop({ type: String, default: 'GMT' })
-  tz: string;
-
   @Prop({
     type: Object,
     default: {
       commands: {},
       premium_commands: {},
+      preferences: {},
       locale: {
         lang: 'es',
         tz: 'America/Bogota',
@@ -203,26 +198,39 @@ export class User {
   })
   config: {
     commands: Record<string, {
-      engine: string;
-      inline: { results_per_page: number; show_url: boolean };
+      engine?: string;
+      mode?: string;
+      inline?: { results_per_page: number; show_url: boolean };
+      [key: string]: any;
     }>;
     premium_commands: Record<string, {
       alias: string;
       created_at: string;
     }>;
+    preferences: {
+      emojis?: boolean;
+      await_args?: boolean;
+      history?: boolean;
+      allow_migrations?: boolean;
+      auto_detect_lang?: boolean;
+      large_text?: boolean;
+      compact_mode?: boolean;
+      chat_actions?: {
+        typing: boolean;
+        upload_photos: boolean;
+        upload_videos: boolean;
+        upload_documents: boolean;
+      };
+      notifications?: Record<string, boolean>;
+      [key: string]: any;
+    };
     locale: {
       lang: string;
       tz: string;
       country: string;
-      datetime_format: {
-        month: string;
-        day: string;
-        year: string;
-        hour: string;
-        minute: string;
-        second: string;
-      };
+      datetime_format?: Record<string, string>;
     };
+    time_format?: string;
   };
 
   @Prop()
