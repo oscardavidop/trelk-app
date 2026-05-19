@@ -38,3 +38,6 @@ uploads/
 
 # SSL certs 
 certs/*
+
+# Binaries
+scripts/
