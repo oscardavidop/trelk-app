@@ -90,6 +90,7 @@ import PinSettingsPage from './pages/PinSettingsPage';
 import SessionsPage from './pages/SessionsPage';
 import AuthExpiredPage from './pages/AuthExpiredPage';
 import TrelkEntry from './pages/TrelkEntry';
+import PaypalReturnPage from './pages/PaypalReturnPage';
 import { useBackButton } from './hooks/useBackButton';
 
 
@@ -270,6 +271,8 @@ function App() {
         </Route>
         <Route path="/users/ui/:userId/favorites/inspiration" element={<InspirationPage />} />
         <Route path="/auth" element={<AuthExpiredPage />} />
+        {/* PayPal return — does NOT require Telegram auth */}
+        <Route path="/paypal-return" element={<PaypalReturnPage />} />
         <Route path="*" element={
           user?.id
             ? <Navigate to={`/users/ui/${user.id}`} replace />

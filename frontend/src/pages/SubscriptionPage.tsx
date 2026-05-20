@@ -10,9 +10,9 @@ import SubscriptionHero, { TIER_META } from '../components/subscription/Subscrip
 import SubscriptionSettings from '../components/subscription/SubscriptionSettings';
 import SubscriptionUsage from '../components/subscription/SubscriptionUsage';
 import SubscriptionBenefits from '../components/subscription/SubscriptionBenefits';
-import SubscriptionPlans from '../components/subscription/SubscriptionPlans';
+import PlansBottomSheet from '../components/subscription/PlansBottomSheet';
 import StickyHeader from '@/components/StickyHeader';
-import { Loader2, Crown, CreditCard, CheckCircle2, Clock } from 'lucide-react';
+import { Loader2, Crown, CreditCard, CheckCircle2, Clock, Sparkles, ChevronRight, ArrowUpCircle } from 'lucide-react';
 
 export const showConfirmPopup = (options: {
     title: string,
@@ -143,6 +143,7 @@ export default function SubscriptionPage() {
         confirmColor?: string;
         action: () => Promise<void>;
     } | null>(null);
+    const [plansOpen, setPlansOpen] = useState(false);
 
     // ── Initial load ──────────────────────────────
     useEffect(() => {
@@ -162,43 +163,17 @@ export default function SubscriptionPage() {
     }, [pendingSubscriptionId]);
 
     // ── Build PayPal redirect URLs ────────────────
+    // Route to /paypal-return — a standalone page that doesn't need Telegram auth.
+    // The mini app picks up the pending subscription via localStorage on next open.
     const buildUrls = useCallback(() => {
-        const base = `${window.location.origin}/users/${userId}/subscription`;
+        const base = window.location.origin;
         return {
-            return_url: `${base}?paypal=return`,
-            cancel_url: `${base}?paypal=cancel`,
+            return_url: `${base}/paypal-return`,
+            cancel_url: `${base}/paypal-return?cancelled=true`,
         };
-    }, [userId]);
+    }, []);
 
-    // ── Handlers (local plan-change, legacy) ──────
-    const handlePlanSelect = useCallback(
-        (tier: PlanTier) => {
-            if (!features) return;
-            const current = features.subscription.tier;
-            const tiers: PlanTier[] = ['free', 'pro', 'ultra'];
-            const isUpgrade = tiers.indexOf(tier) > tiers.indexOf(current);
-
-            setModal({
-                title: isUpgrade ? t('upgrade_to', { plan: TIER_META[tier].label }) : t('change_to', { plan: TIER_META[tier].label }),
-                message: isUpgrade
-                    ? t('upgrade_message', { plan: TIER_META[tier].label })
-                    : t('downgrade_message', { plan: TIER_META[tier].label }),
-                confirmLabel: isUpgrade ? t('confirm_upgrade') : t('confirm_change'),
-                confirmColor: TIER_META[tier].color,
-                action: async () => {
-                    try {
-                        await changePlan(tier);
-                        showToast(isUpgrade ? t('upgrade_success') : t('change_scheduled'), 'success');
-                        haptic?.notificationOccurred('success');
-                    } catch (e: any) {
-                        showToast(e.message || 'Error', 'error');
-                    }
-                },
-            });
-        },
-        [features, changePlan, showToast, haptic, t],
-    );
-
+    // ── Handlers ──────────────────────────────────
     const handleCancelChange = useCallback(() => {
         setModal({
             title: t('cancel_change'),
@@ -321,43 +296,42 @@ export default function SubscriptionPage() {
 
     const { subscription } = features;
     const tier = subscription.tier;
-    const pendingPlan = subscription.change?.status === 'pending' ? subscription.change.new_plan : undefined;
 
     return (
-        <div className="pb-28 animate-fade-in relative flex flex-col gap-6">
-            <StickyHeader 
-                title={t('your_subscription', 'Subscription')} 
+        <div className="pb-32 animate-fade-in relative flex flex-col gap-5">
+            <StickyHeader
+                title={t('your_subscription', 'Subscription')}
                 subtitle={t('current_plan', { plan: TIER_META[tier]?.label || 'Free' })}
                 icon={
                     <div className="w-[42px] h-[42px] rounded-[14px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
                         <Crown className="w-5 h-5 text-amber-500" />
                     </div>
-                } 
+                }
             />
 
-            {/* ── Pending activation banner ── */}
+            {/* ── Pending activation banner ──────────────────────── */}
             {pendingSubscriptionId && (
-                <div className="mx-5 rounded-[20px] bg-sky-500/10 border border-sky-500/30 p-4 flex items-center gap-3.5 animate-fade-in">
-                    <div className="w-[36px] h-[36px] rounded-[12px] bg-sky-500/15 flex items-center justify-center flex-shrink-0">
-                        <CreditCard size={18} className="text-sky-500" />
+                <div className="mx-5 rounded-[20px] bg-sky-500/10 border border-sky-500/25 p-4 flex items-center gap-3.5 animate-slide-up">
+                    <div className="w-[38px] h-[38px] rounded-[13px] bg-sky-500/15 flex items-center justify-center flex-shrink-0">
+                        <CreditCard size={18} className="text-sky-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold text-sky-400 leading-tight">
-                            {t('activating_subscription', 'Activating subscription...')}
+                            {t('activating_subscription', 'Activating subscription…')}
                         </p>
-                        <p className="text-[12px] text-tg-hint mt-0.5 flex items-center gap-1">
-                            <Clock size={12} className="animate-pulse" />
-                            {t('activating_desc', 'This may take up to 30 seconds after PayPal approval.')}
+                        <p className="text-[12px] text-tg-hint mt-0.5 flex items-center gap-1.5">
+                            <Clock size={11} className="animate-pulse shrink-0" />
+                            {t('activating_desc', 'This may take a few seconds after PayPal approval.')}
                         </p>
                     </div>
-                    <Loader2 size={18} className="animate-spin text-sky-500 flex-shrink-0" />
+                    <Loader2 size={18} className="animate-spin text-sky-400 flex-shrink-0" />
                 </div>
             )}
 
-            {/* ── Activation success banner ── */}
+            {/* ── Activation success banner ──────────────────────── */}
             {realStatus === 'ACTIVE' && !pendingSubscriptionId && isPremium && (
-                <div className="mx-5 rounded-[20px] bg-emerald-500/10 border border-emerald-500/30 p-4 flex items-center gap-3.5">
-                    <CheckCircle2 size={22} className="text-emerald-500 flex-shrink-0" />
+                <div className="mx-5 rounded-[20px] bg-emerald-500/10 border border-emerald-500/25 p-4 flex items-center gap-3.5 animate-slide-up">
+                    <CheckCircle2 size={22} className="text-emerald-400 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold text-emerald-400">
                             {t('subscription_active', 'Subscription Active')}
@@ -368,11 +342,45 @@ export default function SubscriptionPage() {
                     </div>
                 </div>
             )}
-            
-            {/* 1. Hero */}
-            <SubscriptionHero features={features} />
 
-            {/* 2. Settings (auto-renew + pending change + cancel + resume) */}
+            {/* ── 1. Hero ──────────────────────────────────────────── */}
+            <SubscriptionHero features={features} realStatus={realStatus} realSub={realSub} />
+
+            {/* ── 2. Upgrade / Change Plan CTA ────────────────────── */}
+            <div className="px-5">
+                {tier === 'free' ? (
+                    /* Free → Upgrade CTA (prominent) */
+                    <button
+                        onClick={() => { haptic?.impactOccurred('medium'); setPlansOpen(true); }}
+                        className="w-full py-4 rounded-[20px] text-white text-[16px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
+                        style={{
+                            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                            boxShadow: '0 4px 20px rgba(245,158,11,0.35)',
+                        }}
+                    >
+                        <Crown size={18} className="drop-shadow-sm" />
+                        {t('upgrade_now', 'Upgrade to Pro')}
+                        <ChevronRight size={17} className="opacity-80" />
+                    </button>
+                ) : (
+                    /* Premium → Change / Manage Plan CTA */
+                    <button
+                        onClick={() => { haptic?.impactOccurred('light'); setPlansOpen(true); }}
+                        className="w-full py-3.5 rounded-[20px] text-[15px] font-semibold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
+                        style={{
+                            background: `${TIER_META[tier]?.color ?? '#8b5cf6'}18`,
+                            color: TIER_META[tier]?.color ?? '#8b5cf6',
+                            border: `1.5px solid ${TIER_META[tier]?.color ?? '#8b5cf6'}30`,
+                        }}
+                    >
+                        <ArrowUpCircle size={17} className="shrink-0" />
+                        {t('change_plan', 'Change Plan')}
+                        <ChevronRight size={15} className="opacity-60 ml-auto" />
+                    </button>
+                )}
+            </div>
+
+            {/* ── 3. Settings (auto-renew, cancel, resume) ────────── */}
             <SubscriptionSettings
                 features={features}
                 onAutoRenewToggle={handleAutoRenewToggle}
@@ -385,30 +393,42 @@ export default function SubscriptionPage() {
                 actionLoading={actionLoading}
             />
 
-            {/* 3. Usage Limits */}
+            {/* ── 4. Usage Limits ──────────────────────────────────── */}
             <SubscriptionUsage features={features} />
 
-            {/* 4. Benefits Grid */}
+            {/* ── 5. Benefits Grid ─────────────────────────────────── */}
             <SubscriptionBenefits features={features} />
 
-            {/* 5. Plan Comparison */}
-            <SubscriptionPlans
+            {/* ── 6. "Compare Plans" secondary link ───────────────── */}
+            <div className="px-5 pb-2">
+                <button
+                    onClick={() => { haptic?.impactOccurred('light'); setPlansOpen(true); }}
+                    className="w-full py-3.5 rounded-[18px] text-[14px] font-semibold text-tg-hint flex items-center justify-center gap-2 active:text-tg-text transition-colors"
+                    style={{ background: 'rgba(125,139,151,0.06)', border: '1px solid rgba(125,139,151,0.1)' }}
+                >
+                    <Sparkles size={15} className="opacity-70" />
+                    {t('compare_plans', 'Compare all plans')}
+                </button>
+            </div>
+
+            <p className="mx-6 mt-1 mb-2 text-center text-[12px] font-medium text-tg-hint leading-relaxed opacity-70">
+                {t('upgrade_note', 'Payments processed securely by PayPal. Cancel anytime.')}
+            </p>
+
+            {/* ── Plans Bottom Sheet ───────────────────────────────── */}
+            <PlansBottomSheet
+                isOpen={plansOpen}
+                onClose={() => setPlansOpen(false)}
                 currentTier={tier}
-                pendingChange={pendingPlan}
-                onSelect={handlePlanSelect}
                 realStatus={realStatus}
                 realSubscriptionId={realSub?.id ?? null}
                 realPlans={plans}
-                onRealCheckout={handleRealCheckout}
-                onRealRevise={handleRealRevise}
+                onCheckout={handleRealCheckout}
+                onRevise={handleRealRevise}
                 actionLoading={actionLoading}
             />
 
-            <p className="mx-6 mt-2 mb-6 text-center text-[12px] font-medium text-tg-hint leading-relaxed opacity-80">
-                {t('upgrade_note')}
-            </p>
-
-            {/* Confirm Modal */}
+            {/* ── Confirm Modal ────────────────────────────────────── */}
             {modal && (
                 <ConfirmModal
                     title={modal.title}
