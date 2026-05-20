@@ -16,7 +16,7 @@ export class CheckoutDto {
   /** PayPal plan ID (P-...) elegido por el usuario */
   @IsString()
   @IsNotEmpty()
-  @Matches(/^P-[A-Z0-9]{16,}$/, { message: 'plan_id must be a valid PayPal plan ID (P-...)' })
+  // @Matches(/^P-[A-Z0-9]{16,}$/, { message: 'plan_id must be a valid PayPal plan ID (P-...)' })
   plan_id: string;
 
   /** URL de retorno tras la aprobación en PayPal */
@@ -33,7 +33,7 @@ export class ReviseSubscriptionDto {
   /** PayPal subscription ID actual (I-...) */
   @IsString()
   @IsNotEmpty()
-  @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
+  // @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
   subscription_id: string;
 
   /** Nuevo plan (P-...) */
@@ -56,7 +56,7 @@ export class CancelActiveSubscriptionDto {
   /** PayPal subscription ID (I-...) a cancelar */
   @IsString()
   @IsNotEmpty()
-  @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
+  // @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
   subscription_id: string;
 }
 
@@ -65,6 +65,6 @@ export class ResumeSubscriptionDto {
   /** PayPal subscription ID (I-...) a reanudar */
   @IsString()
   @IsNotEmpty()
-  @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
+  // @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
   subscription_id: string;
 }
