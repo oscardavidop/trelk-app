@@ -264,12 +264,14 @@ export default function SubscriptionPage() {
                     await cancelReal(realSub.id);
                     showToast(t('subscription_cancelled', 'Subscription cancelled.'), 'success');
                     haptic?.notificationOccurred('success');
+                    loadRealStatus();
+                    load();
                 } catch (e: any) {
                     showToast(e.message || 'Error', 'error');
                 }
             },
         });
-    }, [realSub, cancelReal, showToast, haptic, t]);
+    }, [realSub, cancelReal, showToast, haptic, t, loadRealStatus, load]);
 
     const handleResume = useCallback(async () => {
         if (!realSub?.id) return;
@@ -277,10 +279,12 @@ export default function SubscriptionPage() {
             await resume(realSub.id);
             showToast(t('subscription_resumed', 'Subscription resumed!'), 'success');
             haptic?.notificationOccurred('success');
+            loadRealStatus();
+            load();
         } catch (e: any) {
             showToast(e.message || 'Error', 'error');
         }
-    }, [realSub, resume, showToast, haptic, t]);
+    }, [realSub, resume, showToast, haptic, t, loadRealStatus, load]);
 
     // ── Loading state ─────────────────────────────
     if ((loading && !features) || (realLoading && realStatus === 'FREE' && !features)) {
@@ -347,20 +351,39 @@ export default function SubscriptionPage() {
 
             {/* ── Syncing banner (PayPal ACTIVE but local still free) ───── */}
             {realStatus === 'ACTIVE' && !pendingSubscriptionId && isPremium && tier === 'free' && (
-                <div className="mx-5 rounded-[20px] bg-violet-500/10 border border-violet-500/25 p-4 flex items-center gap-3.5 animate-slide-up">
-                    <div className="w-[38px] h-[38px] rounded-[13px] bg-violet-500/15 flex items-center justify-center flex-shrink-0">
-                        <Sparkles size={18} className="text-violet-400" />
+                <div className="mx-5 rounded-[20px] overflow-hidden animate-slide-up" style={{ border: '1.5px solid rgba(139,92,246,0.2)' }}>
+                    {/* Top gradient strip */}
+                    <div
+                        className="px-4 pt-4 pb-3"
+                        style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(168,85,247,0.06) 100%)' }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div
+                                className="w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0"
+                                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}
+                            >
+                                <Sparkles size={17} className="text-violet-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[14px] font-bold text-violet-400 leading-tight">
+                                    {t('plan_syncing', 'Activating your features…')}
+                                </p>
+                                <p className="text-[12px] text-tg-hint mt-0.5">
+                                    {t('plan_syncing_desc', 'Features will be ready in a few seconds.')}
+                                </p>
+                            </div>
+                            <Loader2 size={16} className="animate-spin text-violet-400 flex-shrink-0" />
+                        </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-bold text-violet-400 leading-tight">
-                            {t('plan_syncing', 'Activating your features…')}
-                        </p>
-                        <p className="text-[12px] text-tg-hint mt-0.5 flex items-center gap-1.5">
-                            <Clock size={11} className="animate-pulse shrink-0" />
-                            {t('plan_syncing_desc', 'Features will be ready in a few seconds. Please refresh.')}
-                        </p>
-                    </div>
-                    <Loader2 size={18} className="animate-spin text-violet-400 flex-shrink-0" />
+                    {/* Refresh button */}
+                    <button
+                        onClick={() => { haptic?.impactOccurred('light'); load(); loadRealStatus(); }}
+                        className="w-full py-2.5 text-[13px] font-semibold text-violet-400 flex items-center justify-center gap-1.5 active:brightness-75 transition-all"
+                        style={{ background: 'rgba(139,92,246,0.06)', borderTop: '1px solid rgba(139,92,246,0.12)' }}
+                    >
+                        <Clock size={12} className="opacity-70" />
+                        {t('tap_to_refresh', 'Tap to refresh')}
+                    </button>
                 </div>
             )}
 

@@ -138,5 +138,6 @@
   "status_cancelled": "Cancelled",
   "status_past_due": "Past Due",
   "status_activating": "Activating",
-  "status_free": "Free"
+  "status_free": "Free",
+  "tap_to_refresh": "Tap to refresh"
 }

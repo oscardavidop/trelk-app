@@ -143,5 +143,6 @@
   "status_cancelled": "Cancelada",
   "status_past_due": "Pago pendiente",
   "status_activating": "Activando",
-  "status_free": "Gratis"
+  "status_free": "Gratis",
+  "tap_to_refresh": "Toca para actualizar"
 }
