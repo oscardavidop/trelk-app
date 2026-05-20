@@ -14,25 +14,28 @@ function hexToRgb(hex: string): string {
 
 // Paletas de colores por tema
 const themes = {
-dark: {
-  // '--tg-bg': '#15171a',        // sube luminosidad (menos negro puro)
-  // '--tg-secondary': '#1e2126', // capas más claras
-  // '--tg-surface': '#262a30',   // cards bien diferenciadas
-'--tg-bg': '#181a1f',
-'--tg-secondary': '#22252b',
-'--tg-surface': '#2b3037',
-  '--tg-accent': '#3b82f6',
-  '--tg-link': '#60a5fa',
+  dark: {
+    /* backgrounds */
+    '--tg-bg': '#090b0f',
+    '--tg-secondary': '#0f1318',
+    '--tg-surface': '#151a21',
 
-  '--tg-text': '#ffffff',
-  '--tg-text-secondary': '#a3adb8', // un poco más claro
-  '--tg-hint': '#a3adb8',
+    /* accents */
+    '--tg-accent': '#38bdf8',
+    '--tg-link': '#60a5fa',
 
-  '--tg-destructive': '#e5545e',
-  '--tg-success': '#50b85d',
+    /* text */
+    '--tg-text': '#f8fafc',
+    '--tg-text-secondary': '#8b98a7',
+    '--tg-hint': '#6f7c8b',
 
-  '--tg-border': '#2c3137',    // más visible pero sin azul
-},
+    /* states */
+    '--tg-destructive': '#ef4444',
+    '--tg-success': '#22c55e',
+
+    /* borders */
+    '--tg-border': '#1d2430',
+  },
 
   light: {
     '--tg-bg': '#f0f2f5',

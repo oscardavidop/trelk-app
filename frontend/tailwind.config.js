@@ -7,21 +7,47 @@ export default {
       fontFamily: {
         sans: ['Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'sans-serif'],
       },
-      colors: {
-        // Telegram-style theme — RGB triplet vars for opacity modifier support
-        'tg-bg': 'rgb(var(--tg-bg-rgb, 26 32 38) / <alpha-value>)',
-        'tg-secondary': 'rgb(var(--tg-secondary-rgb, 33 42 51) / <alpha-value>)',
-        'tg-section': 'rgb(var(--tg-secondary-rgb, 33 42 51) / <alpha-value>)',
-        'tg-surface': 'rgb(var(--tg-surface-rgb, 41 53 64) / <alpha-value>)',
-        'tg-accent': 'rgb(var(--tg-accent-rgb, 36 139 218) / <alpha-value>)',
-        'tg-text': 'rgb(var(--tg-text-rgb, 255 255 255) / <alpha-value>)',
-        'tg-text-secondary': 'rgb(var(--tg-text-secondary-rgb, 125 139 151) / <alpha-value>)',
-        'tg-hint': 'rgb(var(--tg-hint-rgb, 125 139 151) / <alpha-value>)',
-        'tg-link': 'rgb(var(--tg-link-rgb, 94 170 223) / <alpha-value>)',
-        'tg-destructive': 'rgb(var(--tg-destructive-rgb, 229 84 94) / <alpha-value>)',
-        'tg-success': 'rgb(var(--tg-success-rgb, 80 184 93) / <alpha-value>)',
-        'tg-border': 'rgb(var(--tg-border-rgb, 41 53 64) / <alpha-value>)',
-      },
+     colors: {
+  /* =========================================
+     PREMIUM DARK TELEGRAM THEME
+  ========================================= */
+
+  'tg-bg':
+    'rgb(var(--tg-bg-rgb, 9 11 15) / <alpha-value>)',
+
+  'tg-secondary':
+    'rgb(var(--tg-secondary-rgb, 15 19 24) / <alpha-value>)',
+
+  'tg-section':
+    'rgb(var(--tg-section-rgb, 18 23 30) / <alpha-value>)',
+
+  'tg-surface':
+    'rgb(var(--tg-surface-rgb, 21 26 33) / <alpha-value>)',
+
+  'tg-accent':
+    'rgb(var(--tg-accent-rgb, 56 189 248) / <alpha-value>)',
+
+  'tg-text':
+    'rgb(var(--tg-text-rgb, 248 250 252) / <alpha-value>)',
+
+  'tg-text-secondary':
+    'rgb(var(--tg-text-secondary-rgb, 139 152 167) / <alpha-value>)',
+
+  'tg-hint':
+    'rgb(var(--tg-hint-rgb, 111 124 139) / <alpha-value>)',
+
+  'tg-link':
+    'rgb(var(--tg-link-rgb, 96 165 250) / <alpha-value>)',
+
+  'tg-destructive':
+    'rgb(var(--tg-destructive-rgb, 239 68 68) / <alpha-value>)',
+
+  'tg-success':
+    'rgb(var(--tg-success-rgb, 34 197 94) / <alpha-value>)',
+
+  'tg-border':
+    'rgb(var(--tg-border-rgb, 29 36 48) / <alpha-value>)',
+},
       borderRadius: {
         'brand-xs': '8px',
         'brand-sm': '12px',

@@ -273,6 +273,11 @@ export default function SubscriptionPage() {
         });
     }, [realSub, cancelReal, showToast, haptic, t, loadRealStatus, load]);
 
+    const handleResubscribeSamePlan = useCallback(async () => {
+        if (!realSub?.plan_id) return;
+        await handleRealCheckout(realSub.plan_id);
+    }, [realSub, handleRealCheckout]);
+
     const handleResume = useCallback(async () => {
         if (!realSub?.id) return;
         try {
@@ -434,7 +439,7 @@ export default function SubscriptionPage() {
                 realSub={realSub}
                 onCancelReal={handleCancelReal}
                 onResume={handleResume}
-                onResubscribe={() => setPlansOpen(true)}
+                onResubscribe={handleResubscribeSamePlan}
                 actionLoading={actionLoading}
                 plans={plans}
             />
