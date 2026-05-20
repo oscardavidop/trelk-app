@@ -40,6 +40,8 @@ export interface SubscriptionStatus {
     currency: string;
     start_time: string | null;
     cancelled_at: string | null;
+    cancel_at_period_end: boolean;
+    scheduled_plan_id: string | null;
   } | null;
   isPremium: boolean;
 }

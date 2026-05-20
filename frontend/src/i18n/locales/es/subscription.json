@@ -144,5 +144,16 @@
   "status_past_due": "Pago pendiente",
   "status_activating": "Activando",
   "status_free": "Gratis",
-  "tap_to_refresh": "Toca para actualizar"
+  "tap_to_refresh": "Toca para actualizar",
+
+  "access_until": "Acceso hasta:",
+  "cancel_scheduled_title": "Cancelación programada",
+  "cancel_scheduled_desc": "Tu suscripción no se renovará. Conservas acceso completo hasta:",
+  "cancel_scheduled_features_note": "Todas las funciones premium siguen activas hasta esa fecha.",
+  "resubscribe": "Resuscribirse",
+
+  "downgrade_pending_title": "Cambio de plan programado",
+  "downgrade_pending_desc": "Tu plan cambiará a",
+  "downgrade_pending_at": "en tu próximo ciclo de facturación.",
+  "downgrade_effective": "Efectivo el"
 }

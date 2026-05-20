@@ -84,6 +84,7 @@ export interface SubscriptionResponse {
 export type RealSubStatus =
   | 'FREE'
   | 'ACTIVE'
+  | 'ACTIVE_CANCEL_SCHEDULED'   // Cancelled but access still active until period end
   | 'SUSPENDED'
   | 'PAST_DUE'
   | 'CANCELLED'
@@ -107,6 +108,10 @@ export interface RealSubscription {
   currency: string;
   start_time: string | null;
   cancelled_at: string | null;
+  /** True = user cancelled but premium access continues until next_billing_date */
+  cancel_at_period_end: boolean;
+  /** Non-null = a plan downgrade is scheduled for next billing cycle */
+  scheduled_plan_id: string | null;
 }
 
 export interface RealStatusResponse {
@@ -154,8 +159,20 @@ export function fetchPlans(): Promise<{ ok: boolean; plans: PayPalPlan[] }> {
 
 // ── Real PayPal status ────────────────────────────────────────────────────
 
-export function fetchRealStatus(): Promise<RealStatusResponse> {
-  return json(`${BASE}/status`);
+export async function fetchRealStatus(): Promise<RealStatusResponse> {
+  const res = await json<RealStatusResponse>(`${BASE}/status`);
+
+  // Derive ACTIVE_CANCEL_SCHEDULED from CANCELLED + cancel_at_period_end
+  if (
+    res.status === 'CANCELLED' &&
+    res.subscription?.cancel_at_period_end === true &&
+    res.subscription?.next_billing_date &&
+    new Date(res.subscription.next_billing_date).getTime() > Date.now()
+  ) {
+    return { ...res, status: 'ACTIVE_CANCEL_SCHEDULED' };
+  }
+
+  return res;
 }
 
 // ── Checkout — new subscription ───────────────────────────────────────────

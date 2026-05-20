@@ -139,5 +139,16 @@
   "status_past_due": "Past Due",
   "status_activating": "Activating",
   "status_free": "Free",
-  "tap_to_refresh": "Tap to refresh"
+  "tap_to_refresh": "Tap to refresh",
+
+  "access_until": "Access until:",
+  "cancel_scheduled_title": "Cancellation Scheduled",
+  "cancel_scheduled_desc": "Your subscription will not renew. You keep full access until:",
+  "cancel_scheduled_features_note": "All premium features remain active until then.",
+  "resubscribe": "Resubscribe",
+
+  "downgrade_pending_title": "Downgrade Scheduled",
+  "downgrade_pending_desc": "Your plan will change to",
+  "downgrade_pending_at": "at your next billing cycle.",
+  "downgrade_effective": "Effective on"
 }

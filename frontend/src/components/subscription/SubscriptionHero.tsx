@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { PlanTier } from '../../services/subscriptionApi';
 import type { ProFeatures, RealSubStatus, RealSubscription } from '../../services/subscriptionApi';
-import { Zap, Crown, Sparkles, Clock, CalendarDays, DollarSign, CheckCircle2, PauseCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Zap, Crown, Sparkles, Clock, CalendarDays, DollarSign, CheckCircle2, PauseCircle, XCircle, AlertTriangle, CalendarX2 } from 'lucide-react';
 
 const TIER_META: Record<PlanTier, { label: string; color: string; gradient: string; icon: React.ReactNode }> = {
   free: {
@@ -39,6 +39,8 @@ function getStatusConfig(realStatus?: RealSubStatus): StatusConfig {
   switch (realStatus) {
     case 'ACTIVE':
       return { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.12)', Icon: CheckCircle2 };
+    case 'ACTIVE_CANCEL_SCHEDULED':
+      return { label: 'Cancellation Scheduled', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', Icon: CalendarX2 };
     case 'SUSPENDED':
       return { label: 'Suspended', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', Icon: PauseCircle };
     case 'CANCELLED':
@@ -131,12 +133,16 @@ export default function SubscriptionHero({ features, realStatus, realSub }: Prop
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}
             >
               <CalendarDays size={14} className="text-tg-hint opacity-70 shrink-0" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[12px] font-medium text-tg-hint">
-                  {realStatus === 'ACTIVE' ? t('next_billing', 'Next billing:') : t('expires', 'Expires:')}
+              <div className="flex items-baseline gap-1.5 min-w-0 flex-1">
+                <span className="text-[12px] font-medium text-tg-hint shrink-0">
+                  {realStatus === 'ACTIVE'
+                    ? t('next_billing', 'Next billing:')
+                    : realStatus === 'ACTIVE_CANCEL_SCHEDULED'
+                    ? t('access_until', 'Access until:')
+                    : t('expires', 'Expires:')}
                 </span>
                 <span className="text-[13px] font-bold text-tg-text">{formatDate(billingDate)}</span>
-                <span className="text-[11px] text-tg-hint opacity-60">· {timeUntil(billingDate, t)}</span>
+                <span className="text-[11px] text-tg-hint opacity-60 shrink-0">· {timeUntil(billingDate, t)}</span>
               </div>
             </div>
           ) : tier === 'free' ? (

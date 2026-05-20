@@ -255,14 +255,14 @@ export default function SubscriptionPage() {
     const handleCancelReal = useCallback(() => {
         setModal({
             title: t('cancel_subscription_confirm_title', 'Cancel subscription?'),
-            message: t('cancel_subscription_confirm_message', 'Your access continues until the end of the current billing period. This cannot be undone.'),
+            message: t('cancel_subscription_confirm_message', `Your premium access will remain active until ${realSub?.next_billing_date ? new Date(realSub.next_billing_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'the end of your billing period'}. No further charges will be made.`),
             confirmLabel: t('yes_cancel_subscription', 'Yes, cancel'),
             confirmColor: '#ef4444',
             action: async () => {
                 if (!realSub?.id) return;
                 try {
                     await cancelReal(realSub.id);
-                    showToast(t('subscription_cancelled', 'Subscription cancelled.'), 'success');
+                    showToast(t('subscription_cancelled', 'Subscription cancelled. Access continues until period end.'), 'success');
                     haptic?.notificationOccurred('success');
                     loadRealStatus();
                     load();
@@ -434,7 +434,9 @@ export default function SubscriptionPage() {
                 realSub={realSub}
                 onCancelReal={handleCancelReal}
                 onResume={handleResume}
+                onResubscribe={() => setPlansOpen(true)}
                 actionLoading={actionLoading}
+                plans={plans}
             />
 
             {/* ── 4. Usage Limits ──────────────────────────────────── */}

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import type { ProFeatures, RealSubStatus, RealSubscription } from '../../services/subscriptionApi';
-import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays } from 'lucide-react';
+import type { ProFeatures, RealSubStatus, RealSubscription, PayPalPlan } from '../../services/subscriptionApi';
+import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays, CalendarX2, ArrowDownCircle } from 'lucide-react';
 
 interface Props {
   features: ProFeatures;
@@ -12,7 +12,10 @@ interface Props {
   realSub?: RealSubscription | null;
   onCancelReal?: () => void;
   onResume?: () => void;
+  onResubscribe?: () => void;
   actionLoading?: boolean;
+  /** Plans list for resolving scheduled_plan_id name */
+  plans?: PayPalPlan[];
 }
 
 export default function SubscriptionSettings({
@@ -24,13 +27,20 @@ export default function SubscriptionSettings({
   realSub,
   onCancelReal,
   onResume,
+  onResubscribe,
   actionLoading,
+  plans = [],
 }: Props) {
   const { t } = useTranslation('subscription');
   const { subscription } = features;
   const tier = subscription.tier;
   const hasPendingChange = subscription.change?.status === 'pending';
-  const hasRealActions = realStatus === 'ACTIVE' || realStatus === 'SUSPENDED';
+  const hasRealActions = realStatus === 'ACTIVE' || realStatus === 'SUSPENDED' || realStatus === 'ACTIVE_CANCEL_SCHEDULED';
+
+  // Resolve scheduled downgrade plan name from plans list
+  const scheduledPlan = realSub?.scheduled_plan_id
+    ? plans.find((p) => p.plan_id === realSub.scheduled_plan_id)
+    : null;
 
   if (tier === 'free' && !hasPendingChange && !hasRealActions) return null;
 
@@ -148,7 +158,7 @@ export default function SubscriptionSettings({
             </div>
           )}
 
-          {/* ── Cancelar suscripción PayPal ── */}
+          {/* ── Cancelar suscripción PayPal ── (solo si ACTIVE) */}
           {realStatus === 'ACTIVE' && onCancelReal && (
             <div className="border-t border-tg-border/20">
               <button
@@ -171,6 +181,88 @@ export default function SubscriptionSettings({
                   </div>
                 </div>
               </button>
+            </div>
+          )}
+
+          {/* ── Cancellation scheduled (ACTIVE_CANCEL_SCHEDULED) ── */}
+          {realStatus === 'ACTIVE_CANCEL_SCHEDULED' && (
+            <div className="border-t border-tg-border/20 p-4 bg-amber-500/5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-amber-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CalendarX2 size={18} className="text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-bold text-amber-500 mb-1">
+                    {t('cancel_scheduled_title', 'Cancellation Scheduled')}
+                  </div>
+                  <div className="text-[13px] text-tg-hint leading-snug mb-2">
+                    {t('cancel_scheduled_desc', 'Your subscription will not renew. You keep full access until:')}
+                  </div>
+                  {realSub?.next_billing_date && (
+                    <div
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] mb-3"
+                      style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.20)' }}
+                    >
+                      <CalendarDays size={13} className="text-amber-500" />
+                      <span className="text-[13px] font-bold text-amber-500">
+                        {new Date(realSub.next_billing_date).toLocaleDateString('en-US', {
+                          month: 'long', day: 'numeric', year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-[12px] text-tg-hint opacity-70 mb-3">
+                    {t('cancel_scheduled_features_note', 'All premium features remain active until then.')}
+                  </div>
+                  {onResubscribe && (
+                    <button
+                      onClick={() => {
+                        haptic?.impactOccurred('medium');
+                        onResubscribe();
+                      }}
+                      disabled={actionLoading}
+                      className="flex items-center gap-1.5 text-[13px] text-tg-accent font-bold active:scale-95 transition-transform bg-tg-accent/10 px-3 py-1.5 rounded-full border border-tg-accent/20 shadow-sm disabled:opacity-50"
+                    >
+                      <RefreshCcw size={14} />
+                      {t('resubscribe', 'Resubscribe')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Downgrade scheduled ── */}
+          {scheduledPlan && realStatus === 'ACTIVE' && (
+            <div className="border-t border-tg-border/20 p-4 bg-blue-500/5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <ArrowDownCircle size={18} className="text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-bold text-blue-400 mb-1">
+                    {t('downgrade_pending_title', 'Downgrade Scheduled')}
+                  </div>
+                  <div className="text-[13px] text-tg-hint leading-snug">
+                    {t('downgrade_pending_desc', 'Your plan will change to')}
+                    {' '}
+                    <span className="font-bold text-tg-text capitalize">{scheduledPlan.displayName}</span>
+                    {' '}
+                    {t('downgrade_pending_at', 'at your next billing cycle.')}
+                  </div>
+                  {realSub?.next_billing_date && (
+                    <div className="text-[12px] text-tg-hint mt-1.5 flex items-center gap-1">
+                      <Clock size={11} className="opacity-60" />
+                      {t('downgrade_effective', 'Effective on')}{' '}
+                      <span className="font-semibold">
+                        {new Date(realSub.next_billing_date).toLocaleDateString('en-US', {
+                          month: 'short', day: 'numeric', year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

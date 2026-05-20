@@ -196,7 +196,9 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     set({ actionLoading: true });
     try {
       await cancelRealSubscription(subscriptionId);
-      set({ realStatus: 'CANCELLED', realSub: null, isPremium: false, actionLoading: false });
+      set({ actionLoading: false });
+      // Reload real status — backend now returns ACTIVE_CANCEL_SCHEDULED,
+      // so the user keeps isPremium = true until period end.
       await get().loadRealStatus();
     } catch (e) {
       set({ actionLoading: false });
