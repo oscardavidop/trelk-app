@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
+import { PaymentsClientService } from './payments-client.service';
 import { Subscription, SubscriptionSchema } from './schemas/subscription.schema';
 import { PaymentEvent, PaymentEventSchema } from './schemas/payment-event.schema';
 
@@ -37,7 +38,7 @@ import { PaymentEvent, PaymentEventSchema } from './schemas/payment-event.schema
     ),
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService],
-  exports: [PaymentsService],
+  providers: [PaymentsService, PaymentsClientService],
+  exports: [PaymentsService, PaymentsClientService],
 })
 export class PaymentsModule {}

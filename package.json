@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start:dev": "nest start --watch --exec 'node -r ts-node/register -r tsconfig-paths/register src/main.ts'",
-    "start:prod": "node dist/main.js",
+    "start:prod": "pm2 start dist/main.js --name trelk-mini-web-app",
     "build": "nest build",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1",

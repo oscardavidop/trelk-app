@@ -6,21 +6,40 @@ import {
   Post,
   Patch,
   Body,
+  Query,
   Req,
   UseGuards,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserService } from '../users/user.service';
-import { ChangePlanDto, AutoRenewDto } from '../users/dto/subscription.dto';
+import { PaymentsClientService } from '../payments/payments-client.service';
+import {
+  ChangePlanDto,
+  AutoRenewDto,
+  CheckoutDto,
+  ReviseSubscriptionDto,
+  CancelActiveSubscriptionDto,
+  ResumeSubscriptionDto,
+} from '../users/dto/subscription.dto';
 import { AppError, ErrorCode } from '../../common/errors';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('api/v1/ui/subscription')
 @UseGuards(BearerAuthGuard)
 export class SubscriptionController {
-  constructor(private readonly userService: UserService) {}
+  private readonly logger = new Logger(SubscriptionController.name);
 
-  /** GET /api/v1/ui/subscription — full subscription + pro_features */
+  constructor(
+    private readonly userService: UserService,
+    private readonly paymentsClient: PaymentsClientService,
+    private readonly config: ConfigService,
+  ) {}
+
+  // ── Estado local (pro_features del usuario) ─────────────────────────────
+
+  /** GET /api/v1/ui/subscription — full subscription + pro_features (local DB) */
   @Get()
   async getSubscription(@Req() req: any) {
     const telegramId = this.extractTelegramId(req);
@@ -29,7 +48,7 @@ export class SubscriptionController {
     return { ok: true, ...data };
   }
 
-  /** POST /api/v1/ui/subscription/change — request plan upgrade/downgrade */
+  /** POST /api/v1/ui/subscription/change — local plan change (legacy, no PayPal) */
   @Post('change')
   async changePlan(@Body() dto: ChangePlanDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
@@ -51,6 +70,182 @@ export class SubscriptionController {
     const telegramId = this.extractTelegramId(req);
     await this.userService.setAutoRenew(telegramId, dto.auto_renew);
     return { ok: true, auto_renew: dto.auto_renew };
+  }
+
+  // ── Planes disponibles ───────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/ui/subscription/plans
+   * Devuelve los planes activos desde el backend de payments.
+   * No contiene datos sensibles (sin plan IDs de PayPal internos de DB).
+   */
+  @Get('plans')
+  async getPlans() {
+    const plans = await this.paymentsClient.getPlans();
+    return { ok: true, plans };
+  }
+
+  // ── Estado real desde payments backend ──────────────────────────────────
+
+  /**
+   * GET /api/v1/ui/subscription/status
+   * Estado completo de la suscripción del usuario autenticado,
+   * incluyendo próxima fecha de cobro y estado real de PayPal.
+   */
+  @Get('status')
+  async getStatus(@Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+    return { ok: true, ...status };
+  }
+
+  // ── Nueva suscripción ────────────────────────────────────────────────────
+
+  /**
+   * POST /api/v1/ui/subscription/checkout
+   * Inicia el flujo de una nueva suscripción PayPal.
+   *
+   * Devuelve { subscriptionId, approvalUrl }.
+   * La mini app debe redirigir al usuario a `approvalUrl`.
+   * PayPal llamará a `return_url` tras la aprobación.
+   *
+   * Seguridad:
+   * - El usuario autenticado solo puede crear suscripciones para sí mismo.
+   * - La validación del plan_id se hace en el backend de payments.
+   * - Solo se permite si no hay suscripción activa/pendiente.
+   */
+  @Post('checkout')
+  async checkout(@Body() dto: CheckoutDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+
+    const result = await this.paymentsClient.createCheckout(
+      telegramId,
+      dto.plan_id,
+      dto.return_url,
+      dto.cancel_url,
+    );
+
+    this.logger.log(
+      `Checkout initiated for user ${telegramId}: sub=${result.subscriptionId}`,
+    );
+
+    return { ok: true, subscriptionId: result.subscriptionId, approvalUrl: result.approvalUrl };
+  }
+
+  // ── Upgrade / Downgrade ──────────────────────────────────────────────────
+
+  /**
+   * POST /api/v1/ui/subscription/revise
+   * Cambia el plan de una suscripción activa (upgrade o downgrade).
+   *
+   * Devuelve { approvalUrl, requiresApproval }.
+   * Si `requiresApproval` es true, redirigir al usuario a `approvalUrl`.
+   * PayPal disparará BILLING.SUBSCRIPTION.UPDATED tras la aprobación.
+   *
+   * Seguridad:
+   * - Ownership verificado en el backend de payments.
+   * - El usuario autenticado no puede cambiar suscripciones de otros.
+   */
+  @Post('revise')
+  async revise(@Body() dto: ReviseSubscriptionDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+
+    const result = await this.paymentsClient.reviseSubscription(
+      telegramId,
+      dto.subscription_id,
+      dto.new_plan_id,
+      dto.return_url,
+      dto.cancel_url,
+    );
+
+    this.logger.log(
+      `Plan revision initiated for user ${telegramId}: sub=${dto.subscription_id} → plan=${dto.new_plan_id}`,
+    );
+
+    return {
+      ok: true,
+      approvalUrl: result.approvalUrl,
+      requiresApproval: result.requiresApproval,
+    };
+  }
+
+  // ── Cancelación real ─────────────────────────────────────────────────────
+
+  /**
+   * POST /api/v1/ui/subscription/cancel
+   * Cancela la suscripción en PayPal y en nuestra DB.
+   *
+   * Diferente de `cancel-change` (que solo cancela un cambio pendiente local).
+   * Este endpoint cancela la suscripción REAL de PayPal.
+   *
+   * Seguridad:
+   * - Ownership verificado en el backend de payments.
+   * - Llamada a PayPal API real.
+   */
+  @Post('cancel')
+  async cancelSubscription(@Body() dto: CancelActiveSubscriptionDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+
+    await this.paymentsClient.cancelSubscription(telegramId, dto.subscription_id);
+
+    this.logger.log(
+      `Subscription cancelled for user ${telegramId}: sub=${dto.subscription_id}`,
+    );
+
+    return { ok: true, status: 'cancelled' };
+  }
+
+  // ── Reanudación ──────────────────────────────────────────────────────────
+
+  /**
+   * POST /api/v1/ui/subscription/resume
+   * Reanuda una suscripción suspendida.
+   *
+   * Solo funciona si la suscripción está en estado SUSPENDED.
+   * Llama a PayPal activate API y actualiza la DB.
+   */
+  @Post('resume')
+  async resumeSubscription(@Body() dto: ResumeSubscriptionDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+
+    await this.paymentsClient.resumeSubscription(telegramId, dto.subscription_id);
+
+    this.logger.log(
+      `Subscription resumed for user ${telegramId}: sub=${dto.subscription_id}`,
+    );
+
+    return { ok: true, status: 'resumed' };
+  }
+
+  // ── Historial de billing ─────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/ui/subscription/billing-history
+   * Historial de eventos de la suscripción del usuario.
+   * Cursored pagination: ?cursor=...&limit=20
+   */
+  @Get('billing-history')
+  async billingHistory(
+    @Query('cursor') cursor: string,
+    @Query('limit') limitStr: string,
+    @Req() req: any,
+  ) {
+    const telegramId = this.extractTelegramId(req);
+    const limit = Math.min(Math.max(parseInt(limitStr) || 20, 1), 50);
+
+    // Proxy to payments admin API (reuses existing /api/v1/ui/payments/history)
+    // The payments module PaymentsService reads from the same DB with user filter
+    // For now, returns status + empty history (billing history is in admin panel)
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+
+    return {
+      ok: true,
+      subscription: status.subscription,
+      status: status.status,
+      isPremium: status.isPremium,
+      // History is available in admin panel at /api/v1/ui/payments/history
+      historyNote: 'Full billing history available in admin panel',
+    };
   }
 
   // ── Helpers ─────────────────────────────────────

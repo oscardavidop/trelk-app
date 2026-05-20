@@ -1,21 +1,38 @@
 import { useTranslation } from 'react-i18next';
-import type { ProFeatures } from '../../services/subscriptionApi';
-import { RefreshCcw, AlertTriangle, XCircle, Clock } from 'lucide-react';
+import type { ProFeatures, RealSubStatus, RealSubscription } from '../../services/subscriptionApi';
+import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays } from 'lucide-react';
 
 interface Props {
   features: ProFeatures;
   onAutoRenewToggle: () => void;
   onCancelChange: () => void;
   haptic?: any;
+  // ── Real PayPal ──
+  realStatus?: RealSubStatus;
+  realSub?: RealSubscription | null;
+  onCancelReal?: () => void;
+  onResume?: () => void;
+  actionLoading?: boolean;
 }
 
-export default function SubscriptionSettings({ features, onAutoRenewToggle, onCancelChange, haptic }: Props) {
+export default function SubscriptionSettings({
+  features,
+  onAutoRenewToggle,
+  onCancelChange,
+  haptic,
+  realStatus,
+  realSub,
+  onCancelReal,
+  onResume,
+  actionLoading,
+}: Props) {
   const { t } = useTranslation('subscription');
   const { subscription } = features;
   const tier = subscription.tier;
   const hasPendingChange = subscription.change?.status === 'pending';
+  const hasRealActions = realStatus === 'ACTIVE' || realStatus === 'SUSPENDED';
 
-  if (tier === 'free' && !hasPendingChange) return null;
+  if (tier === 'free' && !hasPendingChange && !hasRealActions) return null;
 
   return (
     <section className="px-5 mt-4">
@@ -103,6 +120,84 @@ export default function SubscriptionSettings({ features, onAutoRenewToggle, onCa
                   >
                     <XCircle size={14} />
                     {t('cancel_change', 'Cancel Change')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Próxima factura (PayPal ACTIVE) ── */}
+          {realStatus === 'ACTIVE' && realSub?.next_billing_date && (
+            <div className={`p-4 bg-sky-500/5 ${hasPendingChange ? 'border-t border-tg-border/20' : ''}`}>
+              <div className="flex items-center gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                  <CalendarDays size={18} className="text-sky-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-semibold text-tg-text leading-tight">
+                    {t('next_billing', 'Next billing')}
+                  </div>
+                  <div className="text-[13px] text-tg-hint mt-0.5">
+                    {new Date(realSub.next_billing_date).toLocaleDateString()} ·{' '}
+                    <span className="font-semibold text-tg-text">
+                      {realSub.currency} {realSub.amount?.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Cancelar suscripción PayPal ── */}
+          {realStatus === 'ACTIVE' && onCancelReal && (
+            <div className="border-t border-tg-border/20">
+              <button
+                onClick={() => {
+                  haptic?.impactOccurred('medium');
+                  onCancelReal();
+                }}
+                disabled={actionLoading}
+                className="w-full flex items-center gap-3.5 p-4 text-left active:bg-red-500/5 transition-colors disabled:opacity-50"
+              >
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <Ban size={18} className="text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[16px] font-semibold text-red-500 leading-tight">
+                    {t('cancel_subscription', 'Cancel Subscription')}
+                  </div>
+                  <div className="text-[13px] font-medium text-tg-hint mt-0.5">
+                    {t('cancel_subscription_desc', 'Access continues until end of billing period')}
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* ── Reanudar suscripción suspendida ── */}
+          {realStatus === 'SUSPENDED' && onResume && (
+            <div className={`p-4 bg-violet-500/5 ${tier !== 'free' || hasPendingChange ? 'border-t border-tg-border/20' : ''}`}>
+              <div className="flex items-start gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-violet-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <AlertTriangle size={18} className="text-violet-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-bold text-violet-500 mb-1">
+                    {t('subscription_suspended', 'Subscription Suspended')}
+                  </div>
+                  <div className="text-[13px] text-tg-hint leading-snug">
+                    {t('subscription_suspended_desc', 'Your subscription is suspended. Resume to restore access.')}
+                  </div>
+                  <button
+                    onClick={() => {
+                      haptic?.impactOccurred('medium');
+                      onResume();
+                    }}
+                    disabled={actionLoading}
+                    className="mt-3 flex items-center gap-1.5 text-[13px] text-violet-500 font-bold active:scale-95 transition-transform bg-violet-500/10 px-3 py-1.5 rounded-full border border-violet-500/20 shadow-sm disabled:opacity-50"
+                  >
+                    <Play size={14} />
+                    {t('resume_subscription', 'Resume Subscription')}
                   </button>
                 </div>
               </div>

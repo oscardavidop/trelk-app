@@ -26,6 +26,7 @@ interface TelegramWebApp {
   disableVerticalSwipes: () => void;
   requestFullscreen: () => void;
   openTelegramLink: (url: string) => void;
+  openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
   showPopup: (params: {
     title?: string;
     message: string;

@@ -12,7 +12,7 @@ import SubscriptionUsage from '../components/subscription/SubscriptionUsage';
 import SubscriptionBenefits from '../components/subscription/SubscriptionBenefits';
 import SubscriptionPlans from '../components/subscription/SubscriptionPlans';
 import StickyHeader from '@/components/StickyHeader';
-import { Loader2, Crown } from 'lucide-react';
+import { Loader2, Crown, CreditCard, CheckCircle2, Clock } from 'lucide-react';
 
 export const showConfirmPopup = (options: {
     title: string,
@@ -121,12 +121,20 @@ export function ConfirmModal({
 // ── Main Page ────────────────────────────────────
 export default function SubscriptionPage() {
     const { userId } = useParams();
-    const { haptic } = useTelegram();
+    const { haptic, webApp } = useTelegram();
     const { t } = useTranslation('subscription');
     const showToast = useToastStore((s) => s.show);
 
-    const { features, loading, load, changePlan, cancelChange, toggleAutoRenew } =
-        useSubscriptionStore();
+    const {
+        features, loading, load,
+        changePlan, cancelChange, toggleAutoRenew,
+        realStatus, realSub, isPremium, realLoading,
+        plans, actionLoading,
+        pendingSubscriptionId,
+        loadRealStatus, loadPlans,
+        checkout, revise, cancelReal, resume,
+        startPolling, stopPolling,
+    } = useSubscriptionStore();
 
     const [modal, setModal] = useState<{
         title: string;
@@ -136,11 +144,33 @@ export default function SubscriptionPage() {
         action: () => Promise<void>;
     } | null>(null);
 
+    // ── Initial load ──────────────────────────────
     useEffect(() => {
         load();
-    }, [load]);
+        loadRealStatus();
+        loadPlans();
+    }, [load, loadRealStatus, loadPlans]);
 
-    // ── Handlers ──────────────────────────
+    // ── Auto-poll if pending sub found in localStorage ─
+    useEffect(() => {
+        if (pendingSubscriptionId) {
+            startPolling(pendingSubscriptionId);
+        }
+        return () => stopPolling();
+        // Only run on mount / pendingSubscriptionId change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingSubscriptionId]);
+
+    // ── Build PayPal redirect URLs ────────────────
+    const buildUrls = useCallback(() => {
+        const base = `${window.location.origin}/users/${userId}/subscription`;
+        return {
+            return_url: `${base}?paypal=return`,
+            cancel_url: `${base}?paypal=cancel`,
+        };
+    }, [userId]);
+
+    // ── Handlers (local plan-change, legacy) ──────
     const handlePlanSelect = useCallback(
         (tier: PlanTier) => {
             if (!features) return;
@@ -166,7 +196,7 @@ export default function SubscriptionPage() {
                 },
             });
         },
-        [features, changePlan, showToast, haptic],
+        [features, changePlan, showToast, haptic, t],
     );
 
     const handleCancelChange = useCallback(() => {
@@ -174,7 +204,7 @@ export default function SubscriptionPage() {
             title: t('cancel_change'),
             message: t('cancel_change_confirm'),
             confirmLabel: t('yes_cancel'),
-            confirmColor: '#ef4444', // red-500
+            confirmColor: '#ef4444',
             action: async () => {
                 try {
                     await cancelChange();
@@ -184,7 +214,7 @@ export default function SubscriptionPage() {
                 }
             },
         });
-    }, [cancelChange, showToast]);
+    }, [cancelChange, showToast, t]);
 
     const handleAutoRenewToggle = useCallback(() => {
         if (!features) return;
@@ -210,10 +240,75 @@ export default function SubscriptionPage() {
                 .then(() => showToast(t('autorenew_enabled'), 'success'))
                 .catch((e) => showToast(e.message || 'Error', 'error'));
         }
-    }, [features, toggleAutoRenew, showToast]);
+    }, [features, toggleAutoRenew, showToast, t]);
 
-    // ── Loading ───────────────────────────
-    if (loading || !features) {
+    // ── Handlers (real PayPal) ────────────────────
+    const handleRealCheckout = useCallback(async (planId: string) => {
+        try {
+            const { return_url, cancel_url } = buildUrls();
+            const approvalUrl = await checkout(planId, return_url, cancel_url);
+            haptic?.notificationOccurred('success');
+            showToast(t('paypal_opening', 'Opening PayPal... Complete payment in your browser.'), 'info');
+            webApp?.openLink(approvalUrl);
+        } catch (e: any) {
+            haptic?.notificationOccurred('error');
+            showToast(e.message || t('checkout_error', 'Failed to start checkout'), 'error');
+        }
+    }, [checkout, buildUrls, webApp, haptic, showToast, t]);
+
+    const handleRealRevise = useCallback(async (subscriptionId: string, newPlanId: string) => {
+        try {
+            const { return_url, cancel_url } = buildUrls();
+            const result = await revise(subscriptionId, newPlanId, return_url, cancel_url);
+            if (result.approvalUrl) {
+                haptic?.notificationOccurred('success');
+                showToast(t('paypal_opening', 'Opening PayPal... Approve the plan change.'), 'info');
+                webApp?.openLink(result.approvalUrl);
+            } else {
+                // No approval needed (immediate revision)
+                showToast(t('plan_changed', 'Plan changed successfully!'), 'success');
+                haptic?.notificationOccurred('success');
+                loadRealStatus();
+                load();
+            }
+        } catch (e: any) {
+            haptic?.notificationOccurred('error');
+            showToast(e.message || t('revise_error', 'Failed to change plan'), 'error');
+        }
+    }, [revise, buildUrls, webApp, haptic, showToast, t, loadRealStatus, load]);
+
+    const handleCancelReal = useCallback(() => {
+        setModal({
+            title: t('cancel_subscription_confirm_title', 'Cancel subscription?'),
+            message: t('cancel_subscription_confirm_message', 'Your access continues until the end of the current billing period. This cannot be undone.'),
+            confirmLabel: t('yes_cancel_subscription', 'Yes, cancel'),
+            confirmColor: '#ef4444',
+            action: async () => {
+                if (!realSub?.id) return;
+                try {
+                    await cancelReal(realSub.id);
+                    showToast(t('subscription_cancelled', 'Subscription cancelled.'), 'success');
+                    haptic?.notificationOccurred('success');
+                } catch (e: any) {
+                    showToast(e.message || 'Error', 'error');
+                }
+            },
+        });
+    }, [realSub, cancelReal, showToast, haptic, t]);
+
+    const handleResume = useCallback(async () => {
+        if (!realSub?.id) return;
+        try {
+            await resume(realSub.id);
+            showToast(t('subscription_resumed', 'Subscription resumed!'), 'success');
+            haptic?.notificationOccurred('success');
+        } catch (e: any) {
+            showToast(e.message || 'Error', 'error');
+        }
+    }, [realSub, resume, showToast, haptic, t]);
+
+    // ── Loading state ─────────────────────────────
+    if ((loading && !features) || (realLoading && realStatus === 'FREE' && !features)) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[70vh] gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-tg-accent" />
@@ -222,12 +317,14 @@ export default function SubscriptionPage() {
         );
     }
 
+    if (!features) return null;
+
     const { subscription } = features;
     const tier = subscription.tier;
     const pendingPlan = subscription.change?.status === 'pending' ? subscription.change.new_plan : undefined;
 
     return (
-        <div className="pb-28 animate-fade-in relative  flex flex-col gap-6">
+        <div className="pb-28 animate-fade-in relative flex flex-col gap-6">
             <StickyHeader 
                 title={t('your_subscription', 'Subscription')} 
                 subtitle={t('current_plan', { plan: TIER_META[tier]?.label || 'Free' })}
@@ -237,16 +334,55 @@ export default function SubscriptionPage() {
                     </div>
                 } 
             />
+
+            {/* ── Pending activation banner ── */}
+            {pendingSubscriptionId && (
+                <div className="mx-5 rounded-[20px] bg-sky-500/10 border border-sky-500/30 p-4 flex items-center gap-3.5 animate-fade-in">
+                    <div className="w-[36px] h-[36px] rounded-[12px] bg-sky-500/15 flex items-center justify-center flex-shrink-0">
+                        <CreditCard size={18} className="text-sky-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold text-sky-400 leading-tight">
+                            {t('activating_subscription', 'Activating subscription...')}
+                        </p>
+                        <p className="text-[12px] text-tg-hint mt-0.5 flex items-center gap-1">
+                            <Clock size={12} className="animate-pulse" />
+                            {t('activating_desc', 'This may take up to 30 seconds after PayPal approval.')}
+                        </p>
+                    </div>
+                    <Loader2 size={18} className="animate-spin text-sky-500 flex-shrink-0" />
+                </div>
+            )}
+
+            {/* ── Activation success banner ── */}
+            {realStatus === 'ACTIVE' && !pendingSubscriptionId && isPremium && (
+                <div className="mx-5 rounded-[20px] bg-emerald-500/10 border border-emerald-500/30 p-4 flex items-center gap-3.5">
+                    <CheckCircle2 size={22} className="text-emerald-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold text-emerald-400">
+                            {t('subscription_active', 'Subscription Active')}
+                        </p>
+                        <p className="text-[12px] text-tg-hint mt-0.5">
+                            {t('subscription_active_desc', 'All premium features are enabled.')}
+                        </p>
+                    </div>
+                </div>
+            )}
             
             {/* 1. Hero */}
             <SubscriptionHero features={features} />
 
-            {/* 2. Settings (auto-renew + pending change) */}
+            {/* 2. Settings (auto-renew + pending change + cancel + resume) */}
             <SubscriptionSettings
                 features={features}
                 onAutoRenewToggle={handleAutoRenewToggle}
                 onCancelChange={handleCancelChange}
                 haptic={haptic}
+                realStatus={realStatus}
+                realSub={realSub}
+                onCancelReal={handleCancelReal}
+                onResume={handleResume}
+                actionLoading={actionLoading}
             />
 
             {/* 3. Usage Limits */}
@@ -260,6 +396,12 @@ export default function SubscriptionPage() {
                 currentTier={tier}
                 pendingChange={pendingPlan}
                 onSelect={handlePlanSelect}
+                realStatus={realStatus}
+                realSubscriptionId={realSub?.id ?? null}
+                realPlans={plans}
+                onRealCheckout={handleRealCheckout}
+                onRealRevise={handleRealRevise}
+                actionLoading={actionLoading}
             />
 
             <p className="mx-6 mt-2 mb-6 text-center text-[12px] font-medium text-tg-hint leading-relaxed opacity-80">

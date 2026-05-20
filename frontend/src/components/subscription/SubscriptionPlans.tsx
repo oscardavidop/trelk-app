@@ -1,14 +1,31 @@
 import { useTranslation } from 'react-i18next';
-import type { PlanTier } from '../../services/subscriptionApi';
+import type { PlanTier, PayPalPlan, RealSubStatus } from '../../services/subscriptionApi';
 import PlanComparison from '../PlanComparison';
 
 interface Props {
   currentTier: PlanTier;
   pendingChange?: string;
   onSelect: (tier: PlanTier) => void;
+  // ── Real PayPal ──
+  realStatus?: RealSubStatus;
+  realSubscriptionId?: string | null;
+  realPlans?: PayPalPlan[];
+  onRealCheckout?: (planId: string) => void;
+  onRealRevise?: (subscriptionId: string, planId: string) => void;
+  actionLoading?: boolean;
 }
 
-export default function SubscriptionPlans({ currentTier, pendingChange, onSelect }: Props) {
+export default function SubscriptionPlans({
+  currentTier,
+  pendingChange,
+  onSelect,
+  realStatus,
+  realSubscriptionId,
+  realPlans,
+  onRealCheckout,
+  onRealRevise,
+  actionLoading,
+}: Props) {
   const { t } = useTranslation('subscription');
   
   return (
@@ -21,6 +38,12 @@ export default function SubscriptionPlans({ currentTier, pendingChange, onSelect
         currentTier={currentTier}
         pendingChange={pendingChange}
         onSelect={onSelect}
+        realStatus={realStatus}
+        realSubscriptionId={realSubscriptionId}
+        realPlans={realPlans}
+        onRealCheckout={onRealCheckout}
+        onRealRevise={onRealRevise}
+        actionLoading={actionLoading}
       />
     </section>
   );

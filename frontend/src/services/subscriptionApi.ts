@@ -19,7 +19,7 @@ async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
-// ── Types ────────────────────────────────────────
+// ── Types (local pro_features) ────────────────────────────────────────────
 export type PlanTier = 'free' | 'pro' | 'ultra';
 
 export interface LimitCounter {
@@ -79,7 +79,56 @@ export interface SubscriptionResponse {
   isPremium?: boolean;
 }
 
-// ── Endpoints ────────────────────────────────────
+// ── Types (real PayPal) ───────────────────────────────────────────────────
+
+export type RealSubStatus =
+  | 'FREE'
+  | 'ACTIVE'
+  | 'SUSPENDED'
+  | 'PAST_DUE'
+  | 'CANCELLED'
+  | 'EXPIRED'
+  | 'PENDING';
+
+export interface PayPalPlan {
+  name: string;
+  plan_id: string;
+  price: number;
+  currency: string;
+  displayName: string;
+}
+
+export interface RealSubscription {
+  id: string;
+  plan_id: string;
+  status: string;
+  next_billing_date: string | null;
+  amount: number | null;
+  currency: string;
+  start_time: string | null;
+  cancelled_at: string | null;
+}
+
+export interface RealStatusResponse {
+  ok: boolean;
+  status: RealSubStatus;
+  subscription: RealSubscription | null;
+  isPremium: boolean;
+}
+
+export interface CheckoutResponse {
+  ok: boolean;
+  subscriptionId: string;
+  approvalUrl: string;
+}
+
+export interface ReviseResponse {
+  ok: boolean;
+  approvalUrl: string | null;
+  requiresApproval: boolean;
+}
+
+// ── Local subscription (pro_features) ────────────────────────────────────
 
 export function fetchSubscription(): Promise<SubscriptionResponse> {
   return json(BASE);
@@ -95,4 +144,61 @@ export function cancelPlanChange(): Promise<{ ok: boolean }> {
 
 export function setAutoRenew(auto_renew: boolean): Promise<{ ok: boolean }> {
   return json(`${BASE}/auto-renew`, { method: 'PATCH', body: JSON.stringify({ auto_renew }) });
+}
+
+// ── Plans (dynamic from backend) ─────────────────────────────────────────
+
+export function fetchPlans(): Promise<{ ok: boolean; plans: PayPalPlan[] }> {
+  return json(`${BASE}/plans`);
+}
+
+// ── Real PayPal status ────────────────────────────────────────────────────
+
+export function fetchRealStatus(): Promise<RealStatusResponse> {
+  return json(`${BASE}/status`);
+}
+
+// ── Checkout — new subscription ───────────────────────────────────────────
+
+export function startCheckout(
+  plan_id: string,
+  return_url: string,
+  cancel_url: string,
+): Promise<CheckoutResponse> {
+  return json(`${BASE}/checkout`, {
+    method: 'POST',
+    body: JSON.stringify({ plan_id, return_url, cancel_url }),
+  });
+}
+
+// ── Revise — upgrade / downgrade ─────────────────────────────────────────
+
+export function reviseSubscription(
+  subscription_id: string,
+  new_plan_id: string,
+  return_url: string,
+  cancel_url: string,
+): Promise<ReviseResponse> {
+  return json(`${BASE}/revise`, {
+    method: 'POST',
+    body: JSON.stringify({ subscription_id, new_plan_id, return_url, cancel_url }),
+  });
+}
+
+// ── Cancel real PayPal subscription ──────────────────────────────────────
+
+export function cancelRealSubscription(subscription_id: string): Promise<{ ok: boolean }> {
+  return json(`${BASE}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ subscription_id }),
+  });
+}
+
+// ── Resume suspended subscription ────────────────────────────────────────
+
+export function resumeRealSubscription(subscription_id: string): Promise<{ ok: boolean }> {
+  return json(`${BASE}/resume`, {
+    method: 'POST',
+    body: JSON.stringify({ subscription_id }),
+  });
 }

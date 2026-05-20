@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Crown, Zap, Sparkles, Check, X } from 'lucide-react';
+import { Crown, Zap, Sparkles, Check, X, Loader2 } from 'lucide-react';
+import type { PayPalPlan, RealSubStatus } from '../services/subscriptionApi';
 
 
 type PlanTier = 'free' | 'pro' | 'ultra';
@@ -80,10 +81,37 @@ interface PlanComparisonProps {
   currentTier: PlanTier;
   pendingChange?: string;
   onSelect: (tier: PlanTier) => void;
+  // ── Real PayPal ──
+  realStatus?: RealSubStatus;
+  realSubscriptionId?: string | null;
+  realPlans?: PayPalPlan[];
+  onRealCheckout?: (planId: string) => void;
+  onRealRevise?: (subscriptionId: string, planId: string) => void;
+  actionLoading?: boolean;
 }
 
-export default function PlanComparison({ currentTier, pendingChange, onSelect }: PlanComparisonProps) {
+export default function PlanComparison({
+  currentTier,
+  pendingChange,
+  onSelect,
+  realStatus,
+  realSubscriptionId,
+  realPlans = [],
+  onRealCheckout,
+  onRealRevise,
+  actionLoading,
+}: PlanComparisonProps) {
   const { t } = useTranslation('subscription');
+
+  // Map real backend plans by normalised tier name (e.g. "pro" → PayPalPlan)
+  const realPlanMap = new Map<string, PayPalPlan>(
+    realPlans.map((p) => [p.name.toLowerCase(), p]),
+  );
+
+  // Decide if we should show real PayPal CTA instead of local plan-change CTA
+  const useRealPayPal = (realStatus != null) && (onRealCheckout != null || onRealRevise != null);
+  const isRealActive = realStatus === 'ACTIVE';
+  const isRealPending = realStatus === 'PENDING';
   
   return (
     <div className="space-y-4">
@@ -174,22 +202,68 @@ export default function PlanComparison({ currentTier, pendingChange, onSelect }:
             {/* ── Botón CTA ── */}
             {!isCurrent && (
               <div className="px-5 pb-5 pt-1">
-                <button
-                  onClick={() => onSelect(plan.tier)}
-                  disabled={isPending}
-                  className="w-full py-3.5 rounded-[16px] text-[15px] font-bold transition-transform duration-200 active:scale-[0.98] flex items-center justify-center shadow-sm"
-                  style={{
-                    background: isPending ? 'var(--tg-hint)' : plan.color,
-                    color: '#fff',
-                    opacity: isPending ? 0.3 : 1
-                  }}
-                >
-                  {isPending
-                    ? t('plan_change_in_progress', 'Change in progress')
-                    : currentTier === 'free' || PLANS.findIndex(p => p.tier === plan.tier) > PLANS.findIndex(p => p.tier === currentTier)
-                      ? t('plan_upgrade_to', { name: plan.name, defaultValue: `Upgrade to ${plan.name}` })
-                      : t('plan_change_to', { name: plan.name, defaultValue: `Change to ${plan.name}` })}
-                </button>
+                {(() => {
+                  const realPlan = realPlanMap.get(plan.tier);
+                  const hasRealPlan = !!realPlan;
+
+                  // Pending state (waiting for PayPal webhook)
+                  if (isRealPending && hasRealPlan) {
+                    return (
+                      <button disabled className="w-full py-3.5 rounded-[16px] text-[15px] font-bold flex items-center justify-center gap-2 opacity-60" style={{ background: plan.color, color: '#fff' }}>
+                        <Loader2 size={16} className="animate-spin" />
+                        {t('plan_activating', 'Activating...')}
+                      </button>
+                    );
+                  }
+
+                  // Real PayPal flow (ACTIVE user revises plan, FREE user checkouts)
+                  if (useRealPayPal && hasRealPlan) {
+                    const label = isRealActive
+                      ? (PLANS.findIndex(p => p.tier === plan.tier) > PLANS.findIndex(p => p.tier === currentTier)
+                          ? t('plan_upgrade_to', { name: plan.name, defaultValue: `Upgrade to ${plan.name}` })
+                          : t('plan_change_to', { name: plan.name, defaultValue: `Change to ${plan.name}` }))
+                      : t('plan_subscribe', { name: plan.name, defaultValue: `Subscribe – ${realPlan.currency} ${realPlan.price}/mo` });
+
+                    return (
+                      <button
+                        onClick={() => {
+                          if (isRealActive && realSubscriptionId && onRealRevise) {
+                            onRealRevise(realSubscriptionId, realPlan.plan_id);
+                          } else if (onRealCheckout) {
+                            onRealCheckout(realPlan.plan_id);
+                          }
+                        }}
+                        disabled={actionLoading || isPending}
+                        className="w-full py-3.5 rounded-[16px] text-[15px] font-bold transition-transform duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                        style={{ background: plan.color, color: '#fff' }}
+                      >
+                        {actionLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+                        {label}
+                        {hasRealPlan && !isRealActive && (
+                          <span className="text-white/70 text-[12px] font-medium ml-1">
+                            {realPlan.currency} {realPlan.price}/mo
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+
+                  // Fallback: local plan-change (legacy)
+                  return (
+                    <button
+                      onClick={() => onSelect(plan.tier)}
+                      disabled={isPending}
+                      className="w-full py-3.5 rounded-[16px] text-[15px] font-bold transition-transform duration-200 active:scale-[0.98] flex items-center justify-center shadow-sm"
+                      style={{ background: isPending ? 'var(--tg-hint)' : plan.color, color: '#fff', opacity: isPending ? 0.3 : 1 }}
+                    >
+                      {isPending
+                        ? t('plan_change_in_progress', 'Change in progress')
+                        : currentTier === 'free' || PLANS.findIndex(p => p.tier === plan.tier) > PLANS.findIndex(p => p.tier === currentTier)
+                          ? t('plan_upgrade_to', { name: plan.name, defaultValue: `Upgrade to ${plan.name}` })
+                          : t('plan_change_to', { name: plan.name, defaultValue: `Change to ${plan.name}` })}
+                    </button>
+                  );
+                })()}
               </div>
             )}
           </div>
