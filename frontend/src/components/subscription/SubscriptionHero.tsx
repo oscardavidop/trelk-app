@@ -281,13 +281,8 @@ export default function SubscriptionHero({
 
                 {price ? (
                   <div className="flex items-center gap-1.5 mt-2 text-sm">
-                    <DollarSign
-                      size={14}
-                      className="text-white/45"
-                    />
-
                     <span className="text-white/85 font-semibold">
-                      {price}/
+                      {price}
                       {t('per_month_short', 'mo')}
                     </span>
 

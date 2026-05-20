@@ -54,7 +54,7 @@ interface SubscriptionState {
   loadPlans: () => Promise<void>;
 
   /** Inicia checkout para nuevo plan. Devuelve la approvalUrl. */
-  checkout: (planId: string, returnUrl: string, cancelUrl: string) => Promise<string>;
+  checkout: (planId: string, returnUrl: string, cancelUrl: string, startTime?: string) => Promise<string>;
 
   /** Cambia el plan de una suscripción activa. Devuelve ReviseResponse. */
   revise: (subscriptionId: string, newPlanId: string, returnUrl: string, cancelUrl: string) => Promise<ReviseResponse>;
@@ -158,10 +158,10 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
   // ── Checkout ────────────────────────────────────────────────────────────
 
-  checkout: async (planId, returnUrl, cancelUrl) => {
+  checkout: async (planId, returnUrl, cancelUrl, startTime) => {
     set({ actionLoading: true });
     try {
-      const res = await startCheckout(planId, returnUrl, cancelUrl);
+      const res = await startCheckout(planId, returnUrl, cancelUrl, startTime);
       // Store pending sub so polling can pick it up when user returns
       localStorage.setItem(PENDING_SUB_KEY, res.subscriptionId);
       set({ pendingSubscriptionId: res.subscriptionId, actionLoading: false });

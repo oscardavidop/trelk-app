@@ -181,10 +181,13 @@ export function startCheckout(
   plan_id: string,
   return_url: string,
   cancel_url: string,
+  start_time?: string,
 ): Promise<CheckoutResponse> {
+  const body: Record<string, any> = { plan_id, return_url, cancel_url };
+  if (start_time) body.start_time = start_time;
   return json(`${BASE}/checkout`, {
     method: 'POST',
-    body: JSON.stringify({ plan_id, return_url, cancel_url }),
+    body: JSON.stringify(body),
   });
 }
 

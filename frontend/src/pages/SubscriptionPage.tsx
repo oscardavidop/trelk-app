@@ -218,10 +218,10 @@ export default function SubscriptionPage() {
     }, [features, toggleAutoRenew, showToast, t]);
 
     // ── Handlers (real PayPal) ────────────────────
-    const handleRealCheckout = useCallback(async (planId: string) => {
+    const handleRealCheckout = useCallback(async (planId: string, startTime?: string) => {
         try {
             const { return_url, cancel_url } = buildUrls();
-            const approvalUrl = await checkout(planId, return_url, cancel_url);
+            const approvalUrl = await checkout(planId, return_url, cancel_url, startTime);
             haptic?.notificationOccurred('success');
             showToast(t('paypal_opening', 'Opening PayPal... Complete payment in your browser.'), 'info');
             webApp?.openLink(approvalUrl);
@@ -275,7 +275,12 @@ export default function SubscriptionPage() {
 
     const handleResubscribeSamePlan = useCallback(async () => {
         if (!realSub?.plan_id) return;
-        await handleRealCheckout(realSub.plan_id);
+        // Pass start_time = next_billing_date so PayPal defers the first charge
+        // until the current (already-paid) period ends — no double billing
+        const startTime = realSub.next_billing_date
+            ? new Date(realSub.next_billing_date).toISOString()
+            : undefined;
+        await handleRealCheckout(realSub.plan_id, startTime);
     }, [realSub, handleRealCheckout]);
 
     const handleResume = useCallback(async () => {

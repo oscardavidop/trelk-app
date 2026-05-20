@@ -1,5 +1,5 @@
 // src/modules/users/dto/subscription.dto.ts
-import { IsIn, IsBoolean, IsString, IsNotEmpty, IsUrl, Matches, IsOptional } from 'class-validator';
+import { IsIn, IsBoolean, IsString, IsNotEmpty, IsUrl, Matches, IsOptional, IsDateString } from 'class-validator';
 
 export class ChangePlanDto {
   @IsIn(['free', 'pro', 'ultra'])
@@ -26,6 +26,14 @@ export class CheckoutDto {
   /** URL de cancelación si el usuario abandona el flujo */
   @IsUrl({ require_tld: false }, { message: 'cancel_url must be a valid URL' })
   cancel_url: string;
+
+  /**
+   * Fecha ISO 8601 para inicio diferido (re-suscripción después de cancel_at_period_end).
+   * Si se omite, la suscripción inicia inmediatamente al aprobar en PayPal.
+   */
+  @IsOptional()
+  @IsDateString({}, { message: 'start_time must be an ISO 8601 date string' })
+  start_time?: string;
 }
 
 /** DTO para cambiar el plan de una suscripción activa (upgrade / downgrade) */

@@ -95,13 +95,22 @@ export class PaymentsClientService {
     planId: string,
     returnUrl: string,
     cancelUrl: string,
+    startTime?: string,
   ): Promise<CheckoutResult> {
     const idempotencyKey = this.idempotencyKey('checkout', telegramId, planId);
+
+    const body: Record<string, any> = {
+      tg_id: telegramId,
+      plan_id: planId,
+      return_url: returnUrl,
+      cancel_url: cancelUrl,
+    };
+    if (startTime) body.start_time = startTime;
 
     const data = await this.request<CheckoutResult>(
       'POST',
       '/paypal/subscription/create',
-      { tg_id: telegramId, plan_id: planId, return_url: returnUrl, cancel_url: cancelUrl },
+      body,
       { auth: true, idempotencyKey },
     );
     return data;
@@ -133,10 +142,25 @@ export class PaymentsClientService {
     return data;
   }
 
+  // ── Auto-renew (suspend / activate via PayPal) ─────────────────────────
+
+  async setAutoRenew(
+    telegramId: number,
+    subscriptionId: string,
+    autoRenew: boolean,
+  ): Promise<{ auto_renew: boolean; status: string }> {
+    const data = await this.request<{ auto_renew: boolean; status: string }>(
+      'POST',
+      '/paypal/subscription/auto-renew',
+      { tg_id: telegramId, subscription_id: subscriptionId, auto_renew: autoRenew },
+      { auth: true },
+    );
+    return data;
+  }
+
   // ── Cancel ─────────────────────────────────────────────────────────────
 
-  async cancelSubscription(telegramId: number, subscriptionId: string): Promise<void> {
-    await this.request<unknown>(
+  async cancelSubscription(telegramId: number, subscriptionId: string): Promise<void> {    await this.request<unknown>(
       'POST',
       '/paypal/cancel',
       { tg_id: telegramId, subscription_id: subscriptionId },

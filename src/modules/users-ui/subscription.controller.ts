@@ -68,7 +68,24 @@ export class SubscriptionController {
   @Patch('auto-renew')
   async setAutoRenew(@Body() dto: AutoRenewDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
-    await this.userService.setAutoRenew(telegramId, dto.auto_renew);
+
+    // Get real subscription status to know if we can call PayPal
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+    const subscription = status?.subscription;
+
+    // If user has a real PayPal subscription in a state where suspend/activate applies, use it
+    const canTogglePaypal =
+      subscription?.id &&
+      (status.status === 'ACTIVE' || status.status === 'SUSPENDED');
+
+    if (canTogglePaypal) {
+      // Delegate to PayPal suspend/activate — also updates local DB via webhook
+      await this.paymentsClient.setAutoRenew(telegramId, subscription!.id, dto.auto_renew);
+    } else {
+      // Fallback: only update local flag (no real subscription to toggle)
+      await this.userService.setAutoRenew(telegramId, dto.auto_renew);
+    }
+
     return { ok: true, auto_renew: dto.auto_renew };
   }
 
@@ -123,6 +140,7 @@ export class SubscriptionController {
       dto.plan_id,
       dto.return_url,
       dto.cancel_url,
+      dto.start_time,
     );
 
     this.logger.log(
