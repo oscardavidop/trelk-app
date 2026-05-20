@@ -95,5 +95,48 @@
   "current_plan": "Current plan",
   "downgrade_message": "You will be downgraded at the end of the current period",
   "upgrade_message": "Upgrade to unlock more features",
-  "upgrade_to": "Upgrade to {{plan}}"
+  "upgrade_to": "Upgrade to {{plan}}",
+
+  "activating_subscription": "Activating subscription…",
+  "activating_desc": "This may take a few seconds after PayPal approval.",
+  "subscription_active": "Subscription Active",
+  "subscription_active_desc": "All premium features are enabled.",
+  "plan_syncing": "Activating your features…",
+  "plan_syncing_desc": "Features will be ready in a few seconds. Please refresh.",
+
+  "upgrade_now": "Upgrade to Pro",
+  "change_plan": "Change Plan",
+  "compare_plans": "Compare all plans",
+  "paypal_billing_note": "Billed monthly via PayPal · Cancel anytime",
+  "next_billing": "Next billing",
+  "expires": "Expires",
+  "per_month_short": "/mo",
+  "free_plan_desc": "Free forever",
+  "popular_badge": "Popular",
+
+  "paypal_opening": "Opening PayPal… Complete payment in your browser.",
+  "checkout_error": "Failed to start checkout",
+  "plan_changed": "Plan changed successfully!",
+  "revise_error": "Failed to change plan",
+
+  "cancel_subscription_confirm_title": "Cancel subscription?",
+  "cancel_subscription_confirm_message": "Your access continues until the end of the current billing period. This cannot be undone.",
+  "yes_cancel_subscription": "Yes, cancel",
+  "subscription_cancelled": "Subscription cancelled.",
+  "subscription_resumed": "Subscription resumed!",
+
+  "choose_plan": "Choose a Plan",
+  "choose_plan_subtitle": "Upgrade anytime · Cancel anytime",
+
+  "subscribe_to": "Subscribe to {{plan}}",
+  "subscribe_cta": "Subscribe – ${{price}} / month",
+  "upgrade_cta": "Upgrade to {{plan}} – ${{price}}/mo",
+  "switch_cta": "Switch to {{plan}} – ${{price}}/mo",
+
+  "status_active": "Active",
+  "status_suspended": "Suspended",
+  "status_cancelled": "Cancelled",
+  "status_past_due": "Past Due",
+  "status_activating": "Activating",
+  "status_free": "Free"
 }

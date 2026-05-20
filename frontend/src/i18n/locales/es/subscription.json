@@ -100,5 +100,48 @@
   "current_plan": "Plan actual",
   "downgrade_message": "Se te bajará de plan al final del periodo actual",
   "upgrade_message": "Mejora para desbloquear más funciones",
-  "upgrade_to": "Mejorar a {{plan}}"
+  "upgrade_to": "Mejorar a {{plan}}",
+
+  "activating_subscription": "Activando suscripción…",
+  "activating_desc": "Esto puede tardar unos segundos tras la aprobación en PayPal.",
+  "subscription_active": "Suscripción Activa",
+  "subscription_active_desc": "Todas las funciones premium están habilitadas.",
+  "plan_syncing": "Activando tus funciones…",
+  "plan_syncing_desc": "Las funciones estarán listas en unos segundos. Por favor, recarga.",
+
+  "upgrade_now": "Mejorar a Pro",
+  "change_plan": "Cambiar Plan",
+  "compare_plans": "Comparar todos los planes",
+  "paypal_billing_note": "Facturado mensualmente vía PayPal · Cancela cuando quieras",
+  "next_billing": "Próxima factura",
+  "expires": "Vence",
+  "per_month_short": "/mes",
+  "free_plan_desc": "Gratis para siempre",
+  "popular_badge": "Popular",
+
+  "paypal_opening": "Abriendo PayPal… Completa el pago en tu navegador.",
+  "checkout_error": "No se pudo iniciar el pago",
+  "plan_changed": "¡Plan cambiado con éxito!",
+  "revise_error": "No se pudo cambiar el plan",
+
+  "cancel_subscription_confirm_title": "¿Cancelar suscripción?",
+  "cancel_subscription_confirm_message": "Tu acceso continuará hasta el final del periodo de facturación actual. Esta acción no se puede deshacer.",
+  "yes_cancel_subscription": "Sí, cancelar",
+  "subscription_cancelled": "Suscripción cancelada.",
+  "subscription_resumed": "¡Suscripción reanudada!",
+
+  "choose_plan": "Elige un Plan",
+  "choose_plan_subtitle": "Mejora cuando quieras · Cancela cuando quieras",
+
+  "subscribe_to": "Suscribirse a {{plan}}",
+  "subscribe_cta": "Suscribirse – ${{price}} / mes",
+  "upgrade_cta": "Mejorar a {{plan}} – ${{price}}/mes",
+  "switch_cta": "Cambiar a {{plan}} – ${{price}}/mes",
+
+  "status_active": "Activa",
+  "status_suspended": "Suspendida",
+  "status_cancelled": "Cancelada",
+  "status_past_due": "Pago pendiente",
+  "status_activating": "Activando",
+  "status_free": "Gratis"
 }

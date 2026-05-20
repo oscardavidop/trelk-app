@@ -394,6 +394,7 @@ export class UserService {
 
   /** Get subscription + pro features for the authenticated user */
   async getSubscription(telegramId: number) {
+    console.log(`[UserService] Fetching subscription for user ${telegramId}`);
     const user = await this.userModel.findOne({ id: telegramId })
       .select('pro_features limits_reset_date firstName username isPremium')
       .lean()

@@ -40,7 +40,9 @@ export class AlertsService implements OnModuleInit {
 
     async onModuleInit() {
         if (!this.redisCache.available) {
-            throw new Error('Redis no disponible. AlertsService requiere Redis para funcionar.');
+            console.warn('Redis is not available. AlertsService will not function properly.');
+            this.redis = null as any; // Set to null to prevent accidental usage
+            return;
         }
         this.redis = this.redisCache.getClient() as Redis;
     }

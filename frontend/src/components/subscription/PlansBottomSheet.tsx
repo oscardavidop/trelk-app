@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Crown, Zap, Sparkles, Check, Loader2, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { X, Crown, Zap, Sparkles, Check, Loader2, ArrowUp, ArrowDown, Star } from 'lucide-react';
 import type { PayPalPlan, RealSubStatus } from '../../services/subscriptionApi';
 
 type PlanTier = 'free' | 'pro' | 'ultra';
@@ -97,6 +98,8 @@ export default function PlansBottomSheet({
   onRevise,
   actionLoading,
 }: Props) {
+  const { t } = useTranslation('subscription');
+
   const defaultSelected = (): PlanTier => {
     if (currentTier === 'free') return 'pro';
     if (currentTier === 'pro') return 'ultra';
@@ -166,15 +169,24 @@ export default function PlansBottomSheet({
   };
 
   const ctaLabel = () => {
-    if (isCurrentPlan) return 'Your Current Plan';
-    if (!realPlan) return `Subscribe to ${selected.name}`;
+    if (isCurrentPlan) return t('plan_current', 'Your Current Plan');
+    if (!realPlan) return t('subscribe_to', { plan: t(`plan_${selected.tier}`, selected.name) });
     if (isRealActive) {
       const isUpgrade = tiers.indexOf(selectedTier) > tiers.indexOf(currentTier);
       return isUpgrade
-        ? `Upgrade to ${selected.name} – $${realPlan.price}/mo`
-        : `Switch to ${selected.name} – $${realPlan.price}/mo`;
+        ? t('upgrade_cta', { plan: t(`plan_${selected.tier}`, selected.name), price: realPlan.price })
+        : t('switch_cta', { plan: t(`plan_${selected.tier}`, selected.name), price: realPlan.price });
     }
-    return `Subscribe – $${realPlan.price} / month`;
+    return t('subscribe_cta', { price: realPlan.price });
+  };
+
+  const ctaIcon = () => {
+    if (actionLoading) return <Loader2 size={18} className="animate-spin" />;
+    if (isRealActive && !isCurrentPlan) {
+      const isUpgrade = tiers.indexOf(selectedTier) > tiers.indexOf(currentTier);
+      return isUpgrade ? <ArrowUp size={17} strokeWidth={2.5} /> : <ArrowDown size={17} strokeWidth={2.5} />;
+    }
+    return <Crown size={17} strokeWidth={2} />;
   };
 
   if (!mounted) return null;
@@ -215,8 +227,8 @@ export default function PlansBottomSheet({
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-2 pb-4 flex-shrink-0">
           <div>
-            <h2 className="text-[20px] font-bold text-tg-text leading-tight">Choose a Plan</h2>
-            <p className="text-[13px] text-tg-hint mt-0.5">Upgrade anytime · Cancel anytime</p>
+            <h2 className="text-[20px] font-bold text-tg-text leading-tight">{t('choose_plan', 'Choose a Plan')}</h2>
+            <p className="text-[13px] text-tg-hint mt-0.5">{t('choose_plan_subtitle', 'Upgrade anytime · Cancel anytime')}</p>
           </div>
           <button
             onClick={handleClose}
@@ -227,11 +239,11 @@ export default function PlansBottomSheet({
           </button>
         </div>
 
-        {/* Tab pills */}
+        {/* iOS-style segmented control tabs */}
         <div className="px-5 mb-5 flex-shrink-0">
           <div
-            className="flex p-1 rounded-[15px] gap-1"
-            style={{ background: 'rgba(125,139,151,0.1)' }}
+            className="flex p-[3px] rounded-[14px] relative"
+            style={{ background: 'rgba(125,139,151,0.12)' }}
           >
             {PLAN_DEFS.map((plan) => {
               const isSel = plan.tier === selectedTier;
@@ -240,25 +252,28 @@ export default function PlansBottomSheet({
                 <button
                   key={plan.tier}
                   onClick={() => setSelectedTier(plan.tier)}
-                  className="relative flex-1 py-2.5 rounded-[11px] text-[13px] font-bold transition-all duration-200 active:scale-95"
+                  className="relative flex-1 py-2.5 rounded-[11px] text-[13px] font-semibold transition-all duration-200 active:scale-[0.97] flex items-center justify-center gap-1.5"
                   style={{
-                    background: isSel ? 'var(--tg-secondary, #212a33)' : 'transparent',
+                    background: isSel ? 'var(--tg-secondary, #1e2733)' : 'transparent',
                     color: isSel ? plan.color : 'var(--tg-hint, #7d8b97)',
-                    boxShadow: isSel ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
+                    boxShadow: isSel ? '0 1px 6px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(255,255,255,0.04)' : 'none',
                   }}
                 >
-                  {plan.name}
-                  {/* Dot indicators */}
+                  <plan.Icon
+                    size={13}
+                    style={{ color: isSel ? plan.color : 'var(--tg-hint, #7d8b97)', opacity: isSel ? 1 : 0.6, transition: 'color 0.2s' }}
+                  />
+                  <span>{t(`plan_${plan.tier}`, plan.name)}</span>
                   {isCur && (
                     <span
-                      className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full"
-                      style={{ background: 'var(--tg-accent, #248BDA)' }}
+                      className="w-1.5 h-1.5 rounded-full ml-0.5"
+                      style={{ background: isSel ? plan.color : 'var(--tg-accent, #248BDA)' }}
                     />
                   )}
                   {plan.popular && !isCur && (
                     <span
-                      className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full"
-                      style={{ background: '#f59e0b' }}
+                      className="w-1.5 h-1.5 rounded-full ml-0.5"
+                      style={{ background: '#f59e0b', opacity: isSel ? 1 : 0.5 }}
                     />
                   )}
                 </button>
@@ -302,6 +317,7 @@ export default function PlansBottomSheet({
                     style={{
                       background: `${selected.color}18`,
                       border: `1.5px solid ${selected.color}35`,
+                      boxShadow: `0 0 24px ${selected.color}20`,
                     }}
                   >
                     <selected.Icon className="w-7 h-7" style={{ color: selected.color }} />
@@ -310,38 +326,40 @@ export default function PlansBottomSheet({
                   {/* Name + price */}
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[22px] font-bold text-tg-text leading-none">{selected.name}</span>
+                      <span className="text-[22px] font-bold text-tg-text leading-none">{t(`plan_${selected.tier}`, selected.name)}</span>
                       {isCurrentPlan && (
                         <span
-                          className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                          className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full inline-flex items-center gap-1"
                           style={{
                             background: `${selected.color}18`,
                             color: selected.color,
-                            border: `1px solid ${selected.color}30`,
+                            border: `1px solid ${selected.color}35`,
                           }}
                         >
-                          Current
+                          <Check size={8} strokeWidth={3} />
+                          {t('plan_current', 'Current')}
                         </span>
                       )}
                       {selected.popular && !isCurrentPlan && (
                         <span
-                          className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                          className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full inline-flex items-center gap-1"
                           style={{
-                            background: 'rgba(245,158,11,0.12)',
+                            background: 'linear-gradient(135deg, rgba(245,158,11,0.18), rgba(234,88,12,0.12))',
                             color: '#f59e0b',
-                            border: '1px solid rgba(245,158,11,0.25)',
+                            border: '1px solid rgba(245,158,11,0.3)',
                           }}
                         >
-                          Popular
+                          <Star size={7} fill="currentColor" strokeWidth={0} />
+                          {t('popular_badge', 'Popular')}
                         </span>
                       )}
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[22px] font-bold text-tg-text leading-none">
+                      <span className="text-[26px] font-bold text-tg-text leading-none">
                         {realPlan ? `$${realPlan.price}` : selected.defaultPrice}
                       </span>
                       {selected.tier !== 'free' && (
-                        <span className="text-[13px] text-tg-hint font-medium">/month</span>
+                        <span className="text-[13px] text-tg-hint font-medium">{t('per_month', '/month')}</span>
                       )}
                     </div>
                   </div>
@@ -386,44 +404,41 @@ export default function PlansBottomSheet({
           <div className="mt-4">
             {isCurrentPlan || selected.tier === 'free' ? (
               <div
-                className="w-full py-4 rounded-[18px] text-[15px] font-bold text-center"
+                className="w-full py-4 rounded-[18px] text-[15px] font-bold text-center flex items-center justify-center gap-2"
                 style={{
                   background: isCurrentPlan
-                    ? `${selected.color}18`
-                    : 'rgba(125,139,151,0.08)',
+                    ? `${selected.color}12`
+                    : 'rgba(125,139,151,0.07)',
                   color: isCurrentPlan ? selected.color : 'var(--tg-hint, #7d8b97)',
                   border: isCurrentPlan
-                    ? `1px solid ${selected.color}30`
+                    ? `1px solid ${selected.color}25`
                     : '1px solid rgba(125,139,151,0.12)',
                 }}
               >
-                {isCurrentPlan ? '✓ Your Current Plan' : 'Free Plan'}
+                {isCurrentPlan && <Check size={16} strokeWidth={3} />}
+                {isCurrentPlan ? t('plan_current', 'Your Current Plan') : t('plan_free', 'Free Plan')}
               </div>
             ) : (
               <button
                 onClick={handleCTA}
                 disabled={actionLoading || !realPlan}
-                className="w-full py-4 rounded-[18px] text-white text-[16px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
+                className="w-full py-4 rounded-[18px] text-white text-[16px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
                 style={{
-                  background: `linear-gradient(135deg, ${selected.color}, ${selected.color}bb)`,
-                  boxShadow: `0 4px 20px ${selected.color}40`,
+                  background: `linear-gradient(135deg, ${selected.color} 0%, ${selected.color}bb 100%)`,
+                  boxShadow: `0 4px 20px ${selected.color}40, 0 1px 0 rgba(255,255,255,0.08) inset`,
                 }}
               >
-                {actionLoading ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <ChevronRight size={18} className="opacity-80" />
-                )}
+                {ctaIcon()}
                 {ctaLabel()}
               </button>
             )}
           </div>
 
           <p
-            className="text-[11px] text-center mt-3 opacity-60"
+            className="text-[11px] text-center mt-3 opacity-55 font-medium"
             style={{ color: 'var(--tg-hint, #7d8b97)' }}
           >
-            Billed monthly via PayPal · Cancel anytime
+            {t('paypal_billing_note', 'Billed monthly via PayPal · Cancel anytime')}
           </p>
         </div>
       </div>

@@ -149,6 +149,12 @@ function App() {
 
 
 
+  // PayPal return page — opened in an external browser, Telegram WebApp is not available.
+  // Bypass all auth checks and render standalone.
+  if (window.location.pathname === '/paypal-return') {
+    return <PaypalReturnPage />;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-tg-bg animate-pulse">

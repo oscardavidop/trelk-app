@@ -329,17 +329,38 @@ export default function SubscriptionPage() {
             )}
 
             {/* ── Activation success banner ──────────────────────── */}
-            {realStatus === 'ACTIVE' && !pendingSubscriptionId && isPremium && (
-                <div className="mx-5 rounded-[20px] bg-emerald-500/10 border border-emerald-500/25 p-4 flex items-center gap-3.5 animate-slide-up">
-                    <CheckCircle2 size={22} className="text-emerald-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-bold text-emerald-400">
+            {realStatus === 'ACTIVE' && !pendingSubscriptionId && isPremium && tier !== 'free' && (
+                <div className="mx-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 p-4 flex items-start gap-3.5 animate-slide-up backdrop-blur-sm">
+                    <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400 flex-shrink-0 mt-0.5">
+                        <CheckCircle2 size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-0.5">
+                        <p className="text-sm font-semibold text-emerald-400 tracking-wide">
                             {t('subscription_active', 'Subscription Active')}
                         </p>
-                        <p className="text-[12px] text-tg-hint mt-0.5">
+                        <p className="text-xs text-tg-hint/80 leading-relaxed">
                             {t('subscription_active_desc', 'All premium features are enabled.')}
                         </p>
                     </div>
+                </div>
+            )}
+
+            {/* ── Syncing banner (PayPal ACTIVE but local still free) ───── */}
+            {realStatus === 'ACTIVE' && !pendingSubscriptionId && isPremium && tier === 'free' && (
+                <div className="mx-5 rounded-[20px] bg-violet-500/10 border border-violet-500/25 p-4 flex items-center gap-3.5 animate-slide-up">
+                    <div className="w-[38px] h-[38px] rounded-[13px] bg-violet-500/15 flex items-center justify-center flex-shrink-0">
+                        <Sparkles size={18} className="text-violet-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold text-violet-400 leading-tight">
+                            {t('plan_syncing', 'Activating your features…')}
+                        </p>
+                        <p className="text-[12px] text-tg-hint mt-0.5 flex items-center gap-1.5">
+                            <Clock size={11} className="animate-pulse shrink-0" />
+                            {t('plan_syncing_desc', 'Features will be ready in a few seconds. Please refresh.')}
+                        </p>
+                    </div>
+                    <Loader2 size={18} className="animate-spin text-violet-400 flex-shrink-0" />
                 </div>
             )}
 
@@ -366,7 +387,7 @@ export default function SubscriptionPage() {
                     /* Premium → Change / Manage Plan CTA */
                     <button
                         onClick={() => { haptic?.impactOccurred('light'); setPlansOpen(true); }}
-                        className="w-full py-3.5 rounded-[20px] text-[15px] font-semibold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
+                        className="w-full py-3.5 px-4 rounded-[20px] text-[15px] font-semibold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
                         style={{
                             background: `${TIER_META[tier]?.color ?? '#8b5cf6'}18`,
                             color: TIER_META[tier]?.color ?? '#8b5cf6',
