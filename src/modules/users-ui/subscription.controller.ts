@@ -218,21 +218,27 @@ export class SubscriptionController {
   /**
    * POST /api/v1/ui/subscription/resume
    * Reanuda una suscripción suspendida.
-   *
-   * Solo funciona si la suscripción está en estado SUSPENDED.
-   * Llama a PayPal activate API y actualiza la DB.
    */
   @Post('resume')
   async resumeSubscription(@Body() dto: ResumeSubscriptionDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
-
     await this.paymentsClient.resumeSubscription(telegramId, dto.subscription_id);
-
-    this.logger.log(
-      `Subscription resumed for user ${telegramId}: sub=${dto.subscription_id}`,
-    );
-
+    this.logger.log(`Subscription resumed for user ${telegramId}: sub=${dto.subscription_id}`);
     return { ok: true, status: 'resumed' };
+  }
+
+  // ── Cancelar downgrade programado ───────────────────────────────────────
+
+  /**
+   * POST /api/v1/ui/subscription/cancel-downgrade
+   * Cancela un downgrade programado — el usuario mantiene su plan actual.
+   */
+  @Post('cancel-downgrade')
+  async cancelDowngrade(@Body() dto: CancelActiveSubscriptionDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+    await this.paymentsClient.cancelScheduledDowngrade(telegramId, dto.subscription_id);
+    this.logger.log(`Scheduled downgrade cancelled for user ${telegramId}: sub=${dto.subscription_id}`);
+    return { ok: true, status: 'downgrade_cancelled' };
   }
 
   // ── Historial de billing ─────────────────────────────────────────────────

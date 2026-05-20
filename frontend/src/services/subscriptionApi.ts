@@ -222,3 +222,12 @@ export function resumeRealSubscription(subscription_id: string): Promise<{ ok: b
     body: JSON.stringify({ subscription_id }),
   });
 }
+
+// ── Cancel scheduled downgrade ───────────────────────────────────────────
+
+export function cancelScheduledDowngrade(subscription_id: string): Promise<{ ok: boolean }> {
+  return json(`${BASE}/cancel-downgrade`, {
+    method: 'POST',
+    body: JSON.stringify({ subscription_id }),
+  });
+}

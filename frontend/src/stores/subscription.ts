@@ -10,6 +10,7 @@ import {
   changePlan as apiChangePlan,
   cancelPlanChange as apiCancelChange,
   setAutoRenew as apiAutoRenew,
+  cancelScheduledDowngrade as apiCancelDowngrade,
   type ProFeatures,
   type PlanTier,
   type RealSubStatus,
@@ -64,6 +65,9 @@ interface SubscriptionState {
 
   /** Reanuda una suscripción suspendida. */
   resume: (subscriptionId: string) => Promise<void>;
+
+  /** Cancela un downgrade programado. */
+  cancelDowngrade: (subscriptionId: string) => Promise<void>;
 
   /** Inicia polling hasta que status sea ACTIVE (máx. 60 intentos × 3s = 3 min). */
   startPolling: (subscriptionId: string) => void;
@@ -199,6 +203,20 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       set({ actionLoading: false });
       // Reload real status — backend now returns ACTIVE_CANCEL_SCHEDULED,
       // so the user keeps isPremium = true until period end.
+      await get().loadRealStatus();
+    } catch (e) {
+      set({ actionLoading: false });
+      throw e;
+    }
+  },
+
+  // ── Cancel Downgrade ────────────────────────────────────────────────────
+
+  cancelDowngrade: async (subscriptionId) => {
+    set({ actionLoading: true });
+    try {
+      await apiCancelDowngrade(subscriptionId);
+      set({ actionLoading: false });
       await get().loadRealStatus();
     } catch (e) {
       set({ actionLoading: false });

@@ -5,6 +5,7 @@ import type {
   ProFeatures,
   RealSubStatus,
   RealSubscription,
+  PayPalPlan,
 } from '../../services/subscriptionApi';
 
 import {
@@ -20,6 +21,7 @@ import {
   AlertTriangle,
   CalendarX2,
   ArrowUpRight,
+  ArrowDownCircle,
 } from 'lucide-react';
 
 const TIER_META: Record<
@@ -172,12 +174,14 @@ interface Props {
   features: ProFeatures;
   realStatus?: RealSubStatus;
   realSub?: RealSubscription | null;
+  plans?: PayPalPlan[];
 }
 
 export default function SubscriptionHero({
   features,
   realStatus,
   realSub,
+  plans = [],
 }: Props) {
   const { t } = useTranslation('subscription');
 
@@ -191,6 +195,10 @@ export default function SubscriptionHero({
 
   const billingDate =
     realSub?.next_billing_date ?? subscription.expires_at;
+
+  const scheduledPlanMeta = realSub?.scheduled_plan_id
+    ? plans.find((p) => p.plan_id === realSub.scheduled_plan_id)
+    : null;
 
   const price = realSub?.amount
     ? `$${realSub.amount}`
@@ -328,10 +336,34 @@ export default function SubscriptionHero({
             </div>
           </div>
 
+          {/* scheduled downgrade banner */}
+          {scheduledPlanMeta && realStatus === 'ACTIVE' && (
+            <div
+              className="mt-5 rounded-[22px] p-3.5"
+              style={{
+                background: 'rgba(59,130,246,0.08)',
+                border: '1px solid rgba(59,130,246,0.18)',
+                backdropFilter: 'blur(16px)',
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <ArrowDownCircle size={16} className="text-blue-400 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] uppercase tracking-[0.16em] font-bold text-blue-400/70 mb-0.5">
+                    {t('downgrade_scheduled_label', 'Scheduled Change')}
+                  </div>
+                  <div className="text-[13px] font-semibold text-white/80">
+                    → {scheduledPlanMeta.displayName} · {formatDate(realSub?.next_billing_date)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* billing card */}
           {(billingDate || tier === 'free') && (
             <div
-              className="mt-5 rounded-[22px] p-4"
+              className={`${scheduledPlanMeta ? 'mt-3' : 'mt-5'} rounded-[22px] p-4`}
               style={{
                 background: 'rgba(255,255,255,0.045)',
                 border: '1px solid rgba(255,255,255,0.06)',

@@ -132,7 +132,7 @@ export default function SubscriptionPage() {
         plans, actionLoading,
         pendingSubscriptionId,
         loadRealStatus, loadPlans,
-        checkout, revise, cancelReal, resume,
+        checkout, revise, cancelReal, resume, cancelDowngrade,
         startPolling, stopPolling,
     } = useSubscriptionStore();
 
@@ -296,6 +296,25 @@ export default function SubscriptionPage() {
         }
     }, [realSub, resume, showToast, haptic, t, loadRealStatus, load]);
 
+    const handleCancelDowngrade = useCallback(() => {
+        setModal({
+            title: t('undo_downgrade_confirm_title', 'Keep current plan?'),
+            message: t('undo_downgrade_confirm_message', 'Your plan will continue without changes. The scheduled downgrade will be removed.'),
+            confirmLabel: t('yes_keep_plan', 'Yes, keep plan'),
+            confirmColor: '#3b82f6',
+            action: async () => {
+                if (!realSub?.id) return;
+                try {
+                    await cancelDowngrade(realSub.id);
+                    showToast(t('downgrade_cancelled_toast', 'Scheduled downgrade cancelled. Your plan stays the same.'), 'success');
+                    haptic?.notificationOccurred('success');
+                } catch (e: any) {
+                    showToast(e.message || 'Error', 'error');
+                }
+            },
+        });
+    }, [realSub, cancelDowngrade, showToast, haptic, t]);
+
     // ── Loading state ─────────────────────────────
     if ((loading && !features) || (realLoading && realStatus === 'FREE' && !features)) {
         return (
@@ -398,7 +417,7 @@ export default function SubscriptionPage() {
             )}
 
             {/* ── 1. Hero ──────────────────────────────────────────── */}
-            <SubscriptionHero features={features} realStatus={realStatus} realSub={realSub} />
+            <SubscriptionHero features={features} realStatus={realStatus} realSub={realSub} plans={plans} />
 
             {/* ── 2. Upgrade / Change Plan CTA ────────────────────── */}
             <div className="px-5">
@@ -447,6 +466,7 @@ export default function SubscriptionPage() {
                 onResubscribe={handleResubscribeSamePlan}
                 actionLoading={actionLoading}
                 plans={plans}
+                onCancelDowngrade={handleCancelDowngrade}
             />
 
             {/* ── 4. Usage Limits ──────────────────────────────────── */}

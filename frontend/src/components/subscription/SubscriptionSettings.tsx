@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ProFeatures, RealSubStatus, RealSubscription, PayPalPlan } from '../../services/subscriptionApi';
-import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays, CalendarX2, ArrowDownCircle } from 'lucide-react';
+import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays, CalendarX2, ArrowDownCircle, RotateCcw } from 'lucide-react';
 
 interface Props {
   features: ProFeatures;
@@ -16,6 +16,8 @@ interface Props {
   actionLoading?: boolean;
   /** Plans list for resolving scheduled_plan_id name */
   plans?: PayPalPlan[];
+  /** Cancel a scheduled downgrade */
+  onCancelDowngrade?: () => void;
 }
 
 export default function SubscriptionSettings({
@@ -30,6 +32,7 @@ export default function SubscriptionSettings({
   onResubscribe,
   actionLoading,
   plans = [],
+  onCancelDowngrade,
 }: Props) {
   const { t } = useTranslation('subscription');
   const { subscription } = features;
@@ -264,6 +267,16 @@ export default function SubscriptionSettings({
                         })}
                       </span>
                     </div>
+                  )}
+                  {onCancelDowngrade && (
+                    <button
+                      onClick={() => { haptic?.impactOccurred('medium'); onCancelDowngrade(); }}
+                      disabled={actionLoading}
+                      className="mt-3 flex items-center gap-1.5 text-[13px] text-blue-400 font-bold active:scale-95 transition-transform bg-blue-400/10 px-3 py-1.5 rounded-full border border-blue-400/20 shadow-sm disabled:opacity-50"
+                    >
+                      <RotateCcw size={14} />
+                      {t('undo_downgrade', 'Keep Current Plan')}
+                    </button>
                   )}
                 </div>
               </div>

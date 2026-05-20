@@ -150,5 +150,12 @@
   "downgrade_pending_title": "Downgrade Scheduled",
   "downgrade_pending_desc": "Your plan will change to",
   "downgrade_pending_at": "at your next billing cycle.",
-  "downgrade_effective": "Effective on"
+  "downgrade_effective": "Effective on",
+
+  "downgrade_scheduled_label": "Scheduled Change",
+  "undo_downgrade": "Keep Current Plan",
+  "undo_downgrade_confirm_title": "Keep current plan?",
+  "undo_downgrade_confirm_message": "Your plan will continue without changes. The scheduled downgrade will be removed.",
+  "yes_keep_plan": "Yes, keep plan",
+  "downgrade_cancelled_toast": "Scheduled downgrade cancelled. Your plan stays the same."
 }

@@ -168,6 +168,17 @@ export class PaymentsClientService {
     );
   }
 
+  // ── Cancel scheduled downgrade ────────────────────────────────────────
+
+  async cancelScheduledDowngrade(telegramId: number, subscriptionId: string): Promise<void> {
+    await this.request<unknown>(
+      'POST',
+      '/paypal/subscription/cancel-downgrade',
+      { tg_id: telegramId, subscription_id: subscriptionId },
+      { auth: true },
+    );
+  }
+
   // ── Resume (reactivate suspended) ─────────────────────────────────────
 
   async resumeSubscription(telegramId: number, subscriptionId: string): Promise<void> {

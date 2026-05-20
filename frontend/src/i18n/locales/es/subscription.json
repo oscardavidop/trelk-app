@@ -155,5 +155,12 @@
   "downgrade_pending_title": "Cambio de plan programado",
   "downgrade_pending_desc": "Tu plan cambiará a",
   "downgrade_pending_at": "en tu próximo ciclo de facturación.",
-  "downgrade_effective": "Efectivo el"
+  "downgrade_effective": "Efectivo el",
+
+  "downgrade_scheduled_label": "Cambio programado",
+  "undo_downgrade": "Mantener plan actual",
+  "undo_downgrade_confirm_title": "¿Mantener plan actual?",
+  "undo_downgrade_confirm_message": "Tu plan continuará sin cambios. El downgrade programado será eliminado.",
+  "yes_keep_plan": "Sí, mantener",
+  "downgrade_cancelled_toast": "Downgrade cancelado. Tu plan se mantiene igual."
 }
