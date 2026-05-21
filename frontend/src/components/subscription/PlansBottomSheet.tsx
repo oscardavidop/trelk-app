@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import {
   X, Crown, Zap, Sparkles, Check, Loader2, Gem,
   ArrowUp, ArrowDown, Star, Clock, AlertTriangle, BadgePercent, TrendingUp,
+  CreditCard, RefreshCw,
 } from 'lucide-react';
 import type { PayPalPlan, RealSubStatus } from '../../services/subscriptionApi';
+import { createStarsInvoice, fetchRealStatus } from '../../services/subscriptionApi';
 
 // ── Plan visual metadata keyed by plan name slug from backend ──────────────
 
@@ -142,13 +144,20 @@ export default function PlansBottomSheet({
   const [selectedName, setSelectedName] = useState<string>(computeDefault);
   const [mounted, setMounted] = useState(false);
   const [animateIn, setAnimateIn] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stars'>('paypal');
+  const [starsLoading, setStarsLoading] = useState(false);
+  const [starsStatus, setStarsStatus] = useState<null | 'activating' | 'error'>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef<number | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedName(computeDefault());
       setMounted(true);
+      setPaymentMethod('paypal');
+      setStarsStatus(null);
+      setStarsLoading(false);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setAnimateIn(true));
       });
@@ -196,11 +205,88 @@ export default function PlansBottomSheet({
   const tierOrder = realPlans.map((p) => p.name.toLowerCase());
   const isUpgrade = tierOrder.indexOf(selectedName) > tierOrder.indexOf(currentTier.toLowerCase());
 
+  // ── Stars payment flow ───────────────────────────────────────────────────
+
+  // Reset payment method when plan changes
+  useEffect(() => {
+    setPaymentMethod('paypal');
+    setStarsStatus(null);
+  }, [selectedName]);
+
+  // Cleanup poll on unmount
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  const pollActivation = useCallback(() => {
+    let attempts = 0;
+    const MAX = 10; // 10 × 3s = 30s
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      try {
+        const res = await fetchRealStatus();
+        if (res.status === 'ACTIVE' || res.isPremium) {
+          clearInterval(pollRef.current!);
+          setStarsStatus(null);
+          handleClose();
+          return;
+        }
+      } catch { /* ignore */ }
+      if (attempts >= MAX) {
+        clearInterval(pollRef.current!);
+        setStarsStatus('error');
+      }
+    }, 3_000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleClose]);
+
+  const handleStarsPayment = useCallback(async () => {
+    if (!selectedPlan || starsLoading) return;
+    setStarsLoading(true);
+    setStarsStatus(null);
+
+    try {
+      const { invoiceUrl } = await createStarsInvoice(selectedPlan.name);
+
+      const tgWebApp = (window as any).Telegram?.WebApp;
+      if (!tgWebApp?.openInvoice) {
+        // Fallback for testing outside Telegram
+        window.open(invoiceUrl, '_blank');
+        setStarsLoading(false);
+        return;
+      }
+
+      tgWebApp.openInvoice(invoiceUrl, (status: string) => {
+        if (status === 'paid') {
+          setStarsStatus('activating');
+          setStarsLoading(false);
+          pollActivation();
+        } else {
+          setStarsLoading(false);
+        }
+      });
+    } catch {
+      setStarsLoading(false);
+      setStarsStatus('error');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlan, starsLoading, pollActivation]);
+
+  // Show method selector only for new subscriptions where the plan supports Stars
+  const showMethodSelector =
+    !isRealActive &&
+    !isCurrentPlan &&
+    !isBlockedByCancel &&
+    !isAlreadyScheduled &&
+    !!selectedPlan?.stars_price;
+
   // ── Handlers / labels ────────────────────────────────────────────────────
   const handleCTA = () => {
     if (!selectedPlan || isCurrentPlan || actionLoading || isBlockedByCancel || isAlreadyScheduled) return;
     if (isRealActive && realSubscriptionId && onRevise) {
       onRevise(realSubscriptionId, selectedPlan.plan_id);
+    } else if (showMethodSelector && paymentMethod === 'stars') {
+      handleStarsPayment();
     } else if (onCheckout) {
       onCheckout(selectedPlan.plan_id);
     }
@@ -211,6 +297,9 @@ export default function PlansBottomSheet({
     if (isAlreadyScheduled) return t('plan_already_scheduled', 'Scheduled for next cycle');
     if (isBlockedByCancel) return t('plan_blocked_cancel', 'Resubscribe to change plan');
     if (!selectedPlan) return t('subscribe_to', { plan: selectedName });
+    if (showMethodSelector && paymentMethod === 'stars') {
+      return t('stars_pay_cta', { amount: selectedPlan.stars_price });
+    }
     if (isRealActive) {
       return isUpgrade
         ? t('upgrade_cta', { plan: selectedPlan.displayName ?? selectedPlan.name, price: selectedPlan.price })
@@ -220,9 +309,10 @@ export default function PlansBottomSheet({
   };
 
   const ctaIcon = (): React.ReactNode => {
-    if (actionLoading) return <Loader2 size={18} className="animate-spin" />;
+    if (actionLoading || starsLoading) return <Loader2 size={18} className="animate-spin" />;
     if (isAlreadyScheduled) return <Clock size={17} strokeWidth={2.5} />;
     if (isBlockedByCancel) return <AlertTriangle size={17} strokeWidth={2.5} />;
+    if (showMethodSelector && paymentMethod === 'stars') return <Star size={17} fill="currentColor" strokeWidth={0} />;
     if (isRealActive && !isCurrentPlan) {
       return isUpgrade
         ? <ArrowUp size={17} strokeWidth={2.5} />
@@ -523,45 +613,176 @@ export default function PlansBottomSheet({
 
             {/* CTA */}
             <div className="px-4 py-3">
-              {isCurrentPlan ? (
+              {/* ── Stars activating overlay ──────────────────────────── */}
+              {starsStatus === 'activating' && (
                 <div
-                  className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex flex-col items-center justify-center gap-1.5"
                   style={{
-                    background: `${visual.color}12`,
-                    color: visual.color,
-                    border: `1px solid ${visual.color}25`,
+                    background: 'rgba(250,204,21,0.08)',
+                    border: '1px solid rgba(250,204,21,0.2)',
+                    color: '#fbbf24',
                   }}
                 >
-                  <Check size={15} strokeWidth={3} />
-                  {t('plan_current', 'Your Current Plan')}
+                  <div className="flex items-center gap-2">
+                    <Loader2 size={16} className="animate-spin" />
+                    {t('stars_activating', 'Activating subscription…')}
+                  </div>
+                  <span className="text-[11px] opacity-60 font-normal">
+                    {t('stars_processing', 'This may take a few seconds')}
+                  </span>
                 </div>
-              ) : isBlockedByCancel || isAlreadyScheduled ? (
+              )}
+
+              {/* ── Stars error ───────────────────────────────────────── */}
+              {starsStatus === 'error' && (
+                <div className="mb-2">
+                  <div
+                    className="w-full py-2.5 rounded-[14px] text-[12px] text-center flex items-center justify-center gap-2 mb-2"
+                    style={{
+                      background: 'rgba(239,68,68,0.08)',
+                      border: '1px solid rgba(239,68,68,0.2)',
+                      color: '#f87171',
+                    }}
+                  >
+                    <AlertTriangle size={13} strokeWidth={2.5} />
+                    {t('stars_activation_error', 'Could not confirm. Please refresh in a moment.')}
+                  </div>
+                  <button
+                    onClick={() => { setStarsStatus(null); setPaymentMethod('paypal'); }}
+                    className="w-full py-2.5 rounded-[14px] text-[13px] font-semibold flex items-center justify-center gap-2"
+                    style={{ background: 'rgba(125,139,151,0.1)', color: 'var(--tg-hint, #7d8b97)' }}
+                  >
+                    <RefreshCw size={13} strokeWidth={2.5} />
+                    {t('back_to_plan', 'Back to plan')}
+                  </button>
+                </div>
+              )}
+
+              {/* ── Payment method selector ───────────────────────────── */}
+              {!starsStatus && showMethodSelector && (
                 <div
-                  className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
-                  style={{
-                    background: isBlockedByCancel ? 'rgba(245,158,11,0.08)' : 'rgba(56,189,248,0.08)',
-                    color: isBlockedByCancel ? '#f59e0b' : '#38bdf8',
-                    border: isBlockedByCancel
-                      ? '1px solid rgba(245,158,11,0.2)'
-                      : '1px solid rgba(56,189,248,0.2)',
-                  }}
+                  className="flex gap-1.5 mb-3 p-1 rounded-[14px]"
+                  style={{ background: 'rgba(125,139,151,0.07)' }}
                 >
-                  {ctaIcon()}
-                  {ctaLabel()}
+                  {/* PayPal tab */}
+                  <button
+                    onClick={() => setPaymentMethod('paypal')}
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-[11px] transition-all duration-200 gap-0.5"
+                    style={{
+                      background: paymentMethod === 'paypal'
+                        ? 'rgba(0,122,255,0.1)'
+                        : 'transparent',
+                      border: paymentMethod === 'paypal'
+                        ? '1px solid rgba(0,122,255,0.25)'
+                        : '1px solid transparent',
+                    }}
+                  >
+                    <CreditCard
+                      size={14}
+                      style={{ color: paymentMethod === 'paypal' ? '#007aff' : 'var(--tg-hint, #7d8b97)', opacity: paymentMethod === 'paypal' ? 1 : 0.5 }}
+                    />
+                    <span
+                      className="text-[11px] font-bold leading-none"
+                      style={{ color: paymentMethod === 'paypal' ? '#007aff' : 'var(--tg-hint, #7d8b97)', opacity: paymentMethod === 'paypal' ? 1 : 0.5 }}
+                    >
+                      {t('payment_method_paypal', 'PayPal')}
+                    </span>
+                    <span
+                      className="text-[9px] leading-none"
+                      style={{ color: 'rgba(125,139,151,0.5)' }}
+                    >
+                      {t('payment_method_paypal_desc', 'Auto billing')}
+                    </span>
+                  </button>
+
+                  {/* Stars tab */}
+                  <button
+                    onClick={() => setPaymentMethod('stars')}
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-[11px] transition-all duration-200 gap-0.5"
+                    style={{
+                      background: paymentMethod === 'stars'
+                        ? 'rgba(250,204,21,0.1)'
+                        : 'transparent',
+                      border: paymentMethod === 'stars'
+                        ? '1px solid rgba(250,204,21,0.3)'
+                        : '1px solid transparent',
+                    }}
+                  >
+                    <Star
+                      size={14}
+                      fill={paymentMethod === 'stars' ? '#fbbf24' : 'none'}
+                      style={{ color: paymentMethod === 'stars' ? '#fbbf24' : 'var(--tg-hint, #7d8b97)', opacity: paymentMethod === 'stars' ? 1 : 0.5 }}
+                    />
+                    <span
+                      className="text-[11px] font-bold leading-none"
+                      style={{ color: paymentMethod === 'stars' ? '#fbbf24' : 'var(--tg-hint, #7d8b97)', opacity: paymentMethod === 'stars' ? 1 : 0.5 }}
+                    >
+                      {t('payment_method_stars', 'Stars')}
+                    </span>
+                    <span
+                      className="text-[9px] leading-none"
+                      style={{ color: 'rgba(125,139,151,0.5)' }}
+                    >
+                      {selectedPlan?.stars_price
+                        ? t('stars_amount', { amount: selectedPlan.stars_price })
+                        : t('stars_access_label', '30 days')}
+                    </span>
+                  </button>
                 </div>
-              ) : (
-                <button
-                  onClick={handleCTA}
-                  disabled={actionLoading || !selectedPlan}
-                  className="w-full py-3.5 rounded-[16px] text-white text-[15px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
-                  style={{
-                    background: `linear-gradient(135deg, ${visual.color} 0%, ${visual.color}cc 100%)`,
-                    boxShadow: `0 4px 20px ${visual.color}40, 0 1px 0 rgba(255,255,255,0.1) inset`,
-                  }}
-                >
-                  {ctaIcon()}
-                  {ctaLabel()}
-                </button>
+              )}
+
+              {/* Stars renewal note */}
+              {!starsStatus && showMethodSelector && paymentMethod === 'stars' && (
+                <p className="text-center text-[10px] mb-2" style={{ color: 'rgba(125,139,151,0.45)' }}>
+                  {t('stars_renewal_note', 'Manual renewal · No auto-charge')}
+                </p>
+              )}
+
+              {/* Main CTA */}
+              {!starsStatus && (
+                isCurrentPlan ? (
+                  <div
+                    className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
+                    style={{
+                      background: `${visual.color}12`,
+                      color: visual.color,
+                      border: `1px solid ${visual.color}25`,
+                    }}
+                  >
+                    <Check size={15} strokeWidth={3} />
+                    {t('plan_current', 'Your Current Plan')}
+                  </div>
+                ) : isBlockedByCancel || isAlreadyScheduled ? (
+                  <div
+                    className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
+                    style={{
+                      background: isBlockedByCancel ? 'rgba(245,158,11,0.08)' : 'rgba(56,189,248,0.08)',
+                      color: isBlockedByCancel ? '#f59e0b' : '#38bdf8',
+                      border: isBlockedByCancel
+                        ? '1px solid rgba(245,158,11,0.2)'
+                        : '1px solid rgba(56,189,248,0.2)',
+                    }}
+                  >
+                    {ctaIcon()}
+                    {ctaLabel()}
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleCTA}
+                    disabled={actionLoading || starsLoading || !selectedPlan}
+                    className="w-full py-3.5 rounded-[16px] text-white text-[15px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
+                    style={paymentMethod === 'stars' && showMethodSelector ? {
+                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                      boxShadow: '0 4px 20px rgba(251,191,36,0.35), 0 1px 0 rgba(255,255,255,0.1) inset',
+                    } : {
+                      background: `linear-gradient(135deg, ${visual.color} 0%, ${visual.color}cc 100%)`,
+                      boxShadow: `0 4px 20px ${visual.color}40, 0 1px 0 rgba(255,255,255,0.1) inset`,
+                    }}
+                  >
+                    {ctaIcon()}
+                    {ctaLabel()}
+                  </button>
+                )
               )}
             </div>
           </div>
@@ -633,7 +854,9 @@ export default function PlansBottomSheet({
           className="text-[11px] text-center pb-3 px-6 font-medium"
           style={{ color: 'rgba(125,139,151,0.38)' }}
         >
-          {t('paypal_billing_note', 'Billed monthly via PayPal · Cancel anytime')}
+          {showMethodSelector && paymentMethod === 'stars'
+            ? t('stars_renewal_note', 'Manual renewal · No auto-charge')
+            : t('paypal_billing_note', 'Billed monthly via PayPal · Cancel anytime')}
         </p>
       </div>
     </div>

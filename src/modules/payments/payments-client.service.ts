@@ -206,6 +206,27 @@ export class PaymentsClientService {
     );
   }
 
+  // ── Telegram Stars ─────────────────────────────────────────────────────
+
+  /**
+   * Creates a Telegram Stars invoice link for the given plan.
+   * Returns { invoiceUrl, planName, starsAmount, priceUsd }.
+   */
+  async createStarsInvoice(telegramId: number, planName: string): Promise<{
+    invoiceUrl: string;
+    planName: string;
+    starsAmount: number;
+    priceUsd: number;
+  }> {
+    const idempotencyKey = this.idempotencyKey('stars-invoice', telegramId, planName);
+    return this.request(
+      'POST',
+      '/telegram-payment/invoice/create',
+      { tg_id: telegramId, plan_name: planName },
+      { auth: true, idempotencyKey },
+    );
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────
 
   private async request<T>(

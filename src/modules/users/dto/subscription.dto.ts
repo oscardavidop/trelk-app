@@ -92,3 +92,11 @@ export class CancelDowngradeAppDto {
   @IsUrl({ require_tld: false }, { message: 'cancel_url must be a valid URL' })
   cancel_url: string;
 }
+
+/** DTO para iniciar pago con Telegram Stars */
+export class StarsInvoiceDto {
+  /** Plan name slug: basic | pro | ultra */
+  @IsString()
+  @IsNotEmpty()
+  plan_name: string;
+}

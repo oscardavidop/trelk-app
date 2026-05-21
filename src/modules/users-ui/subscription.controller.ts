@@ -23,6 +23,7 @@ import {
   CancelActiveSubscriptionDto,
   ResumeSubscriptionDto,
   CancelDowngradeAppDto,
+  StarsInvoiceDto,
 } from '../users/dto/subscription.dto';
 import { AppError, ErrorCode } from '../../common/errors';
 import { ConfigService } from '@nestjs/config';
@@ -250,6 +251,25 @@ export class SubscriptionController {
       requiresApproval: result.requiresApproval,
       status: result.requiresApproval ? 'approval_required' : 'downgrade_cancelled',
     };
+  }
+
+  // ── Telegram Stars invoice ───────────────────────────────────────────────
+
+  /**
+   * POST /api/v1/ui/subscription/stars/invoice
+   *
+   * Creates a Telegram Stars invoice link for the given plan.
+   * The Mini App passes the returned invoiceUrl to Telegram.WebApp.openInvoice().
+   *
+   * On successful payment, the bot forwards the event to the payments backend,
+   * which activates the subscription. The Mini App can poll /status to confirm.
+   */
+  @Post('stars/invoice')
+  async createStarsInvoice(@Body() dto: StarsInvoiceDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+    const result = await this.paymentsClient.createStarsInvoice(telegramId, dto.plan_name);
+    this.logger.log(`Stars invoice created for user ${telegramId}: plan=${dto.plan_name}`);
+    return { ok: true, ...result };
   }
 
   // ── Historial de billing ─────────────────────────────────────────────────

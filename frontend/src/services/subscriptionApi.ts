@@ -98,6 +98,8 @@ export interface PayPalPlan {
   price: number;
   currency: string;
   displayName: string;
+  /** Number of Telegram Stars to pay for 30 days — undefined if Stars not available */
+  stars_price?: number;
 }
 
 export interface RealSubscription {
@@ -241,5 +243,26 @@ export function cancelScheduledDowngrade(
   return json(`${BASE}/cancel-downgrade`, {
     method: 'POST',
     body: JSON.stringify({ subscription_id, return_url, cancel_url }),
+  });
+}
+
+// ── Telegram Stars ────────────────────────────────────────────────────────
+
+export interface StarsInvoiceResponse {
+  ok: boolean;
+  invoiceUrl: string;
+  planName: string;
+  starsAmount: number;
+  priceUsd: number;
+}
+
+/**
+ * Creates a Telegram Stars invoice link for the given plan.
+ * Pass the returned invoiceUrl to Telegram.WebApp.openInvoice().
+ */
+export function createStarsInvoice(plan_name: string): Promise<StarsInvoiceResponse> {
+  return json(`${BASE}/stars/invoice`, {
+    method: 'POST',
+    body: JSON.stringify({ plan_name }),
   });
 }

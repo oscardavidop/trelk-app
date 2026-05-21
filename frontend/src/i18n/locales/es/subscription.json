@@ -189,5 +189,21 @@
   "timeline_access_ends_label": "Acceso termina",
 
   "plan_already_scheduled": "Ya programado para el próximo ciclo",
-  "plan_blocked_cancel": "Vuelvete a suscribir para cambiar de plan"
+  "plan_blocked_cancel": "Vuelvete a suscribir para cambiar de plan",
+
+  "payment_method_label": "Pagar con",
+  "payment_method_paypal": "PayPal",
+  "payment_method_stars": "Telegram Stars",
+  "payment_method_paypal_desc": "Facturación mensual automática",
+  "payment_method_stars_desc": "Un solo pago · 30 días de acceso",
+  "stars_amount": "{{amount}} Stars",
+  "stars_pay_cta": "Pagar {{amount}} Stars",
+  "stars_processing": "Abriendo pago…",
+  "stars_success": "¡Pago recibido!",
+  "stars_activating": "Activando suscripción…",
+  "stars_activation_error": "No se pudo confirmar el pago. Por favor recarga en un momento.",
+  "stars_not_available": "Telegram Stars no disponible para este plan",
+  "stars_access_label": "30 días de acceso",
+  "stars_renewal_note": "Renovación manual · Sin cargo automático",
+  "back_to_plan": "Volver al plan"
 }
