@@ -162,5 +162,9 @@
   "undo_downgrade_confirm_title": "¿Mantener plan actual?",
   "undo_downgrade_confirm_message": "Tu plan continuará sin cambios. El downgrade programado será eliminado.",
   "yes_keep_plan": "Sí, mantener",
-  "downgrade_cancelled_toast": "Downgrade cancelado. Tu plan se mantiene igual."
+  "downgrade_cancelled_toast": "Downgrade cancelado. Tu plan se mantiene igual.",
+
+  "revise_blocked_cancellation": "No puedes cambiar de plan mientras hay una cancelación pendiente. Vuelve a suscribirte para continuar.",
+  "billing_preview_label": "Próximo cargo",
+  "billing_preview_changing": "Cambiando a"
 }

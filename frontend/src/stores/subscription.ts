@@ -66,8 +66,8 @@ interface SubscriptionState {
   /** Reanuda una suscripción suspendida. */
   resume: (subscriptionId: string) => Promise<void>;
 
-  /** Cancela un downgrade programado. */
-  cancelDowngrade: (subscriptionId: string) => Promise<void>;
+  /** Cancela un downgrade programado. Devuelve approvalUrl si PayPal requiere aprobación del usuario. */
+  cancelDowngrade: (subscriptionId: string, returnUrl: string, cancelUrl: string) => Promise<ReviseResponse>;
 
   /** Inicia polling hasta que status sea ACTIVE (máx. 60 intentos × 3s = 3 min). */
   startPolling: (subscriptionId: string) => void;
@@ -212,12 +212,16 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
   // ── Cancel Downgrade ────────────────────────────────────────────────────
 
-  cancelDowngrade: async (subscriptionId) => {
+  cancelDowngrade: async (subscriptionId, returnUrl, cancelUrl) => {
     set({ actionLoading: true });
     try {
-      await apiCancelDowngrade(subscriptionId);
+      const res = await apiCancelDowngrade(subscriptionId, returnUrl, cancelUrl);
       set({ actionLoading: false });
-      await get().loadRealStatus();
+      // If no approval needed, PayPal already updated → reload status
+      if (!res.approvalUrl) {
+        await get().loadRealStatus();
+      }
+      return res;
     } catch (e) {
       set({ actionLoading: false });
       throw e;

@@ -53,6 +53,7 @@ export interface ProFeatures {
     used_commands?: number;
   };
   subscription: {
+    price: number;
     tier: PlanTier;
     started_at: string;
     expires_at?: string;
@@ -112,6 +113,13 @@ export interface RealSubscription {
   cancel_at_period_end: boolean;
   /** Non-null = a plan downgrade is scheduled for next billing cycle */
   scheduled_plan_id: string | null;
+  /** Next charge preview — uses scheduled plan price when a downgrade is pending */
+  billing_preview?: {
+    plan_id: string;
+    amount: number;
+    currency: string;
+    date: string | null;
+  } | null;
 }
 
 export interface RealStatusResponse {
@@ -225,9 +233,13 @@ export function resumeRealSubscription(subscription_id: string): Promise<{ ok: b
 
 // ── Cancel scheduled downgrade ───────────────────────────────────────────
 
-export function cancelScheduledDowngrade(subscription_id: string): Promise<{ ok: boolean }> {
+export function cancelScheduledDowngrade(
+  subscription_id: string,
+  return_url: string,
+  cancel_url: string,
+): Promise<ReviseResponse> {
   return json(`${BASE}/cancel-downgrade`, {
     method: 'POST',
-    body: JSON.stringify({ subscription_id }),
+    body: JSON.stringify({ subscription_id, return_url, cancel_url }),
   });
 }

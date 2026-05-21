@@ -22,6 +22,7 @@ import {
   ReviseSubscriptionDto,
   CancelActiveSubscriptionDto,
   ResumeSubscriptionDto,
+  CancelDowngradeAppDto,
 } from '../users/dto/subscription.dto';
 import { AppError, ErrorCode } from '../../common/errors';
 import { ConfigService } from '@nestjs/config';
@@ -234,11 +235,21 @@ export class SubscriptionController {
    * Cancela un downgrade programado — el usuario mantiene su plan actual.
    */
   @Post('cancel-downgrade')
-  async cancelDowngrade(@Body() dto: CancelActiveSubscriptionDto, @Req() req: any) {
+  async cancelDowngrade(@Body() dto: CancelDowngradeAppDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
-    await this.paymentsClient.cancelScheduledDowngrade(telegramId, dto.subscription_id);
-    this.logger.log(`Scheduled downgrade cancelled for user ${telegramId}: sub=${dto.subscription_id}`);
-    return { ok: true, status: 'downgrade_cancelled' };
+    const result = await this.paymentsClient.cancelScheduledDowngrade(
+      telegramId,
+      dto.subscription_id,
+      dto.return_url,
+      dto.cancel_url,
+    );
+    this.logger.log(`Scheduled downgrade cancelled for user ${telegramId}: sub=${dto.subscription_id} requiresApproval=${result.requiresApproval}`);
+    return {
+      ok: true,
+      approvalUrl: result.approvalUrl,
+      requiresApproval: result.requiresApproval,
+      status: result.requiresApproval ? 'approval_required' : 'downgrade_cancelled',
+    };
   }
 
   // ── Historial de billing ─────────────────────────────────────────────────

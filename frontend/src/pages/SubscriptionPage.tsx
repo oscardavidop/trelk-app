@@ -305,15 +305,22 @@ export default function SubscriptionPage() {
             action: async () => {
                 if (!realSub?.id) return;
                 try {
-                    await cancelDowngrade(realSub.id);
-                    showToast(t('downgrade_cancelled_toast', 'Scheduled downgrade cancelled. Your plan stays the same.'), 'success');
-                    haptic?.notificationOccurred('success');
+                    const { return_url, cancel_url } = buildUrls();
+                    const result = await cancelDowngrade(realSub.id, return_url, cancel_url);
+                    if (result.approvalUrl) {
+                        haptic?.notificationOccurred('success');
+                        showToast(t('paypal_opening', 'Opening PayPal... Approve to keep your current plan.'), 'info');
+                        webApp?.openLink(result.approvalUrl);
+                    } else {
+                        showToast(t('downgrade_cancelled_toast', 'Scheduled downgrade cancelled. Your plan stays the same.'), 'success');
+                        haptic?.notificationOccurred('success');
+                    }
                 } catch (e: any) {
                     showToast(e.message || 'Error', 'error');
                 }
             },
         });
-    }, [realSub, cancelDowngrade, showToast, haptic, t]);
+    }, [realSub, cancelDowngrade, buildUrls, showToast, haptic, t, webApp]);
 
     // ── Loading state ─────────────────────────────
     if ((loading && !features) || (realLoading && realStatus === 'FREE' && !features)) {

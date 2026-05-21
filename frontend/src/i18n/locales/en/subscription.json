@@ -157,5 +157,9 @@
   "undo_downgrade_confirm_title": "Keep current plan?",
   "undo_downgrade_confirm_message": "Your plan will continue without changes. The scheduled downgrade will be removed.",
   "yes_keep_plan": "Yes, keep plan",
-  "downgrade_cancelled_toast": "Scheduled downgrade cancelled. Your plan stays the same."
+  "downgrade_cancelled_toast": "Scheduled downgrade cancelled. Your plan stays the same.",
+
+  "revise_blocked_cancellation": "Cannot change plan while cancellation is pending. Resubscribe to continue.",
+  "billing_preview_label": "Next charge",
+  "billing_preview_changing": "Changing to"
 }

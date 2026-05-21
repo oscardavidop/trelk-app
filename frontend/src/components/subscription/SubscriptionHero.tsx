@@ -200,8 +200,8 @@ export default function SubscriptionHero({
     ? plans.find((p) => p.plan_id === realSub.scheduled_plan_id)
     : null;
 
-  const price = realSub?.amount
-    ? `$${realSub.amount}`
+  const price = subscription?.price
+    ? `$${subscription.price.toFixed(2)}`
     : null;
 
   const statusText =
@@ -353,7 +353,11 @@ export default function SubscriptionHero({
                     {t('downgrade_scheduled_label', 'Scheduled Change')}
                   </div>
                   <div className="text-[13px] font-semibold text-white/80">
-                    → {scheduledPlanMeta.displayName} · {formatDate(realSub?.next_billing_date)}
+                    → {scheduledPlanMeta.displayName}
+                    {scheduledPlanMeta.price > 0 && (
+                      <span className="text-white/55"> · ${scheduledPlanMeta.price.toFixed(2)}/{t('per_month_short', 'mo')}</span>
+                    )}
+                    <span className="text-white/40"> · {formatDate(realSub?.next_billing_date)}</span>
                   </div>
                 </div>
               </div>

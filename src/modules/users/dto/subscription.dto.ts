@@ -76,3 +76,19 @@ export class ResumeSubscriptionDto {
   // @Matches(/^I-[A-Z0-9]{8,}$/, { message: 'subscription_id must be a valid PayPal subscription ID (I-...)' })
   subscription_id: string;
 }
+
+/** DTO para cancelar un downgrade pendiente (volver al plan actual) */
+export class CancelDowngradeAppDto {
+  /** PayPal subscription ID (I-...) */
+  @IsString()
+  @IsNotEmpty()
+  subscription_id: string;
+
+  /** URL de retorno PayPal tras aprobación */
+  @IsUrl({ require_tld: false }, { message: 'return_url must be a valid URL' })
+  return_url: string;
+
+  /** URL de cancelación PayPal */
+  @IsUrl({ require_tld: false }, { message: 'cancel_url must be a valid URL' })
+  cancel_url: string;
+}
