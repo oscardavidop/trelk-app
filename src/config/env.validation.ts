@@ -30,7 +30,7 @@ export const envValidationSchema = Joi.object({
   BOT_TOKEN: Joi.string().required().messages({
     'any.required': 'BOT_TOKEN de Telegram es obligatorio',
   }),
-  TG_AUTH_MAX_AGE: Joi.number().default(86400),
+  TG_AUTH_MAX_AGE: Joi.number().min(1800).max(604800).default(86400),
 
   // === Redis (opcional en dev, requerido en prod) ===
   REDIS_HOST: Joi.string().default('localhost'),

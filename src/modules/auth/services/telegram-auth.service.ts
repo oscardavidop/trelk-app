@@ -36,10 +36,33 @@ export interface TelegramInitDataResult {
 @Injectable()
 export class TelegramAuthService {
   private readonly logger = new Logger(TelegramAuthService.name);
+  private authAgeBoundsWarned = false;
 
   /** Tiempo máximo permitido para auth_date */
   private get MAX_AUTH_AGE_SECONDS(): number {
-    return this.configService.get<number>('TG_AUTH_MAX_AGE', 86400);
+    const configured = Number(this.configService.get<number>('TG_AUTH_MAX_AGE', 86400));
+    const fallback = 86400; // 24h
+    const minAllowed = 1800; // 30m
+    const maxAllowed = 604800; // 7d
+
+    if (!Number.isFinite(configured) || configured <= 0) {
+      if (!this.authAgeBoundsWarned) {
+        this.authAgeBoundsWarned = true;
+        this.logger.warn(`TG_AUTH_MAX_AGE inválido (${configured}). Usando fallback ${fallback}s.`);
+      }
+      return fallback;
+    }
+
+    const bounded = Math.min(Math.max(configured, minAllowed), maxAllowed);
+
+    if (bounded !== configured && !this.authAgeBoundsWarned) {
+      this.authAgeBoundsWarned = true;
+      this.logger.warn(
+        `TG_AUTH_MAX_AGE fuera de rango (${configured}). Ajustado a ${bounded}s (rango permitido ${minAllowed}-${maxAllowed}).`,
+      );
+    }
+
+    return bounded;
   }
 
   /** Bot token cargado desde ConfigService */
@@ -124,7 +147,7 @@ export class TelegramAuthService {
       throw new UnauthorizedException('INIT_DATA_USER_ID_INVALID');
     }
 
-    if (!user.first_name) {
+    if (!user.data || typeof user.data.first_name !== 'string') {
       throw new UnauthorizedException('INIT_DATA_USER_NAME_MISSING');
     }
 
