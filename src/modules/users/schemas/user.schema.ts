@@ -144,6 +144,13 @@ export function getPlanTemplate(tier: PlanTier): IUserProFeatures {
   return { ...base, ...overlay, limits: { ...base.limits, ...(overlay as any).limits }, performance: { ...base.performance, ...(overlay as any).performance }, support: { ...base.support, ...(overlay as any).support }, custom_commands: { ...base.custom_commands, ...(overlay as any).custom_commands } } as IUserProFeatures;
 }
 
+interface UserData {
+  first_name: string;
+  last_name?: string;
+  photo_url?: string;
+  username?: string;
+}
+
 @Schema({ timestamps: true })
 export class User {
 
@@ -154,20 +161,8 @@ export class User {
   @Prop({ unique: true, sparse: true, index: true })
   telegramId: number;
 
-  @Prop({ unique: true, required: false, index: true })
-  customerId: string;
-
-  @Prop()
-  firstName: string;
-
-  @Prop()
-  lastName: string;
-
-  @Prop()
-  username: string;
-
-  @Prop()
-  photoUrl: string;
+  @Prop({ type: Object, default: {} })
+  data: UserData;
 
   @Prop({ default: false })
   isPremium: boolean;

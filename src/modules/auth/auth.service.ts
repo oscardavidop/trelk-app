@@ -35,8 +35,10 @@ export interface LoginResult {
   user: {
     id: number;
     telegramId: number;
-    firstName: string;
-    lastName: string;
+    data: {
+      first_name: string;
+      last_name?: string;
+    };
     username: string;
     photoUrl: string;
     lang: string;
@@ -111,10 +113,12 @@ export class AuthService {
       user: {
         id: user.id,
         telegramId: user.telegramId,
-        firstName: user.firstName,
-        lastName: user.lastName ?? '',
-        username: user.username ?? '',
-        photoUrl: user.photoUrl ?? '',
+        data: {
+          first_name: user.data?.first_name ?? '',
+          last_name: user.data?.last_name ?? '',
+        },
+        username: user.data?.username ?? '',
+        photoUrl: user.data?.photo_url ?? '',
         lang: user.config?.locale?.lang ?? 'en',
         tz: user.config?.locale?.tz ?? 'UTC',
         preferences: user.preferences ?? {},
@@ -140,7 +144,7 @@ export class AuthService {
     const payload: JwtPayloadCustom = {
       sub: user._id.toString(),
       telegramId: user.telegramId,
-      username: user.username ?? '',
+      username: user.data.username ?? '',
       jti,
       iat: now,
       exp: now + this.JWT_EXPIRATION,
@@ -160,8 +164,9 @@ export class AuthService {
       revoked: false,
       userTlg: {
         id: user.telegramId,
-        firstName: user.firstName,
-        username: user.username,
+        firstName: user.data?.first_name ?? '',
+        lastName: user.data?.last_name ?? '',
+        username: user.data?.username ?? '',
       },
     });
 

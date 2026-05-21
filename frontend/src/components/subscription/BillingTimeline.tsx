@@ -41,6 +41,8 @@ export default function BillingTimeline({ currentTier, realStatus, realSub, plan
         ? 'ultra'
         : (scheduledPlan.displayName ?? scheduledPlan.name).toLowerCase().includes('pro')
         ? 'pro'
+        : (scheduledPlan.displayName ?? scheduledPlan.name).toLowerCase().includes('basic')
+        ? 'basic'
         : 'free')
     : ('free' as PlanTier);
 

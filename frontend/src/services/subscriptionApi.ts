@@ -20,7 +20,7 @@ async function json<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
 }
 
 // ── Types (local pro_features) ────────────────────────────────────────────
-export type PlanTier = 'free' | 'pro' | 'ultra';
+export type PlanTier = 'free' | 'basic' | 'pro' | 'ultra';
 
 export interface LimitCounter {
   total: number;

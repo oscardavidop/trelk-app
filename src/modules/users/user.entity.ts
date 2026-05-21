@@ -7,8 +7,8 @@ export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ unique: true, required: false, index: true })
-  customerId: string;
+  // @Prop({ unique: true, required: false, index: true })
+  // customerId: string;
 
   // Aquí puedes agregar más campos si aparecen más adelante
 }

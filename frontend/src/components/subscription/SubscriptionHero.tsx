@@ -34,6 +34,15 @@ const TIER_META: Record<
     icon: React.ReactNode;
   }
 > = {
+  basic: {
+    label: 'Basic',
+    color: '#38bdf8',
+    soft: 'rgba(56,189,248,0.14)',
+    gradient:
+      'radial-gradient(circle at top right, rgba(56,189,248,0.16), transparent 35%), linear-gradient(135deg, rgba(10,26,38,0.98), rgba(6,18,28,0.96))',
+    icon: <Zap size={24} className="text-sky-400" />,
+  },
+
   free: {
     label: 'Free',
     color: '#9ca3af',

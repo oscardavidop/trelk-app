@@ -114,6 +114,7 @@ export class UserController {
         break;
 
       case 'auth':
+        console.log('Auth request received with initData:', req.body.initData);
         // req.telegramUser viene de DynamicAuthGuard → TelegramAuthService (HMAC validado)
         const tgUser = req.telegramUser;
         if (!tgUser || !tgUser.id) {

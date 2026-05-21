@@ -3,7 +3,7 @@ import { Crown, Zap, Sparkles, Check, X, Loader2 } from 'lucide-react';
 import type { PayPalPlan, RealSubStatus } from '../services/subscriptionApi';
 
 
-type PlanTier = 'free' | 'pro' | 'ultra';
+type PlanTier = 'free' | 'basic' | 'pro' | 'ultra';
 
 interface Plan {
   tier: PlanTier;

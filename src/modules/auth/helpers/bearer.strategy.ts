@@ -75,8 +75,9 @@ export class BearerStrategy extends PassportStrategy(Strategy, 'bearer') {
             authUser: user.toObject(),
             authTelegram: tokenDoc.userTlg || {
                 id: user.telegramId || user.id,
-                first_name: user.firstName,
-                username: user.username,
+                first_name: user.data?.first_name ?? '',
+                last_name: user.data?.last_name ?? '',
+                username: user.data?.username ?? '',
             },
         };
 

@@ -34,14 +34,19 @@ export class UserStatsService {
 
     const users = await this.userModel
       .find({ $or: [{ telegramId: { $in: unique } }, { id: { $in: unique } }] })
-      .select('telegramId id firstName lastName username photoUrl')
+      .select('telegramId id data username photoUrl')
       .lean()
       .exec();
 
     const map = new Map<number, { firstName: string; lastName?: string; username?: string; photoUrl?: string }>();
     for (const u of users) {
       const key = u.telegramId ?? (u as any).id;
-      if (key) map.set(key, { firstName: u.firstName, lastName: u.lastName, username: u.username, photoUrl: u.photoUrl });
+      if (key) map.set(key, { 
+        firstName: u.data?.first_name ?? '',
+        lastName: u.data?.last_name ?? '',
+        username: u.data?.username ?? '',
+        photoUrl: u.data?.photo_url ?? '',
+       });
     }
     return map;
   }

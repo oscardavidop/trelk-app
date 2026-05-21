@@ -43,13 +43,27 @@ export class UserService {
     const existing = await this.userModel.findOne({ id: tgUser.id }).exec();
 
     if (existing) {
+      // console.log('existing user found, updating profile if needed', existing, tgUser);
       // Actualizar campos que pudieron cambiar en Telegram
-      existing.firstName = tgUser.first_name;
-      existing.lastName = tgUser.last_name ?? '';
-      existing.username = tgUser.username ?? '';
-      existing.photoUrl = tgUser.photo_url ?? '';
-      // existing.languageCode = tgUser.language_code ?? '';
-      existing.isPremium = tgUser.is_premium ?? false;
+      if (typeof existing.data === 'object' && existing.data !== null) {
+        // Nos aseguramos de tratar a existing.data como el objeto que esperamos
+        const dataObj = existing.data as { first_name?: string; last_name?: string };
+
+        if ('first_name' in dataObj) {
+          // Asignamos usando los datos de tgUser y protegiendo valores nulos/indefinidos
+          dataObj.first_name = tgUser.first_name ?? (dataObj.first_name || '');
+          dataObj.last_name = tgUser.last_name ?? (dataObj.last_name || '');
+        }
+      }
+
+      existing.data = {
+        first_name: tgUser.first_name ?? existing.data?.first_name ?? '',
+        last_name: tgUser.last_name ?? existing.data?.last_name ?? '',
+        username: tgUser.username ?? existing.data?.username,
+        photo_url: tgUser.photo_url ?? existing.data?.photo_url,
+      };
+      // existing.languageCode = tgUser.language_code ?? existing.languageCode;
+      existing.isPremium = tgUser.is_premium ?? existing.isPremium;
       existing.lastLoginAt = new Date();
       return existing.save();
     }
@@ -58,13 +72,15 @@ export class UserService {
     const newUser = new this.userModel({
       id: tgUser.id,
       telegramId: tgUser.id,
-      firstName: tgUser.first_name,
-      lastName: tgUser.last_name ?? '',
-      username: tgUser.username ?? '',
-      photoUrl: tgUser.photo_url ?? '',
-      // languageCode: tgUser.language_code ?? '',
+      data: {
+        first_name: tgUser.first_name,
+        last_name: tgUser.last_name ?? '',
+        username: tgUser.username ?? '',
+        photo_url: tgUser.photo_url ?? '',
+      },
       isPremium: tgUser.is_premium ?? false,
-      lang: tgUser.language_code ?? 'es',
+      lang: tgUser.language_code ?? 'en',
+      // tz: tgUser.locale?.tz ?? 'UTC',
       lastLoginAt: new Date(),
     });
     return newUser.save();
@@ -126,9 +142,9 @@ export class UserService {
    */
   async updateProfile(userId: number, profileData: { firstName?: string; lastName?: string; email?: string }) {
     const updateFields: Record<string, any> = {};
-    if (profileData.firstName !== undefined) updateFields.firstName = profileData.firstName;
-    if (profileData.lastName !== undefined) updateFields.lastName = profileData.lastName;
-    if (profileData.email !== undefined) updateFields.email = profileData.email;
+    if (profileData.firstName !== undefined) updateFields['data.first_name'] = profileData.firstName;
+    if (profileData.lastName !== undefined) updateFields['data.last_name'] = profileData.lastName;
+    if (profileData.email !== undefined) updateFields['data.email'] = profileData.email;
 
     if (Object.keys(updateFields).length === 0) {
       return { modifiedCount: 0 };
@@ -414,8 +430,12 @@ export class UserService {
     return {
       pro_features: features,
       limits_reset_date: today,
-      firstName: user.firstName,
-      username: user.username,
+      data: {
+        first_name: user.data?.first_name ?? '',
+        last_name: user.data?.last_name ?? '',
+      },
+      username: user.data?.username,
+      photoUrl: user.data?.photo_url,
       isPremium: user.isPremium,
     };
   }

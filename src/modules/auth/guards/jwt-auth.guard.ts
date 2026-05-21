@@ -49,18 +49,6 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     
 }
 
-// @Injectable()
-// export class SkipAuthGuard extends AuthGuard("jwt") {
-//     constructor() {
-//         super();
-//     }
-
-//     handleRequest(err, user, info, context: ExecutionContext) {
-//         const request = context.switchToHttp().getRequest();
-//         const handler = context.getHandler().name;
-
-//     }
-// }
 
 function fixEncoding(text: string | undefined): string {
     if (!text) return '';
