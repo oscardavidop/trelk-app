@@ -260,25 +260,28 @@ export default function PlansBottomSheet({
       >
         {/* Drag handle */}
         <div
-          className="flex justify-center pt-3 pb-1 flex-shrink-0 sticky top-0 z-10"
+          className="flex justify-center pt-2 pb-1 flex-shrink-0 sticky top-0 z-10"
           style={{ background: 'var(--tg-bg, #1a1b1c)' }}
         >
           <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(125,139,151,0.3)' }} />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-2 pb-3 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 pt-2 pb-5 flex-shrink-0">
           <div>
-            <h2 className="text-[18px] font-bold text-tg-text leading-tight">
-              ✨ {t('choose_plan', 'Upgrade Your Experience')}
+            <h2 className="text-[24px] font-bold text-tg-text leading-tight">
+              {t('choose_plan', 'Upgrade Your Experience')}
             </h2>
+            <p className="text-[13px] text-tg-hint mt-0.5">
+              {t('choose_plan_subtitle', 'Upgrade anytime · Cancel anytime')}
+            </p>
           </div>
           <button
             onClick={handleClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+            className="w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform"
             style={{ background: 'rgba(125,139,151,0.15)' }}
           >
-            <X size={15} className="text-tg-hint" />
+            <X size={17} className="text-tg-hint" />
           </button>
         </div>
 
@@ -332,11 +335,11 @@ export default function PlansBottomSheet({
 
                   {/* Price */}
                   <span
-                    className="text-[11px] font-semibold leading-none"
+                    className="text-[16px] font-semibold leading-none"
                     style={{ color: isSel ? 'var(--tg-text, #fff)' : 'rgba(125,139,151,0.45)' }}
                   >
                     ${plan.price}
-                    <span className="text-[9px] opacity-55">/mo</span>
+                    <span className="text-[10px] opacity-60">/mo</span>
                   </span>
 
                   {/* Badge — shown only when selected */}
@@ -356,6 +359,29 @@ export default function PlansBottomSheet({
               );
             })}
           </div>
+
+          {/* Scroll-indicator dots (only shown for 3+ plans) */}
+          {realPlans.length > 2 && (
+            <div className="flex justify-center gap-1.5 mt-3.5 px-5">
+              {realPlans.map((p) => {
+                const active = p.name.toLowerCase() === selectedName;
+                return (
+                  <button
+                    key={p.plan_id}
+                    onClick={() => setSelectedName(p.name.toLowerCase())}
+                    className="rounded-full transition-all duration-200"
+                    style={{
+                      width: active ? '20px' : '6px',
+                      height: '6px',
+                      background: active
+                        ? getVisualMeta(p.name.toLowerCase()).color
+                        : 'rgba(125,139,151,0.22)',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── SELECTED PLAN DETAIL CARD ───────────────────────────────────── */}
@@ -400,8 +426,8 @@ export default function PlansBottomSheet({
 
                 {/* Name + badges + price */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                    <span className="text-[18px] font-bold text-tg-text leading-none">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-[21px] font-bold text-tg-text leading-none">
                       {selectedPlan?.displayName ?? selectedName}
                     </span>
 
@@ -452,10 +478,10 @@ export default function PlansBottomSheet({
                   </div>
 
                   <div className="flex items-baseline gap-1">
-                    <span className="text-[22px] font-bold text-tg-text leading-none">
+                    <span className="text-[27px] font-bold text-tg-text leading-none">
                       {selectedPlan ? `$${selectedPlan.price}` : '—'}
                     </span>
-                    <span className="text-[12px] text-tg-hint font-medium">
+                    <span className="text-[13px] text-tg-hint font-medium">
                       {t('per_month', '/month')}
                     </span>
                   </div>
@@ -483,7 +509,7 @@ export default function PlansBottomSheet({
                     />
                   </div>
                   <span
-                    className="text-[13px] leading-tight font-medium"
+                    className="text-[14px] leading-tight font-medium"
                     style={{
                       color: f.included ? 'var(--tg-text, #ffffff)' : 'rgba(125,139,151,0.38)',
                       textDecoration: f.included ? 'none' : 'line-through',
@@ -541,9 +567,19 @@ export default function PlansBottomSheet({
           </div>
 
           {/* ── FREE PLAN (secondary option) ──────────────────────────────── */}
-          <div className="mt-3.5">
+          <div className="mt-5 mb-2">
+            {/* Divider */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px" style={{ background: 'rgba(125,139,151,0.1)' }} />
+              <span className="text-[11px] font-semibold text-tg-hint opacity-45 uppercase tracking-wider">
+                {t('or_continue_free', 'or continue with')}
+              </span>
+              <div className="flex-1 h-px" style={{ background: 'rgba(125,139,151,0.1)' }} />
+            </div>
+
+            {/* Free card */}
             <div
-              className="rounded-[16px] px-3.5 py-2.5 flex items-center gap-3"
+              className="rounded-[20px] p-3 flex items-center gap-4"
               style={{
                 background: 'rgba(125,139,151,0.05)',
                 border: currentTier === 'free'
@@ -551,21 +587,50 @@ export default function PlansBottomSheet({
                   : '1px solid rgba(125,139,151,0.08)',
               }}
             >
-              <Zap size={15} className="text-gray-500 flex-shrink-0" />
-              <span className="text-[13px] font-semibold text-tg-hint opacity-55 flex-1">
-                {t('plan_free', 'Free')}
-                {currentTier === 'free' && (
-                  <span className="ml-2 text-[10px] font-bold opacity-60">·  {t('plan_current', 'Current')}</span>
-                )}
-              </span>
-              <span className="text-[12px] font-semibold text-tg-hint opacity-35">$0/mo</span>
+              <div
+                className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'rgba(156,163,175,0.08)',
+                  border: '1px solid rgba(156,163,175,0.16)',
+                }}
+              >
+                <Zap size={17} className="text-gray-500" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[15px] font-bold text-tg-hint opacity-70">
+                    {t('plan_free', 'Free')}
+                  </span>
+                  {currentTier === 'free' && (
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                      style={{
+                        background: 'rgba(156,163,175,0.12)',
+                        color: '#9ca3af',
+                        border: '1px solid rgba(156,163,175,0.2)',
+                      }}
+                    >
+                      {t('plan_current', 'Current')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[12px] text-tg-hint opacity-50 leading-tight">
+                  {t('free_plan_limits', 'Limited features · No payment needed')}
+                </p>
+              </div>
+
+              <div className="text-right flex-shrink-0">
+                <span className="text-[18px] font-bold text-tg-hint opacity-40">$0</span>
+                <p className="text-[10px] text-tg-hint opacity-35">/mo</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Billing note */}
         <p
-          className="text-[11px] text-center pb-5 px-6 font-medium"
+          className="text-[11px] text-center pb-3 px-6 font-medium"
           style={{ color: 'rgba(125,139,151,0.38)' }}
         >
           {t('paypal_billing_note', 'Billed monthly via PayPal · Cancel anytime')}
