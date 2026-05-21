@@ -157,8 +157,16 @@ export default function SubscriptionSettings({
                   <div className="text-[13px] text-tg-hint mt-0.5">
                     {new Date(realSub.next_billing_date).toLocaleDateString()} ·{' '}
                     <span className="font-semibold text-tg-text">
-                      {realSub.currency} {realSub.amount?.toFixed(2)}
+                      {/* Use billing_preview.amount (reflects scheduled downgrade price) over current amount */}
+                      {realSub.billing_preview
+                        ? `${realSub.billing_preview.currency} ${realSub.billing_preview.amount.toFixed(2)}`
+                        : `${realSub.currency} ${realSub.amount?.toFixed(2)}`}
                     </span>
+                    {realSub.billing_preview && realSub.scheduled_plan_id && (
+                      <span className="ml-1 text-[11px] text-blue-400 font-semibold">
+                        ({scheduledPlan?.displayName ?? t('new_plan', 'New plan')})
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

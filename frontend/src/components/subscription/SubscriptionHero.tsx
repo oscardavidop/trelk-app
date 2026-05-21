@@ -200,6 +200,12 @@ export default function SubscriptionHero({
     ? plans.find((p) => p.plan_id === realSub.scheduled_plan_id)
     : null;
 
+  // Use billing_preview.amount when available (reflects scheduled downgrade price accurately)
+  const nextChargeAmount = realSub?.billing_preview
+    ? realSub.billing_preview.amount
+    : (realSub?.amount ?? subscription.price ?? null);
+  const nextChargeCurrency = realSub?.billing_preview?.currency ?? realSub?.currency ?? 'USD';
+
   const price = subscription?.price
     ? `$${subscription.price.toFixed(2)}`
     : null;
@@ -408,6 +414,18 @@ export default function SubscriptionHero({
                       </div>
                     )}
                   </div>
+
+                  {/* Next charge amount — uses billing_preview for accuracy when downgrade is pending */}
+                  {realStatus === 'ACTIVE' && nextChargeAmount != null && nextChargeAmount > 0 && (
+                    <div className="mt-1.5 text-[12px] font-semibold text-white/50">
+                      {nextChargeCurrency} {nextChargeAmount.toFixed(2)}
+                      {scheduledPlanMeta && (
+                        <span className="ml-1 text-blue-400">
+                          · {scheduledPlanMeta.displayName}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
