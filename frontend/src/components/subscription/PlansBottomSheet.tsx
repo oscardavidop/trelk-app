@@ -267,34 +267,26 @@ export default function PlansBottomSheet({
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-2 pb-5 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 pt-2 pb-3 flex-shrink-0">
           <div>
-            <h2 className="text-[20px] font-bold text-tg-text leading-tight">
+            <h2 className="text-[18px] font-bold text-tg-text leading-tight">
               ✨ {t('choose_plan', 'Upgrade Your Experience')}
             </h2>
-            <p className="text-[13px] text-tg-hint mt-0.5">
-              {t('choose_plan_subtitle', 'Upgrade anytime · Cancel anytime')}
-            </p>
           </div>
           <button
             onClick={handleClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform"
+            className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-transform"
             style={{ background: 'rgba(125,139,151,0.15)' }}
           >
-            <X size={17} className="text-tg-hint" />
+            <X size={15} className="text-tg-hint" />
           </button>
         </div>
 
-        {/* ── PREMIUM PLAN SELECTOR ───────────────────────────────────────── */}
-        <div className="mb-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-tg-hint opacity-60 mb-3 px-5">
-            {t('premium_plans_label', 'Choose your plan')}
-          </p>
-
-          {/* Horizontal scrollable plan cards */}
+        {/* ── PLAN SELECTOR: compact segmented control ──────────────────── */}
+        <div className="px-5 mb-4">
           <div
-            className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-5 pb-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+            className="flex gap-1 p-1 rounded-[18px]"
+            style={{ background: 'rgba(125,139,151,0.1)' }}
           >
             {realPlans.map((plan) => {
               const name = plan.name.toLowerCase();
@@ -307,65 +299,54 @@ export default function PlansBottomSheet({
                 <button
                   key={plan.plan_id}
                   onClick={() => setSelectedName(name)}
-                  className="snap-start flex-shrink-0 relative flex flex-col items-center gap-2 pt-4 pb-3 rounded-[22px] transition-all duration-200 active:scale-[0.96]"
+                  className="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-[14px] transition-all duration-200 active:scale-[0.97]"
                   style={{
-                    minWidth: '106px',
-                    paddingLeft: '16px',
-                    paddingRight: '16px',
                     background: isSel
-                      ? `linear-gradient(160deg, ${vis.color}22 0%, ${vis.color}08 100%)`
-                      : 'rgba(125,139,151,0.07)',
-                    border: isSel
-                      ? `1.5px solid ${vis.color}55`
-                      : '1.5px solid rgba(125,139,151,0.1)',
-                    boxShadow: isSel ? `0 6px 24px ${vis.color}1a` : 'none',
+                      ? `linear-gradient(150deg, ${vis.color}22 0%, ${vis.color}0c 100%)`
+                      : 'transparent',
+                    border: isSel ? `1px solid ${vis.color}48` : '1px solid transparent',
+                    boxShadow: isSel ? `0 2px 14px ${vis.color}18` : 'none',
                   }}
                 >
-                  {/* Current / scheduled status dot */}
+                  {/* Current / scheduled dot */}
                   {(isCur || isSched) && (
                     <div
-                      className="absolute top-3 right-3 w-2 h-2 rounded-full"
+                      className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full"
                       style={{ background: isSched ? '#38bdf8' : vis.color }}
                     />
                   )}
 
-                  {/* Plan icon */}
-                  <div
-                    className="w-12 h-12 rounded-[16px] flex items-center justify-center"
-                    style={{
-                      background: isSel ? `${vis.color}1c` : 'rgba(125,139,151,0.1)',
-                      border: isSel ? `1px solid ${vis.color}38` : '1px solid transparent',
-                      boxShadow: isSel ? `0 0 18px ${vis.color}28` : 'none',
-                    }}
-                  >
-                    <vis.Icon size={22} style={{ color: isSel ? vis.color : 'var(--tg-hint, #7d8b97)' }} />
+                  {/* Icon + name on one line */}
+                  <div className="flex items-center gap-1.5">
+                    <vis.Icon
+                      size={13}
+                      style={{ color: isSel ? vis.color : 'var(--tg-hint, #7d8b97)', opacity: isSel ? 1 : 0.6 }}
+                    />
+                    <span
+                      className="text-[13px] font-bold leading-none"
+                      style={{ color: isSel ? vis.color : 'var(--tg-hint, #7d8b97)' }}
+                    >
+                      {plan.displayName ?? plan.name}
+                    </span>
                   </div>
-
-                  {/* Plan name */}
-                  <span
-                    className="text-[14px] font-bold leading-none"
-                    style={{ color: isSel ? vis.color : 'var(--tg-hint, #7d8b97)' }}
-                  >
-                    {plan.displayName ?? plan.name}
-                  </span>
 
                   {/* Price */}
                   <span
-                    className="text-[12px] font-semibold leading-none"
-                    style={{ color: isSel ? 'var(--tg-text, #fff)' : 'rgba(125,139,151,0.5)' }}
+                    className="text-[11px] font-semibold leading-none"
+                    style={{ color: isSel ? 'var(--tg-text, #fff)' : 'rgba(125,139,151,0.45)' }}
                   >
                     ${plan.price}
-                    <span className="text-[10px] opacity-60">/mo</span>
+                    <span className="text-[9px] opacity-55">/mo</span>
                   </span>
 
-                  {/* Badge pill */}
-                  {vis.badge && (
+                  {/* Badge — shown only when selected */}
+                  {isSel && vis.badge && (
                     <span
-                      className="text-[8px] font-extrabold uppercase tracking-[0.1em] px-2 py-[3px] rounded-full leading-none"
+                      className="text-[7px] font-extrabold uppercase tracking-[0.1em] px-1.5 py-[2px] rounded-full leading-none mt-0.5"
                       style={{
-                        background: `${getBadgeColor(vis.badge)}1a`,
+                        background: `${getBadgeColor(vis.badge)}18`,
                         color: getBadgeColor(vis.badge),
-                        border: `1px solid ${getBadgeColor(vis.badge)}35`,
+                        border: `1px solid ${getBadgeColor(vis.badge)}30`,
                       }}
                     >
                       {t(`badge_${vis.badge}`, vis.badge)}
@@ -374,32 +355,7 @@ export default function PlansBottomSheet({
                 </button>
               );
             })}
-            {/* Trailing spacer so last card doesn't clip */}
-            <div className="flex-shrink-0 w-2" aria-hidden />
           </div>
-
-          {/* Scroll-indicator dots (only shown for 3+ plans) */}
-          {realPlans.length > 2 && (
-            <div className="flex justify-center gap-1.5 mt-3.5 px-5">
-              {realPlans.map((p) => {
-                const active = p.name.toLowerCase() === selectedName;
-                return (
-                  <button
-                    key={p.plan_id}
-                    onClick={() => setSelectedName(p.name.toLowerCase())}
-                    className="rounded-full transition-all duration-200"
-                    style={{
-                      width: active ? '20px' : '6px',
-                      height: '6px',
-                      background: active
-                        ? getVisualMeta(p.name.toLowerCase()).color
-                        : 'rgba(125,139,151,0.22)',
-                    }}
-                  />
-                );
-              })}
-            </div>
-          )}
         </div>
 
         {/* ── SELECTED PLAN DETAIL CARD ───────────────────────────────────── */}
@@ -415,37 +371,37 @@ export default function PlansBottomSheet({
           >
             {/* Card header gradient */}
             <div
-              className={`relative p-5 pb-4 bg-gradient-to-br ${visual.gradient}`}
+              className={`relative px-4 pt-4 pb-3 bg-gradient-to-br ${visual.gradient}`}
               style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
             >
               {/* Ambient glow */}
               <div
-                className="absolute top-0 right-0 w-[140px] h-[140px] rounded-full pointer-events-none"
+                className="absolute top-0 right-0 w-[120px] h-[120px] rounded-full pointer-events-none"
                 style={{
                   background: visual.color,
-                  filter: 'blur(48px)',
-                  opacity: 0.18,
+                  filter: 'blur(44px)',
+                  opacity: 0.15,
                   transform: 'translate(35%, -30%)',
                 }}
               />
 
-              <div className="relative z-10 flex items-start gap-4">
+              <div className="relative z-10 flex items-center gap-3">
                 {/* Icon */}
                 <div
-                  className="w-[54px] h-[54px] rounded-[18px] flex items-center justify-center flex-shrink-0"
+                  className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0"
                   style={{
                     background: `${visual.color}18`,
                     border: `1.5px solid ${visual.color}35`,
-                    boxShadow: `0 0 24px ${visual.color}22`,
+                    boxShadow: `0 0 16px ${visual.color}20`,
                   }}
                 >
-                  <visual.Icon className="w-6 h-6" style={{ color: visual.color }} />
+                  <visual.Icon size={18} style={{ color: visual.color }} />
                 </div>
 
                 {/* Name + badges + price */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-[21px] font-bold text-tg-text leading-none">
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <span className="text-[18px] font-bold text-tg-text leading-none">
                       {selectedPlan?.displayName ?? selectedName}
                     </span>
 
@@ -496,10 +452,10 @@ export default function PlansBottomSheet({
                   </div>
 
                   <div className="flex items-baseline gap-1">
-                    <span className="text-[27px] font-bold text-tg-text leading-none">
+                    <span className="text-[22px] font-bold text-tg-text leading-none">
                       {selectedPlan ? `$${selectedPlan.price}` : '—'}
                     </span>
-                    <span className="text-[13px] text-tg-hint font-medium">
+                    <span className="text-[12px] text-tg-hint font-medium">
                       {t('per_month', '/month')}
                     </span>
                   </div>
@@ -508,28 +464,28 @@ export default function PlansBottomSheet({
             </div>
 
             {/* Feature list */}
-            <div className="p-5 space-y-3.5">
+            <div className="px-4 pt-3 pb-1 space-y-2">
               {visual.features.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex items-center gap-2.5">
                   <div
-                    className="w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
-                      background: f.included ? 'rgba(34,197,94,0.1)' : 'rgba(125,139,151,0.08)',
+                      background: f.included ? 'rgba(34,197,94,0.1)' : 'rgba(125,139,151,0.07)',
                       border: f.included
-                        ? '1px solid rgba(34,197,94,0.25)'
-                        : '1px solid rgba(125,139,151,0.15)',
+                        ? '1px solid rgba(34,197,94,0.22)'
+                        : '1px solid rgba(125,139,151,0.12)',
                     }}
                   >
                     <Check
-                      size={11}
+                      size={10}
                       strokeWidth={f.included ? 3 : 2}
-                      style={{ color: f.included ? '#22c55e' : 'rgba(125,139,151,0.3)' }}
+                      style={{ color: f.included ? '#22c55e' : 'rgba(125,139,151,0.28)' }}
                     />
                   </div>
                   <span
-                    className="text-[14px] leading-tight font-medium"
+                    className="text-[13px] leading-tight font-medium"
                     style={{
-                      color: f.included ? 'var(--tg-text, #ffffff)' : 'rgba(125,139,151,0.4)',
+                      color: f.included ? 'var(--tg-text, #ffffff)' : 'rgba(125,139,151,0.38)',
                       textDecoration: f.included ? 'none' : 'line-through',
                     }}
                   >
@@ -540,22 +496,22 @@ export default function PlansBottomSheet({
             </div>
 
             {/* CTA */}
-            <div className="px-5 pb-5">
+            <div className="px-4 py-3">
               {isCurrentPlan ? (
                 <div
-                  className="w-full py-4 rounded-[18px] text-[15px] font-bold text-center flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
                   style={{
                     background: `${visual.color}12`,
                     color: visual.color,
                     border: `1px solid ${visual.color}25`,
                   }}
                 >
-                  <Check size={16} strokeWidth={3} />
+                  <Check size={15} strokeWidth={3} />
                   {t('plan_current', 'Your Current Plan')}
                 </div>
               ) : isBlockedByCancel || isAlreadyScheduled ? (
                 <div
-                  className="w-full py-4 rounded-[18px] text-[15px] font-bold text-center flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
                   style={{
                     background: isBlockedByCancel ? 'rgba(245,158,11,0.08)' : 'rgba(56,189,248,0.08)',
                     color: isBlockedByCancel ? '#f59e0b' : '#38bdf8',
@@ -571,10 +527,10 @@ export default function PlansBottomSheet({
                 <button
                   onClick={handleCTA}
                   disabled={actionLoading || !selectedPlan}
-                  className="w-full py-4 rounded-[18px] text-white text-[16px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-[16px] text-white text-[15px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
                   style={{
                     background: `linear-gradient(135deg, ${visual.color} 0%, ${visual.color}cc 100%)`,
-                    boxShadow: `0 4px 22px ${visual.color}40, 0 1px 0 rgba(255,255,255,0.1) inset`,
+                    boxShadow: `0 4px 20px ${visual.color}40, 0 1px 0 rgba(255,255,255,0.1) inset`,
                   }}
                 >
                   {ctaIcon()}
@@ -585,71 +541,32 @@ export default function PlansBottomSheet({
           </div>
 
           {/* ── FREE PLAN (secondary option) ──────────────────────────────── */}
-          <div className="mt-5 mb-2">
-            {/* Divider */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px" style={{ background: 'rgba(125,139,151,0.1)' }} />
-              <span className="text-[11px] font-semibold text-tg-hint opacity-45 uppercase tracking-wider">
-                {t('or_continue_free', 'or continue with')}
-              </span>
-              <div className="flex-1 h-px" style={{ background: 'rgba(125,139,151,0.1)' }} />
-            </div>
-
-            {/* Free card */}
+          <div className="mt-3.5">
             <div
-              className="rounded-[20px] p-4 flex items-center gap-4"
+              className="rounded-[16px] px-3.5 py-2.5 flex items-center gap-3"
               style={{
                 background: 'rgba(125,139,151,0.05)',
                 border: currentTier === 'free'
-                  ? '1.5px solid rgba(156,163,175,0.3)'
-                  : '1.5px solid rgba(125,139,151,0.08)',
+                  ? '1px solid rgba(156,163,175,0.28)'
+                  : '1px solid rgba(125,139,151,0.08)',
               }}
             >
-              <div
-                className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: 'rgba(156,163,175,0.08)',
-                  border: '1px solid rgba(156,163,175,0.16)',
-                }}
-              >
-                <Zap size={17} className="text-gray-500" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[15px] font-bold text-tg-hint opacity-70">
-                    {t('plan_free', 'Free')}
-                  </span>
-                  {currentTier === 'free' && (
-                    <span
-                      className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-                      style={{
-                        background: 'rgba(156,163,175,0.12)',
-                        color: '#9ca3af',
-                        border: '1px solid rgba(156,163,175,0.2)',
-                      }}
-                    >
-                      {t('plan_current', 'Current')}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[12px] text-tg-hint opacity-50 leading-tight">
-                  {t('free_plan_limits', 'Limited features · No payment needed')}
-                </p>
-              </div>
-
-              <div className="text-right flex-shrink-0">
-                <span className="text-[18px] font-bold text-tg-hint opacity-40">$0</span>
-                <p className="text-[10px] text-tg-hint opacity-35">/mo</p>
-              </div>
+              <Zap size={15} className="text-gray-500 flex-shrink-0" />
+              <span className="text-[13px] font-semibold text-tg-hint opacity-55 flex-1">
+                {t('plan_free', 'Free')}
+                {currentTier === 'free' && (
+                  <span className="ml-2 text-[10px] font-bold opacity-60">·  {t('plan_current', 'Current')}</span>
+                )}
+              </span>
+              <span className="text-[12px] font-semibold text-tg-hint opacity-35">$0/mo</span>
             </div>
           </div>
         </div>
 
         {/* Billing note */}
         <p
-          className="text-[11px] text-center pb-8 px-6 font-medium"
-          style={{ color: 'rgba(125,139,151,0.45)' }}
+          className="text-[11px] text-center pb-5 px-6 font-medium"
+          style={{ color: 'rgba(125,139,151,0.38)' }}
         >
           {t('paypal_billing_note', 'Billed monthly via PayPal · Cancel anytime')}
         </p>
