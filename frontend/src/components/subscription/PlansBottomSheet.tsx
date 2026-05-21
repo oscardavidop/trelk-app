@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { X, Crown, Zap, Sparkles, Check, Loader2, ArrowUp, ArrowDown, Star } from 'lucide-react';
+import { X, Crown, Zap, Sparkles, Check, Loader2, ArrowUp, ArrowDown, Star, Clock, AlertTriangle } from 'lucide-react';
 import type { PayPalPlan, RealSubStatus } from '../../services/subscriptionApi';
 
 type PlanTier = 'free' | 'pro' | 'ultra';
@@ -85,6 +85,8 @@ interface Props {
   onCheckout?: (planId: string) => void;
   onRevise?: (subscriptionId: string, planId: string) => void;
   actionLoading?: boolean;
+  /** PayPal plan_id of a pending scheduled downgrade, if any */
+  scheduledPlanId?: string | null;
 }
 
 export default function PlansBottomSheet({
@@ -97,6 +99,7 @@ export default function PlansBottomSheet({
   onCheckout,
   onRevise,
   actionLoading,
+  scheduledPlanId,
 }: Props) {
   const { t } = useTranslation('subscription');
 
@@ -153,14 +156,23 @@ export default function PlansBottomSheet({
     realPlans.map((p) => [p.name.toLowerCase(), p])
   );
 
+  // Determine which tier (if any) has a scheduled downgrade
+  const scheduledTier: PlanTier | null = scheduledPlanId
+    ? ((realPlans.find((p) => p.plan_id === scheduledPlanId)?.name.toLowerCase() as PlanTier) ?? null)
+    : null;
+
   const selected = PLAN_DEFS.find((p) => p.tier === selectedTier)!;
   const isCurrentPlan = selectedTier === currentTier;
   const isRealActive = realStatus === 'ACTIVE';
+  // Block plan changes when cancellation is scheduled (backend rejects revise)
+  const isBlockedByCancel = realStatus === 'ACTIVE_CANCEL_SCHEDULED' && selectedTier !== currentTier;
   const realPlan = realPlanMap.get(selectedTier);
+  // Mark when the selected plan is exactly the one already scheduled for next cycle
+  const isAlreadyScheduled = !!scheduledTier && selectedTier === scheduledTier && !isCurrentPlan;
   const tiers: PlanTier[] = ['free', 'pro', 'ultra'];
 
   const handleCTA = () => {
-    if (!realPlan || isCurrentPlan || actionLoading) return;
+    if (!realPlan || isCurrentPlan || actionLoading || isBlockedByCancel || isAlreadyScheduled) return;
     if (isRealActive && realSubscriptionId && onRevise) {
       onRevise(realSubscriptionId, realPlan.plan_id);
     } else if (onCheckout) {
@@ -170,6 +182,8 @@ export default function PlansBottomSheet({
 
   const ctaLabel = () => {
     if (isCurrentPlan) return t('plan_current', 'Your Current Plan');
+    if (isAlreadyScheduled) return t('plan_already_scheduled', 'Scheduled for next cycle');
+    if (isBlockedByCancel) return t('plan_blocked_cancel', 'Resubscribe to change plan');
     if (!realPlan) return t('subscribe_to', { plan: t(`plan_${selected.tier}`, selected.name) });
     if (isRealActive) {
       const isUpgrade = tiers.indexOf(selectedTier) > tiers.indexOf(currentTier);
@@ -182,6 +196,8 @@ export default function PlansBottomSheet({
 
   const ctaIcon = () => {
     if (actionLoading) return <Loader2 size={18} className="animate-spin" />;
+    if (isAlreadyScheduled) return <Clock size={17} strokeWidth={2.5} />;
+    if (isBlockedByCancel) return <AlertTriangle size={17} strokeWidth={2.5} />;
     if (isRealActive && !isCurrentPlan) {
       const isUpgrade = tiers.indexOf(selectedTier) > tiers.indexOf(currentTier);
       return isUpgrade ? <ArrowUp size={17} strokeWidth={2.5} /> : <ArrowDown size={17} strokeWidth={2.5} />;
@@ -248,6 +264,7 @@ export default function PlansBottomSheet({
             {PLAN_DEFS.map((plan) => {
               const isSel = plan.tier === selectedTier;
               const isCur = plan.tier === currentTier;
+              const isScheduledTab = !!scheduledTier && plan.tier === scheduledTier && plan.tier !== currentTier;
               return (
                 <button
                   key={plan.tier}
@@ -274,6 +291,12 @@ export default function PlansBottomSheet({
                     <span
                       className="w-1.5 h-1.5 rounded-full ml-0.5"
                       style={{ background: '#f59e0b', opacity: isSel ? 1 : 0.5 }}
+                    />
+                  )}
+                  {isScheduledTab && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full ml-0.5"
+                      style={{ background: '#38bdf8', opacity: isSel ? 1 : 0.65 }}
                     />
                   )}
                 </button>
@@ -353,6 +376,19 @@ export default function PlansBottomSheet({
                           {t('popular_badge', 'Popular')}
                         </span>
                       )}
+                      {isAlreadyScheduled && (
+                        <span
+                          className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                          style={{
+                            background: 'rgba(56,189,248,0.12)',
+                            color: '#38bdf8',
+                            border: '1px solid rgba(56,189,248,0.25)',
+                          }}
+                        >
+                          <Clock size={8} strokeWidth={3} />
+                          {t('plan_pending', 'Pending')}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-[26px] font-bold text-tg-text leading-none">
@@ -417,6 +453,20 @@ export default function PlansBottomSheet({
               >
                 {isCurrentPlan && <Check size={16} strokeWidth={3} />}
                 {isCurrentPlan ? t('plan_current', 'Your Current Plan') : t('plan_free', 'Free Plan')}
+              </div>
+            ) : isBlockedByCancel || isAlreadyScheduled ? (
+              <div
+                className="w-full py-4 rounded-[18px] text-[15px] font-bold text-center flex items-center justify-center gap-2"
+                style={{
+                  background: isBlockedByCancel ? 'rgba(245,158,11,0.08)' : 'rgba(56,189,248,0.08)',
+                  color: isBlockedByCancel ? '#f59e0b' : '#38bdf8',
+                  border: isBlockedByCancel
+                    ? '1px solid rgba(245,158,11,0.2)'
+                    : '1px solid rgba(56,189,248,0.2)',
+                }}
+              >
+                {ctaIcon()}
+                {ctaLabel()}
               </div>
             ) : (
               <button

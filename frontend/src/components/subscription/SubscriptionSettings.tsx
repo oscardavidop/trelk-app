@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ProFeatures, RealSubStatus, RealSubscription, PayPalPlan } from '../../services/subscriptionApi';
-import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays, CalendarX2, ArrowDownCircle, RotateCcw } from 'lucide-react';
+import { RefreshCcw, AlertTriangle, XCircle, Clock, Ban, Play, CalendarDays, CalendarX2, ArrowDownCircle, RotateCcw, CreditCard, ExternalLink } from 'lucide-react';
 
 interface Props {
   features: ProFeatures;
@@ -38,7 +38,7 @@ export default function SubscriptionSettings({
   const { subscription } = features;
   const tier = subscription.tier;
   const hasPendingChange = subscription.change?.status === 'pending';
-  const hasRealActions = realStatus === 'ACTIVE' || realStatus === 'SUSPENDED' || realStatus === 'ACTIVE_CANCEL_SCHEDULED';
+  const hasRealActions = realStatus === 'ACTIVE' || realStatus === 'SUSPENDED' || realStatus === 'ACTIVE_CANCEL_SCHEDULED' || realStatus === 'PAST_DUE';
 
   // Resolve scheduled downgrade plan name from plans list
   const scheduledPlan = realSub?.scheduled_plan_id
@@ -76,7 +76,13 @@ export default function SubscriptionSettings({
                     <div className="flex-1 min-w-0">
                       <div className="text-[16px] font-semibold text-tg-text leading-tight">{t('auto_renew', 'Auto-Renew')}</div>
                       <div className="text-[13px] font-medium text-tg-hint mt-0.5 truncate">
-                        {subscription.auto_renew ? t('will_auto_renew') : t('will_not_renew')}
+                        {subscription.auto_renew
+                        ? t('will_auto_renew', {
+                            date: realSub?.next_billing_date
+                              ? new Date(realSub.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                              : '—',
+                          })
+                        : t('will_not_renew')}
                       </div>
                     </div>
                   </div>
@@ -286,6 +292,34 @@ export default function SubscriptionSettings({
                       {t('undo_downgrade', 'Keep Current Plan')}
                     </button>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Payment failed (PAST_DUE) ── */}
+          {realStatus === 'PAST_DUE' && (
+            <div className="border-t border-tg-border/20 p-4 bg-red-500/5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-red-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CreditCard size={18} className="text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15px] font-bold text-red-500 mb-1">
+                    {t('past_due_title', 'Payment Failed')}
+                  </div>
+                  <div className="text-[13px] text-tg-hint leading-snug mb-3">
+                    {t('past_due_desc', 'Your payment could not be processed. Update your payment method in PayPal to restore access.')}
+                  </div>
+                  <a
+                    href="https://www.paypal.com/myaccount/autopay/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[13px] text-white font-bold active:scale-95 transition-transform bg-red-500 px-3.5 py-2 rounded-full shadow-sm"
+                  >
+                    <ExternalLink size={14} />
+                    {t('manage_billing', 'Manage in PayPal')}
+                  </a>
                 </div>
               </div>
             </div>

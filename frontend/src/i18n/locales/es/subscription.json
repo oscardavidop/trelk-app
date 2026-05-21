@@ -109,7 +109,7 @@
   "plan_syncing": "Activando tus funciones…",
   "plan_syncing_desc": "Las funciones estarán listas en unos segundos. Por favor, recarga.",
 
-  "upgrade_now": "Mejorar a Pro",
+  "upgrade_now": "Obtener Premium",
   "change_plan": "Cambiar Plan",
   "compare_plans": "Comparar todos los planes",
   "paypal_billing_note": "Facturado mensualmente vía PayPal · Cancela cuando quieras",
@@ -166,5 +166,20 @@
 
   "revise_blocked_cancellation": "No puedes cambiar de plan mientras hay una cancelación pendiente. Vuelve a suscribirte para continuar.",
   "billing_preview_label": "Próximo cargo",
-  "billing_preview_changing": "Cambiando a"
+  "billing_preview_changing": "Cambiando a",
+
+  "subscription_settings": "Configuración de suscripción",
+  "past_due_title": "Pago fallido",
+  "past_due_desc": "No se pudo procesar tu pago. Actualiza tu método de pago en PayPal para restaurar el acceso.",
+  "manage_billing": "Gestionar en PayPal",
+
+  "subscription_lifecycle": "Ciclo de facturación",
+  "timeline_now": "Actualmente activo",
+  "timeline_on_date": "Próxima fecha de facturación",
+  "timeline_plan_changes": "Cambia a",
+  "timeline_access_ends": "Suscripción termina",
+  "timeline_access_ends_label": "Acceso termina",
+
+  "plan_already_scheduled": "Ya programado para el próximo ciclo",
+  "plan_blocked_cancel": "Vuelvete a suscribir para cambiar de plan"
 }

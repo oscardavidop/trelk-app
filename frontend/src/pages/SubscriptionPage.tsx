@@ -11,6 +11,7 @@ import SubscriptionSettings from '../components/subscription/SubscriptionSetting
 import SubscriptionUsage from '../components/subscription/SubscriptionUsage';
 import SubscriptionBenefits from '../components/subscription/SubscriptionBenefits';
 import PlansBottomSheet from '../components/subscription/PlansBottomSheet';
+import BillingTimeline from '../components/subscription/BillingTimeline';
 import StickyHeader from '@/components/StickyHeader';
 import { Loader2, Crown, CreditCard, CheckCircle2, Clock, Sparkles, ChevronRight, ArrowUpCircle } from 'lucide-react';
 
@@ -426,6 +427,16 @@ export default function SubscriptionPage() {
             {/* ── 1. Hero ──────────────────────────────────────────── */}
             <SubscriptionHero features={features} realStatus={realStatus} realSub={realSub} plans={plans} />
 
+            {/* ── 1b. Billing Timeline (pending downgrade or cancel) ─ */}
+            {(realSub?.scheduled_plan_id || realStatus === 'ACTIVE_CANCEL_SCHEDULED') && (
+                <BillingTimeline
+                    currentTier={tier}
+                    realStatus={realStatus}
+                    realSub={realSub}
+                    plans={plans}
+                />
+            )}
+
             {/* ── 2. Upgrade / Change Plan CTA ────────────────────── */}
             <div className="px-5">
                 {tier === 'free' ? (
@@ -439,7 +450,7 @@ export default function SubscriptionPage() {
                         }}
                     >
                         <Crown size={18} className="drop-shadow-sm" />
-                        {t('upgrade_now', 'Upgrade to Pro')}
+                        {t('upgrade_now', 'Get Premium')}
                         <ChevronRight size={17} className="opacity-80" />
                     </button>
                 ) : (
@@ -509,6 +520,7 @@ export default function SubscriptionPage() {
                 onCheckout={handleRealCheckout}
                 onRevise={handleRealRevise}
                 actionLoading={actionLoading}
+                scheduledPlanId={realSub?.scheduled_plan_id ?? null}
             />
 
             {/* ── Confirm Modal ────────────────────────────────────── */}

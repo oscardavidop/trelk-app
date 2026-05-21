@@ -104,7 +104,7 @@
   "plan_syncing": "Activating your features…",
   "plan_syncing_desc": "Features will be ready in a few seconds. Please refresh.",
 
-  "upgrade_now": "Upgrade to Pro",
+  "upgrade_now": "Get Premium",
   "change_plan": "Change Plan",
   "compare_plans": "Compare all plans",
   "paypal_billing_note": "Billed monthly via PayPal · Cancel anytime",
@@ -161,5 +161,20 @@
 
   "revise_blocked_cancellation": "Cannot change plan while cancellation is pending. Resubscribe to continue.",
   "billing_preview_label": "Next charge",
-  "billing_preview_changing": "Changing to"
+  "billing_preview_changing": "Changing to",
+
+  "subscription_settings": "Subscription Settings",
+  "past_due_title": "Payment Failed",
+  "past_due_desc": "Your payment could not be processed. Update your payment method in PayPal to restore access.",
+  "manage_billing": "Manage in PayPal",
+
+  "subscription_lifecycle": "Billing Timeline",
+  "timeline_now": "Currently active",
+  "timeline_on_date": "Next billing date",
+  "timeline_plan_changes": "Changes to",
+  "timeline_access_ends": "Subscription ends",
+  "timeline_access_ends_label": "Access ends",
+
+  "plan_already_scheduled": "Scheduled for next cycle",
+  "plan_blocked_cancel": "Resubscribe to change plan"
 }
