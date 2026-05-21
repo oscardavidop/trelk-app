@@ -38,6 +38,36 @@ export class TelegramAuthService {
   private readonly logger = new Logger(TelegramAuthService.name);
   private authAgeBoundsWarned = false;
 
+  private normalizeInitData(rawInitData: string): string {
+    let current = (rawInitData ?? '').trim();
+
+    // Telegram initData can arrive URL-encoded by transport layers.
+    // Decode progressively only if required fields are still missing.
+    for (let i = 0; i < 2; i++) {
+      const parsed = qs.parse(current);
+      if (parsed.hash && parsed.auth_date && parsed.user) {
+        return current;
+      }
+
+      const looksEncoded = /%26|%3D|%25/i.test(current);
+      if (!looksEncoded) {
+        break;
+      }
+
+      try {
+        const decoded = decodeURIComponent(current);
+        if (!decoded || decoded === current) {
+          break;
+        }
+        current = decoded;
+      } catch {
+        break;
+      }
+    }
+
+    return current;
+  }
+
   /** Tiempo máximo permitido para auth_date */
   private get MAX_AUTH_AGE_SECONDS(): number {
     const configured = Number(this.configService.get<number>('TG_AUTH_MAX_AGE', 86400));
@@ -88,8 +118,10 @@ export class TelegramAuthService {
       throw new UnauthorizedException('INIT_DATA_MISSING');
     }
 
+    const normalizedInitData = this.normalizeInitData(initData);
+
     // 1. Parsear la query string
-    const parsed = qs.parse(initData);
+    const parsed = qs.parse(normalizedInitData);
 
     // 2. Extraer y validar hash
     const hash = parsed.hash as string;
@@ -125,7 +157,7 @@ export class TelegramAuthService {
     }
 
     // 4. Validar firma HMAC-SHA256 (timing-safe)
-    if (!this.verifyHmacSignature(hash, initData)) {
+    if (!this.verifyHmacSignature(hash, normalizedInitData)) {
       this.logger.warn('Firma HMAC inválida en initData');
       throw new UnauthorizedException('INIT_DATA_SIGNATURE_INVALID');
     }
@@ -159,7 +191,7 @@ export class TelegramAuthService {
       user,
       authDate,
       hash,
-      raw: initData,
+      raw: normalizedInitData,
     };
   }
 

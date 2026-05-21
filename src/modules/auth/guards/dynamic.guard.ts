@@ -44,8 +44,8 @@ export class DynamicAuthGuard implements CanActivate {
         req.telegramInitData = result;
         return true;
       } catch (err) {
-        // Re-lanzar como expired-session para que el filter lo maneje
-        throw new UnauthorizedException('expired-session');
+        // Preserve the specific INIT_DATA_* error for accurate API responses.
+        throw err;
       }
     }
 
