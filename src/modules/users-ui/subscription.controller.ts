@@ -24,6 +24,7 @@ import {
   ResumeSubscriptionDto,
   CancelDowngradeAppDto,
   StarsInvoiceDto,
+  CardInvoiceDto,
 } from '../users/dto/subscription.dto';
 import { AppError, ErrorCode } from '../../common/errors';
 import { ConfigService } from '@nestjs/config';
@@ -269,6 +270,44 @@ export class SubscriptionController {
     const telegramId = this.extractTelegramId(req);
     const result = await this.paymentsClient.createStarsInvoice(telegramId, dto.plan_name);
     this.logger.log(`Stars invoice created for user ${telegramId}: plan=${dto.plan_name}`);
+    return { ok: true, ...result };
+  }
+
+  /**
+   * POST /api/v1/ui/subscription/stars/cancel
+   * Cancels the active Telegram Stars recurring subscription for the current user.
+   */
+  @Post('stars/cancel')
+  async cancelStarsSubscription(@Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+    const result = await this.paymentsClient.cancelStarsSubscription(telegramId);
+    this.logger.log(`Stars subscription cancelled for user ${telegramId}`);
+    return { ok: true, ...result };
+  }
+
+  /**
+   * POST /api/v1/ui/subscription/card/invoice
+   *
+   * Creates a Telegram credit card invoice link for the given plan.
+   * The Mini App passes the returned invoiceUrl to Telegram.WebApp.openInvoice().
+   *
+   * On successful payment, the bot forwards the event to the payments backend,
+   * which activates the subscription. The Mini App can poll /status to confirm.
+   *
+   * Currency defaults to USD if not specified.
+   */
+  @Post('card/invoice')
+  async createCardInvoice(@Body() dto: CardInvoiceDto, @Req() req: any) {
+    const telegramId = this.extractTelegramId(req);
+    const currency = dto.currency || 'USD';
+    const result = await this.paymentsClient.createCardInvoice(
+      telegramId,
+      dto.plan_name,
+      currency,
+    );
+    this.logger.log(
+      `Card invoice created for user ${telegramId}: plan=${dto.plan_name}, currency=${currency}`,
+    );
     return { ok: true, ...result };
   }
 

@@ -3,11 +3,10 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import {
     X, Crown, Zap, Sparkles, Check, Loader2, Gem,
-    ArrowUp, ArrowDown, Star, Clock, AlertTriangle, BadgePercent, TrendingUp,
-    CreditCard, RefreshCw,
+    ArrowUp, ArrowDown, Clock, AlertTriangle, BadgePercent, TrendingUp, Star,
 } from 'lucide-react';
 import type { PayPalPlan, RealSubStatus } from '../../services/subscriptionApi';
-import { createStarsInvoice, fetchRealStatus } from '../../services/subscriptionApi';
+import PaymentMethodModal from './PaymentMethodModal';
 
 // ── Plan visual metadata keyed by plan name slug from backend ──────────────
 
@@ -144,20 +143,14 @@ export default function PlansBottomSheet({
     const [selectedName, setSelectedName] = useState<string>(computeDefault);
     const [mounted, setMounted] = useState(false);
     const [animateIn, setAnimateIn] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stars'>('paypal');
-    const [starsLoading, setStarsLoading] = useState(false);
-    const [starsStatus, setStarsStatus] = useState<null | 'activating' | 'error'>(null);
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const sheetRef = useRef<HTMLDivElement>(null);
     const startYRef = useRef<number | null>(null);
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             setSelectedName(computeDefault());
             setMounted(true);
-            setPaymentMethod('paypal');
-            setStarsStatus(null);
-            setStarsLoading(false);
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => setAnimateIn(true));
             });
@@ -207,88 +200,13 @@ export default function PlansBottomSheet({
 
     // ── Stars payment flow ───────────────────────────────────────────────────
 
-    // Reset payment method when plan changes
-    useEffect(() => {
-        setPaymentMethod('paypal');
-        setStarsStatus(null);
-    }, [selectedName]);
-
-    // Cleanup poll on unmount
-    useEffect(() => {
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }, []);
-
-    const pollActivation = useCallback(() => {
-        let attempts = 0;
-        const MAX = 10; // 10 × 3s = 30s
-        pollRef.current = setInterval(async () => {
-            attempts++;
-            try {
-                const res = await fetchRealStatus();
-                if (res.status === 'ACTIVE' || res.isPremium) {
-                    clearInterval(pollRef.current!);
-                    setStarsStatus(null);
-                    handleClose();
-                    return;
-                }
-            } catch { /* ignore */ }
-            if (attempts >= MAX) {
-                clearInterval(pollRef.current!);
-                setStarsStatus('error');
-            }
-        }, 3_000);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleClose]);
-
-    const handleStarsPayment = useCallback(async () => {
-        if (!selectedPlan || starsLoading) return;
-        setStarsLoading(true);
-        setStarsStatus(null);
-
-        try {
-            const { invoiceUrl } = await createStarsInvoice(selectedPlan.name);
-
-            const tgWebApp = (window as any).Telegram?.WebApp;
-            if (!tgWebApp?.openInvoice) {
-                // Fallback for testing outside Telegram
-                window.open(invoiceUrl, '_blank');
-                setStarsLoading(false);
-                return;
-            }
-
-            tgWebApp.openInvoice(invoiceUrl, (status: string) => {
-                if (status === 'paid') {
-                    setStarsStatus('activating');
-                    setStarsLoading(false);
-                    pollActivation();
-                } else {
-                    setStarsLoading(false);
-                }
-            });
-        } catch {
-            setStarsLoading(false);
-            setStarsStatus('error');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedPlan, starsLoading, pollActivation]);
-
-    // Show method selector only for new subscriptions where the plan supports Stars
-    const showMethodSelector =
-        !isRealActive &&
-        !isCurrentPlan &&
-        !isBlockedByCancel &&
-        !isAlreadyScheduled &&
-        !!selectedPlan?.stars_price;
-
     // ── Handlers / labels ────────────────────────────────────────────────────
     const handleCTA = () => {
         if (!selectedPlan || isCurrentPlan || actionLoading || isBlockedByCancel || isAlreadyScheduled) return;
         if (isRealActive && realSubscriptionId && onRevise) {
             onRevise(realSubscriptionId, selectedPlan.plan_id);
-        } else if (showMethodSelector && paymentMethod === 'stars') {
-            handleStarsPayment();
-        } else if (onCheckout) {
-            onCheckout(selectedPlan.plan_id);
+        } else {
+            setPaymentModalOpen(true);
         }
     };
 
@@ -297,9 +215,6 @@ export default function PlansBottomSheet({
         if (isAlreadyScheduled) return t('plan_already_scheduled', 'Scheduled for next cycle');
         if (isBlockedByCancel) return t('plan_blocked_cancel', 'Resubscribe to change plan');
         if (!selectedPlan) return t('subscribe_to', { plan: selectedName });
-        if (showMethodSelector && paymentMethod === 'stars') {
-            return t('stars_pay_cta', { amount: selectedPlan.stars_price });
-        }
         if (isRealActive) {
             return isUpgrade
                 ? t('upgrade_cta', { plan: selectedPlan.displayName ?? selectedPlan.name, price: selectedPlan.price })
@@ -309,10 +224,9 @@ export default function PlansBottomSheet({
     };
 
     const ctaIcon = (): React.ReactNode => {
-        if (actionLoading || starsLoading) return <Loader2 size={18} className="animate-spin" />;
+        if (actionLoading) return <Loader2 size={18} className="animate-spin" />;
         if (isAlreadyScheduled) return <Clock size={17} strokeWidth={2.5} />;
         if (isBlockedByCancel) return <AlertTriangle size={17} strokeWidth={2.5} />;
-        if (showMethodSelector && paymentMethod === 'stars') return <Star size={17} fill="currentColor" strokeWidth={0} />;
         if (isRealActive && !isCurrentPlan) {
             return isUpgrade
                 ? <ArrowUp size={17} strokeWidth={2.5} />
@@ -320,6 +234,11 @@ export default function PlansBottomSheet({
         }
         return <Crown size={17} strokeWidth={2} />;
     };
+
+    const handlePaymentSuccess = useCallback(() => {
+        setPaymentModalOpen(false);
+        handleClose();
+    }, [handleClose]);
 
     if (!mounted) return null;
 
@@ -567,27 +486,14 @@ export default function PlansBottomSheet({
                                         )}
                                     </div>
 
-                                    {
-                                        paymentMethod === 'stars' && selectedPlan?.stars_price ? (
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-[27px] font-bold text-yellow-400 leading-none">
-                                                    {selectedPlan.stars_price}
-                                                </span>
-                                                <span className="text-[13px] text-tg-hint font-medium">
-                                                    {t('stars_label', 'Telegram Stars')}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-[27px] font-bold text-tg-text leading-none">
-                                                    {selectedPlan ? `$${selectedPlan.price}` : '—'}
-                                                </span>
-                                                <span className="text-[13px] text-tg-hint font-medium">
-                                                    {t('per_month', '/month')}
-                                                </span>
-                                            </div>
-                                        )
-                                    }
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-[27px] font-bold text-tg-text leading-none">
+                                            {selectedPlan ? `$${selectedPlan.price}` : '—'}
+                                        </span>
+                                        <span className="text-[13px] text-tg-hint font-medium">
+                                            {t('per_month', '/month')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -626,249 +532,10 @@ export default function PlansBottomSheet({
 
                         {/* CTA */}
                         <div className="px-4 py-3">
-                            {/* ── Stars activating overlay ──────────────────────────── */}
-                            {starsStatus === 'activating' && (
-                                <div
-                                    className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex flex-col items-center justify-center gap-1.5"
-                                    style={{
-                                        background: 'rgba(250,204,21,0.08)',
-                                        border: '1px solid rgba(250,204,21,0.2)',
-                                        color: '#fbbf24',
-                                    }}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 size={16} className="animate-spin" />
-                                        {t('stars_activating', 'Activating subscription…')}
-                                    </div>
-                                    <span className="text-[11px] opacity-60 font-normal">
-                                        {t('stars_processing', 'This may take a few seconds')}
-                                    </span>
-                                </div>
-                            )}
 
-                            {/* ── Stars error ───────────────────────────────────────── */}
-                            {starsStatus === 'error' && (
-                                <div className="mb-2">
-                                    <div
-                                        className="w-full py-2.5 rounded-[14px] text-[12px] text-center flex items-center justify-center gap-2 mb-2"
-                                        style={{
-                                            background: 'rgba(239,68,68,0.08)',
-                                            border: '1px solid rgba(239,68,68,0.2)',
-                                            color: '#f87171',
-                                        }}
-                                    >
-                                        <AlertTriangle size={13} strokeWidth={2.5} />
-                                        {t('stars_activation_error', 'Could not confirm. Please refresh in a moment.')}
-                                    </div>
-                                    <button
-                                        onClick={() => { setStarsStatus(null); setPaymentMethod('paypal'); }}
-                                        className="w-full py-2.5 rounded-[14px] text-[13px] font-semibold flex items-center justify-center gap-2"
-                                        style={{ background: 'rgba(125,139,151,0.1)', color: 'var(--tg-hint, #7d8b97)' }}
-                                    >
-                                        <RefreshCw size={13} strokeWidth={2.5} />
-                                        {t('back_to_plan', 'Back to plan')}
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* ── Payment method selector (premium card layout) ─── */}
-                            {!starsStatus && showMethodSelector && (
-                                <div className="mb-3 space-y-2">
-                                    {/* Stars card */}
-                                    <button
-                                        onClick={() => setPaymentMethod('stars')}
-                                        className="w-full relative overflow-hidden rounded-[16px] px-4 py-3.5 text-left transition-all duration-200 active:scale-[0.985]"
-                                        style={{
-                                            background: paymentMethod === 'stars'
-                                                ? 'linear-gradient(135deg, rgba(250,204,21,0.13) 0%, rgba(245,158,11,0.07) 100%)'
-                                                : 'rgba(255,255,255,0.04)',
-                                            border: paymentMethod === 'stars'
-                                                ? '1.5px solid rgba(250,204,21,0.28)'
-                                                : '1.5px solid rgba(255,255,255,0.06)',
-                                            boxShadow: paymentMethod === 'stars'
-                                                ? '0 0 0 1px rgba(250,204,21,0.08), 0 4px 16px rgba(250,204,21,0.12)'
-                                                : 'none',
-                                        }}
-                                    >
-                                        {paymentMethod === 'stars' && (
-                                            <div
-                                                className="absolute inset-0 pointer-events-none"
-                                                style={{ background: 'radial-gradient(ellipse at top left, rgba(250,204,21,0.1), transparent 60%)' }}
-                                            />
-                                        )}
-                                        <div className="relative flex items-center gap-3.5">
-                                            {/* Icon */}
-                                            <div
-                                                className="w-10 h-10 rounded-[13px] flex items-center justify-center shrink-0"
-                                                style={{
-                                                    background: paymentMethod === 'stars'
-                                                        ? 'rgba(250,204,21,0.15)'
-                                                        : 'rgba(255,255,255,0.06)',
-                                                    border: paymentMethod === 'stars'
-                                                        ? '1px solid rgba(250,204,21,0.2)'
-                                                        : '1px solid rgba(255,255,255,0.06)',
-                                                }}
-                                            >
-                                                <Star
-                                                    size={18}
-                                                    fill={paymentMethod === 'stars' ? '#facc15' : 'none'}
-                                                    style={{ color: paymentMethod === 'stars' ? '#facc15' : 'var(--tg-hint, #7d8b97)' }}
-                                                />
-                                            </div>
-                                            {/* Labels */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span
-                                                        className="text-[13.5px] font-semibold leading-none"
-                                                        style={{ color: paymentMethod === 'stars' ? '#ffffff' : 'rgba(255,255,255,0.72)' }}
-                                                    >
-                                                        {t('payment_method_stars', 'Telegram Stars')}
-                                                    </span>
-                                                    <span
-                                                        className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                                                        style={{
-                                                            background: 'rgba(250,204,21,0.14)',
-                                                            color: '#fbbf24',
-                                                            border: '1px solid rgba(250,204,21,0.2)',
-                                                        }}
-                                                    >
-                                                        {t('stars_one_time', 'One-time')}
-                                                    </span>
-                                                </div>
-                                                <span
-                                                    className="text-[11px] mt-1 block"
-                                                    style={{ color: paymentMethod === 'stars' ? 'rgba(255,236,170,0.75)' : 'rgba(125,139,151,0.65)' }}
-                                                >
-                                                    {t('stars_renewal_note', 'Manual renewal · No auto-charge')}
-                                                </span>
-                                            </div>
-                                            {/* Price */}
-                                            <div className="shrink-0 text-right">
-                                                <span
-                                                    className="text-[17px] font-bold leading-none"
-                                                    style={{ color: paymentMethod === 'stars' ? '#facc15' : 'rgba(255,255,255,0.6)' }}
-                                                >
-                                                    {selectedPlan?.stars_price?.toLocaleString()}
-                                                </span>
-                                                <span
-                                                    className="text-[10px] block mt-0.5"
-                                                    style={{ color: paymentMethod === 'stars' ? 'rgba(255,236,170,0.6)' : 'rgba(125,139,151,0.55)' }}
-                                                >
-                                                    ⭐
-                                                </span>
-                                            </div>
-                                            {/* Selected indicator */}
-                                            <div
-                                                className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0 transition-all duration-200"
-                                                style={{
-                                                    background: paymentMethod === 'stars' ? '#facc15' : 'transparent',
-                                                    border: paymentMethod === 'stars' ? '1.5px solid #facc15' : '1.5px solid rgba(125,139,151,0.35)',
-                                                }}
-                                            >
-                                                {paymentMethod === 'stars' && <Check size={9} strokeWidth={3} color="#000" />}
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    {/* PayPal card */}
-                                    <button
-                                        onClick={() => setPaymentMethod('paypal')}
-                                        className="w-full relative overflow-hidden rounded-[16px] px-4 py-3.5 text-left transition-all duration-200 active:scale-[0.985]"
-                                        style={{
-                                            background: paymentMethod === 'paypal'
-                                                ? 'linear-gradient(135deg, rgba(0,122,255,0.13) 0%, rgba(0,98,204,0.07) 100%)'
-                                                : 'rgba(255,255,255,0.04)',
-                                            border: paymentMethod === 'paypal'
-                                                ? '1.5px solid rgba(0,122,255,0.28)'
-                                                : '1.5px solid rgba(255,255,255,0.06)',
-                                            boxShadow: paymentMethod === 'paypal'
-                                                ? '0 0 0 1px rgba(0,122,255,0.08), 0 4px 16px rgba(0,122,255,0.1)'
-                                                : 'none',
-                                        }}
-                                    >
-                                        {paymentMethod === 'paypal' && (
-                                            <div
-                                                className="absolute inset-0 pointer-events-none"
-                                                style={{ background: 'radial-gradient(ellipse at top left, rgba(0,122,255,0.1), transparent 60%)' }}
-                                            />
-                                        )}
-                                        <div className="relative flex items-center gap-3.5">
-                                            {/* Icon */}
-                                            <div
-                                                className="w-10 h-10 rounded-[13px] flex items-center justify-center shrink-0"
-                                                style={{
-                                                    background: paymentMethod === 'paypal'
-                                                        ? 'rgba(0,122,255,0.15)'
-                                                        : 'rgba(255,255,255,0.06)',
-                                                    border: paymentMethod === 'paypal'
-                                                        ? '1px solid rgba(0,122,255,0.2)'
-                                                        : '1px solid rgba(255,255,255,0.06)',
-                                                }}
-                                            >
-                                                <CreditCard
-                                                    size={18}
-                                                    style={{ color: paymentMethod === 'paypal' ? '#4da3ff' : 'var(--tg-hint, #7d8b97)' }}
-                                                />
-                                            </div>
-                                            {/* Labels */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span
-                                                        className="text-[13.5px] font-semibold leading-none"
-                                                        style={{ color: paymentMethod === 'paypal' ? '#ffffff' : 'rgba(255,255,255,0.72)' }}
-                                                    >
-                                                        {t('payment_method_paypal', 'PayPal')}
-                                                    </span>
-                                                    <span
-                                                        className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                                                        style={{
-                                                            background: 'rgba(0,122,255,0.12)',
-                                                            color: '#60a5fa',
-                                                            border: '1px solid rgba(0,122,255,0.18)',
-                                                        }}
-                                                    >
-                                                        {t('paypal_auto_label', 'Auto-renew')}
-                                                    </span>
-                                                </div>
-                                                <span
-                                                    className="text-[11px] mt-1 block"
-                                                    style={{ color: paymentMethod === 'paypal' ? 'rgba(180,210,255,0.75)' : 'rgba(125,139,151,0.65)' }}
-                                                >
-                                                    {t('payment_method_paypal_desc', 'Billed monthly · Cancel anytime')}
-                                                </span>
-                                            </div>
-                                            {/* Price */}
-                                            <div className="shrink-0 text-right">
-                                                <span
-                                                    className="text-[17px] font-bold leading-none"
-                                                    style={{ color: paymentMethod === 'paypal' ? '#60a5fa' : 'rgba(255,255,255,0.6)' }}
-                                                >
-                                                    ${selectedPlan?.price}
-                                                </span>
-                                                <span
-                                                    className="text-[10px] block mt-0.5"
-                                                    style={{ color: paymentMethod === 'paypal' ? 'rgba(180,210,255,0.6)' : 'rgba(125,139,151,0.55)' }}
-                                                >
-                                                    /mo
-                                                </span>
-                                            </div>
-                                            {/* Selected indicator */}
-                                            <div
-                                                className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0 transition-all duration-200"
-                                                style={{
-                                                    background: paymentMethod === 'paypal' ? '#3b82f6' : 'transparent',
-                                                    border: paymentMethod === 'paypal' ? '1.5px solid #3b82f6' : '1.5px solid rgba(125,139,151,0.35)',
-                                                }}
-                                            >
-                                                {paymentMethod === 'paypal' && <Check size={9} strokeWidth={3} color="#fff" />}
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
 
                             {/* Main CTA */}
-                            {!starsStatus && (
+                            {
                                 isCurrentPlan ? (
                                     <div
                                         className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
@@ -898,12 +565,9 @@ export default function PlansBottomSheet({
                                 ) : (
                                     <button
                                         onClick={handleCTA}
-                                        disabled={actionLoading || starsLoading || !selectedPlan}
+                                        disabled={actionLoading || !selectedPlan}
                                         className="w-full py-3.5 rounded-[16px] text-white text-[15px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150 disabled:opacity-50"
-                                        style={paymentMethod === 'stars' && showMethodSelector ? {
-                                            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                                            boxShadow: '0 4px 20px rgba(251,191,36,0.35), 0 1px 0 rgba(255,255,255,0.1) inset',
-                                        } : {
+                                        style={{
                                             background: `linear-gradient(135deg, ${visual.color} 0%, ${visual.color}cc 100%)`,
                                             boxShadow: `0 4px 20px ${visual.color}40, 0 1px 0 rgba(255,255,255,0.1) inset`,
                                         }}
@@ -912,13 +576,12 @@ export default function PlansBottomSheet({
                                         {ctaLabel()}
                                     </button>
                                 )
-                            )}
+                            }
                         </div>
                     </div>
 
                     {/* ── FREE PLAN (secondary option) ──────────────────────────────── */}
-                    <div className="mt-5 mb-2">
-                        {/* Divider */}
+                    {/* <div className="mt-5 mb-2">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="flex-1 h-px" style={{ background: 'rgba(125,139,151,0.1)' }} />
                             <span className="text-[11px] font-semibold text-tg-hint opacity-45 uppercase tracking-wider">
@@ -926,8 +589,6 @@ export default function PlansBottomSheet({
                             </span>
                             <div className="flex-1 h-px" style={{ background: 'rgba(125,139,151,0.1)' }} />
                         </div>
-
-                        {/* Free card */}
                         <div
                             className="rounded-[20px] p-3 flex items-center gap-4"
                             style={{
@@ -975,21 +636,31 @@ export default function PlansBottomSheet({
                                 <p className="text-[10px] text-tg-hint opacity-35">/mo</p>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
-
-                {/* Billing note */}
                 <p
                     className="text-[11px] text-center pb-3 px-6 font-medium"
                     style={{ color: 'rgba(125,139,151,0.38)' }}
                 >
-                    {showMethodSelector && paymentMethod === 'stars'
-                        ? t('stars_renewal_note', 'Manual renewal · No auto-charge')
-                        : t('paypal_billing_note', 'Billed monthly via PayPal · Cancel anytime')}
+                    {t('paypal_billing_note', 'Billed monthly · Cancel anytime')}
                 </p>
             </div>
         </div>
     );
 
-    return createPortal(content, document.body);
+    return (
+        <>
+            {createPortal(content, document.body)}
+            <PaymentMethodModal
+                isOpen={paymentModalOpen}
+                onClose={() => setPaymentModalOpen(false)}
+                selectedPlan={selectedPlan}
+                onPayPal={() => {
+                    setPaymentModalOpen(false);
+                    if (selectedPlan && onCheckout) onCheckout(selectedPlan.plan_id);
+                }}
+                onSuccess={handlePaymentSuccess}
+            />
+        </>
+    );
 }

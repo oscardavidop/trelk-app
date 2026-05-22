@@ -266,3 +266,36 @@ export function createStarsInvoice(plan_name: string): Promise<StarsInvoiceRespo
     body: JSON.stringify({ plan_name }),
   });
 }
+
+/**
+ * Cancels the active Telegram Stars recurring subscription for the current user.
+ */
+export function cancelStarsSubscription(): Promise<{ ok: boolean }> {
+  return json(`${BASE}/stars/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
+export interface CardInvoiceResponse {
+  ok: boolean;
+  invoiceUrl: string;
+  planName: string;
+  priceUsd: number;
+  currency: string;
+  amountCents: number;
+}
+
+/**
+ * Creates a Telegram credit card invoice link for the given plan.
+ * Pass the returned invoiceUrl to Telegram.WebApp.openInvoice().
+ * 
+ * @param plan_name - Plan slug: basic | pro | ultra
+ * @param currency - Currency code (USD, EUR, GBP, etc.). Defaults to USD if omitted.
+ */
+export function createCardInvoice(plan_name: string, currency: string = 'USD'): Promise<CardInvoiceResponse> {
+  return json(`${BASE}/card/invoice`, {
+    method: 'POST',
+    body: JSON.stringify({ plan_name, currency }),
+  });
+}

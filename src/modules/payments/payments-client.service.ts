@@ -227,6 +227,35 @@ export class PaymentsClientService {
     );
   }
 
+  async cancelStarsSubscription(telegramId: number): Promise<{ ok: boolean; accessUntil: string | null }> {
+    return this.request<{ ok: boolean; accessUntil: string | null }>(
+      'POST',
+      '/telegram-payment/subscription/cancel',
+      { tg_id: telegramId },
+      { auth: true },
+    );
+  }
+
+  async createCardInvoice(
+    telegramId: number,
+    planName: string,
+    currency: string = 'USD',
+  ): Promise<{
+    invoiceUrl: string;
+    planName: string;
+    priceUsd: number;
+    currency: string;
+    amountCents: number;
+  }> {
+    const idempotencyKey = this.idempotencyKey('card-invoice', telegramId, planName, currency);
+    return this.request(
+      'POST',
+      '/telegram-payment/invoice/create-card',
+      { tg_id: telegramId, plan_name: planName, currency },
+      { auth: true, idempotencyKey },
+    );
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────
 
   private async request<T>(

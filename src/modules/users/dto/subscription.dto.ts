@@ -100,3 +100,16 @@ export class StarsInvoiceDto {
   @IsNotEmpty()
   plan_name: string;
 }
+
+/** DTO para iniciar pago con Telegram Credit Card Checkout */
+export class CardInvoiceDto {
+  /** Plan name slug: basic | pro | ultra */
+  @IsString()
+  @IsNotEmpty()
+  plan_name: string;
+
+  /** Currency code (USD, EUR, GBP, etc.). Defaults to USD if omitted. */
+  @IsOptional()
+  @Matches(/^[A-Z]{3}$/, { message: 'currency must be a valid 3-letter ISO 4217 code' })
+  currency?: string;
+}
