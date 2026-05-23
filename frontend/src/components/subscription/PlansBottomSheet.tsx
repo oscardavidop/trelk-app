@@ -107,10 +107,17 @@ interface Props {
     realSubscriptionId?: string | null;
     realPlans?: PayPalPlan[];
     onCheckout?: (planId: string) => void;
+    onPayPalCheckout?: (planId: string) => Promise<{
+        ok: boolean;
+        approvalUrl: string;
+        reason?: 'pending_confirmation' | 'error';
+        message?: string;
+    }>;
     onRevise?: (subscriptionId: string, planId: string) => void;
     actionLoading?: boolean;
     /** PayPal plan_id of a pending scheduled downgrade, if any */
     scheduledPlanId?: string | null;
+    onPaymentSuccess?: () => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -123,9 +130,11 @@ export default function PlansBottomSheet({
     realSubscriptionId,
     realPlans = [],
     onCheckout,
+    onPayPalCheckout,
     onRevise,
     actionLoading,
     scheduledPlanId,
+    onPaymentSuccess,
 }: Props) {
     const { t } = useTranslation('subscription');
 
@@ -236,9 +245,10 @@ export default function PlansBottomSheet({
     };
 
     const handlePaymentSuccess = useCallback(() => {
+        onPaymentSuccess?.();
         setPaymentModalOpen(false);
         handleClose();
-    }, [handleClose]);
+    }, [handleClose, onPaymentSuccess]);
 
     if (!mounted) return null;
 
@@ -655,9 +665,24 @@ export default function PlansBottomSheet({
                 isOpen={paymentModalOpen}
                 onClose={() => setPaymentModalOpen(false)}
                 selectedPlan={selectedPlan}
-                onPayPal={() => {
-                    setPaymentModalOpen(false);
-                    if (selectedPlan && onCheckout) onCheckout(selectedPlan.plan_id);
+                onPayPal={async (planId: string) => {
+                    if (!onPayPalCheckout) {
+                        return { ok: false, approvalUrl: '', reason: 'error' as const };
+                    }
+                    try {
+                        const result = await onPayPalCheckout(planId);
+                        return result;
+                    } catch (e: any) {
+                        console.error('PayPal checkout error:', e);
+                        const msg = e?.error?.message || e?.message || 'Unable to start PayPal confirmation.';
+                        const pending = /pending subscription|confirmaci[oó]n pendiente|already has a pending/i.test(String(msg));
+                        return {
+                            ok: false,
+                            approvalUrl: '',
+                            reason: pending ? 'pending_confirmation' : 'error',
+                            message: msg,
+                        };
+                    }
                 }}
                 onSuccess={handlePaymentSuccess}
             />

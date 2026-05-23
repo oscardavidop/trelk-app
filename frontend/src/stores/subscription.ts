@@ -20,6 +20,7 @@ import {
 } from '../services/subscriptionApi';
 
 const PENDING_SUB_KEY = 'trelk:pendingSubscription';
+const PENDING_METHOD_KEY = 'trelk:pendingPaymentMethod';
 
 interface SubscriptionState {
   // ── Local pro_features ──────────────────────────
@@ -249,6 +250,9 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     const existing = get().pollInterval;
     if (existing) clearInterval(existing);
 
+    localStorage.setItem(PENDING_SUB_KEY, subscriptionId);
+    set({ pendingSubscriptionId: subscriptionId });
+
     let attempts = 0;
     const interval = setInterval(async () => {
       attempts++;
@@ -256,10 +260,11 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         const res = await fetchRealStatus();
         set({ realStatus: res.status, realSub: res.subscription, isPremium: res.isPremium });
 
-        if (res.status === 'ACTIVE') {
+        if (res.status === 'ACTIVE' || res.isPremium) {
           clearInterval(interval);
           set({ pollInterval: null, pendingSubscriptionId: null });
           localStorage.removeItem(PENDING_SUB_KEY);
+          localStorage.removeItem(PENDING_METHOD_KEY);
           // Reload local features too (plan tier may have changed)
           await get().load();
         }
@@ -277,6 +282,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   stopPolling: () => {
     const interval = get().pollInterval;
     if (interval) clearInterval(interval);
-    set({ pollInterval: null });
+    set({ pollInterval: null, pendingSubscriptionId: null });
+    localStorage.removeItem(PENDING_SUB_KEY);
+    localStorage.removeItem(PENDING_METHOD_KEY);
   },
 }));

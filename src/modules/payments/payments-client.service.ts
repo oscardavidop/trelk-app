@@ -35,6 +35,7 @@ export interface SubscriptionStatus {
     id: string;
     plan_id: string;
     status: string;
+    provider?: 'paypal' | 'telegram_stars' | 'telegram_card';
     next_billing_date: string | null;
     amount: number | null;
     currency: string;
@@ -232,6 +233,18 @@ export class PaymentsClientService {
       'POST',
       '/telegram-payment/subscription/cancel',
       { tg_id: telegramId },
+      { auth: true },
+    );
+  }
+
+  async toggleTelegramAutoRenew(
+    telegramId: number,
+    autoRenew: boolean,
+  ): Promise<{ ok: boolean; auto_renew: boolean; status: string; accessUntil: string | null }> {
+    return this.request<{ ok: boolean; auto_renew: boolean; status: string; accessUntil: string | null }>(
+      'POST',
+      '/telegram-payment/subscription/auto-renew',
+      { tg_id: telegramId, auto_renew: autoRenew },
       { auth: true },
     );
   }

@@ -1,6 +1,6 @@
 // src/users-ui/users-ui.controller.ts
 // API-only controller — returns pure JSON for the React SPA frontend
-import { Controller, Get, Patch, Body, Param, Req, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, Req, UseGuards, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { UsersUiService } from './users-ui.service';
 import { UserService } from '../users/user.service';
 import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -124,11 +124,17 @@ export class AjaxUsersUiController {
 
     private extractTelegramId(req: any): number {
         const user = req.user;
-        return (
+        const telegramId = (
             user.authTelegram?.id ||
             user.authUser?.telegramId ||
             user.authUser?.id
         );
+
+        if (!telegramId || Number.isNaN(Number(telegramId)) || Number(telegramId) <= 0) {
+            throw new UnauthorizedException('Invalid authenticated Telegram user');
+        }
+
+        return Number(telegramId);
     }
 
     /** GET /api/v1/ui/user/state — user engagement classification */

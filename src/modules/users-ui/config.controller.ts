@@ -11,6 +11,7 @@ import {
   Req,
   UseGuards,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserService } from '../users/user.service';
@@ -101,11 +102,17 @@ export class ConfigController {
 
   private extractTelegramId(req: any): number {
     const user = req.user;
-    return (
+    const telegramId = (
       user.authTelegram?.id ||
       user.authUser?.telegramId ||
       user.authUser?.id
     );
+
+    if (!telegramId || Number.isNaN(Number(telegramId)) || Number(telegramId) <= 0) {
+      throw new UnauthorizedException('Invalid authenticated Telegram user');
+    }
+
+    return Number(telegramId);
   }
 
   private formatErrors(validationErrors: any[]): any[] {

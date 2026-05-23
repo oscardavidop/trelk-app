@@ -6,7 +6,7 @@ import { Document } from 'mongoose';
 export type UserDocument = User & Document;
 
 // ── Plan tier types ──────────────────────────────
-export type PlanTier = 'free' | 'pro' | 'ultra';
+export type PlanTier = 'free' | 'basic' | 'pro' | 'ultra';
 
 export interface ILimitCounter {
   total: number;
@@ -113,6 +113,31 @@ export const PRO_PLAN_TEMPLATE: Partial<IUserProFeatures> = {
   },
 };
 
+export const BASIC_PLAN_TEMPLATE: Partial<IUserProFeatures> = {
+  limits: {
+    downloads_per_day: { total: 25, used: 0 },
+    ai_requests_per_day: { total: 40, used: 0 },
+    premium_ai_requests_per_day: { total: 0, used: 0 },
+    alerts: { per_day: { total: 10, used: 0 }, total: 40, used: 0 },
+    ssweb: { per_day: { total: 10, used: 0 } },
+    qr: { per_day: { total: 30, used: 0 } },
+    file_upload_size_mb: 100,
+  },
+  performance: {
+    queue_priority: 'normal',
+    response_speed_multiplier: 1.2,
+  },
+  support: {
+    priority: 'standard',
+    live_chat_access: true,
+  },
+  custom_commands: {
+    available: true,
+    max_commands: 5,
+    used_commands: 0,
+  },
+};
+
 export const ULTRA_PLAN_TEMPLATE: Partial<IUserProFeatures> = {
   limits: {
     downloads_per_day: { total: 1000, used: 0 },
@@ -140,7 +165,13 @@ export const ULTRA_PLAN_TEMPLATE: Partial<IUserProFeatures> = {
 
 export function getPlanTemplate(tier: PlanTier): IUserProFeatures {
   const base = JSON.parse(JSON.stringify(FREE_PLAN_DEFAULTS)) as IUserProFeatures;
-  const overlay = tier === 'ultra' ? ULTRA_PLAN_TEMPLATE : tier === 'pro' ? PRO_PLAN_TEMPLATE : {};
+  const overlay = tier === 'ultra'
+    ? ULTRA_PLAN_TEMPLATE
+    : tier === 'pro'
+      ? PRO_PLAN_TEMPLATE
+      : tier === 'basic'
+        ? BASIC_PLAN_TEMPLATE
+        : {};
   return { ...base, ...overlay, limits: { ...base.limits, ...(overlay as any).limits }, performance: { ...base.performance, ...(overlay as any).performance }, support: { ...base.support, ...(overlay as any).support }, custom_commands: { ...base.custom_commands, ...(overlay as any).custom_commands } } as IUserProFeatures;
 }
 

@@ -96,6 +96,24 @@ export default function PaymentsPage() {
         {/* ═══ OVERVIEW TAB ═══ */}
         {!store.loading && store.activeTab === 'overview' && (
           <div className="space-y-5 animate-fade-in">
+            {(() => {
+              const provider = store.activeSubscription?.provider || 'paypal';
+              const isPaypal = provider === 'paypal';
+              const methodLabel =
+                provider === 'telegram_card'
+                  ? t('provider_telegram_card', 'Telegram Card')
+                  : provider === 'telegram_stars'
+                    ? t('provider_telegram_stars', 'Telegram Stars')
+                    : t('provider_paypal', 'PayPal');
+
+              const methodSubtext = isPaypal
+                ? (store.activeSubscription?.paypal_payerId || t('no_method', 'No method linked'))
+                : (store.activeSubscription?.telegram_charge_id
+                  ? `${t('charge_id', 'Charge ID')}: ${store.activeSubscription.telegram_charge_id.slice(-10)}`
+                  : t('no_method', 'No method linked'));
+
+              return (
+                <>
             <SubscriptionCard
               subscription={store.activeSubscription}
               totalSpent={store.totalSpent}
@@ -109,24 +127,32 @@ export default function PaymentsPage() {
             <div className="rounded-[20px] bg-tg-secondary border border-tg-border/40 p-5 shadow-sm">
               <h3 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mb-3.5 pl-1">{t('payment_method', 'Payment Method')}</h3>
               <div className="flex items-center gap-3.5">
-                <div className="w-[46px] h-[46px] rounded-[14px] bg-[#003087]/10 border border-[#003087]/20 flex items-center justify-center shadow-sm">
-                  {/* Icono PayPal */}
-                  <svg className="w-6 h-4 opacity-90" viewBox="0 0 101 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12.237 4.001H4.087a.96.96 0 0 0-.949.812L0 25.795a.576.576 0 0 0 .57.664h3.888a.96.96 0 0 0 .949-.811l.848-5.375a.96.96 0 0 1 .949-.812h2.187c4.559 0 7.19-2.207 7.876-6.583.309-1.914.012-3.418-.883-4.471C15.391 4.89 14.04 4.001 12.237 4.001z" fill="#253B80" />
-                    <path d="M37.063 4.001h-8.15a.96.96 0 0 0-.949.812l-3.138 19.982a.576.576 0 0 0 .57.664h4.141a.672.672 0 0 0 .664-.568l.891-5.618a.96.96 0 0 1 .949-.812h2.187c4.559 0 7.19-2.207 7.876-6.583.309-1.914.013-3.418-.882-4.471-.996-1.517-2.347-2.406-4.159-2.406z" fill="#179BD7" />
-                    <path d="M61.559 9.782h-4.16a.578.578 0 0 0-.571.488l-.184 1.162-.29-.421c-.902-1.308-2.912-1.745-4.919-1.745-4.602 0-8.535 3.488-9.304 8.384-.4 2.441.168 4.776 1.561 6.405 1.279 1.498 3.106 2.122 5.281 2.122 3.734 0 5.804-2.4 5.804-2.4l-.186 1.163a.576.576 0 0 0 .57.664h3.749a.96.96 0 0 0 .949-.812l2.25-14.346a.576.576 0 0 0-.55-.664z" fill="#253B80" />
-                    <path d="M86.385 9.782h-4.16a.578.578 0 0 0-.571.488l-.184 1.162-.29-.421c-.902-1.308-2.912-1.745-4.919-1.745-4.602 0-8.535 3.488-9.304 8.384-.4 2.441.168 4.776 1.561 6.405 1.279 1.498 3.106 2.122 5.281 2.122 3.734 0 5.804-2.4 5.804-2.4l-.186 1.163a.576.576 0 0 0 .57.664h3.749a.96.96 0 0 0 .949-.812l2.25-14.346a.576.576 0 0 0-.55-.664z" fill="#179BD7" />
-                    <path d="M98.203 4.001h-4.175a.96.96 0 0 0-.817.455l-4.72 6.951-2.001-6.681a.961.961 0 0 0-.92-.725h-4.102a.577.577 0 0 0-.546.77l3.771 11.073-3.548 5.005a.576.576 0 0 0 .472.912h4.173a.96.96 0 0 0 .813-.449l11.388-16.431a.577.577 0 0 0-.788-.88z" fill="#253B80" />
-                  </svg>
+                <div className={`w-[46px] h-[46px] rounded-[14px] border flex items-center justify-center shadow-sm ${
+                  provider === 'telegram_stars'
+                    ? 'bg-amber-500/10 border-amber-500/20'
+                    : provider === 'telegram_card'
+                      ? 'bg-emerald-500/10 border-emerald-500/20'
+                      : 'bg-[#003087]/10 border-[#003087]/20'
+                }`}>
+                  <CreditCard className={`w-5 h-5 ${
+                    provider === 'telegram_stars'
+                      ? 'text-amber-500'
+                      : provider === 'telegram_card'
+                        ? 'text-emerald-500'
+                        : 'text-[#003087]'
+                  }`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-tg-text leading-tight">PayPal</p>
+                  <p className="text-[15px] font-semibold text-tg-text leading-tight">{methodLabel}</p>
                   <p className="text-[12px] font-medium text-tg-hint/80 truncate mt-0.5">
-                    {store.activeSubscription?.paypal_payerId || t('no_method', 'No method linked')}
+                    {methodSubtext}
                   </p>
                 </div>
               </div>
             </div>
+                </>
+              );
+            })()}
 
             {/* Quick stats */}
             {store.totalSpent.length > 0 && (

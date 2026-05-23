@@ -35,6 +35,12 @@ export class Subscription {
   @Prop()
   paypal_payerId: string;
 
+  @Prop({ default: 'paypal', index: true })
+  provider?: 'paypal' | 'telegram_stars' | 'telegram_card';
+
+  @Prop()
+  telegram_charge_id?: string;
+
   @Prop({ default: false })
   activation_notified: boolean;
 

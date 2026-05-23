@@ -457,7 +457,7 @@ export class UserService {
       throw new BadRequestException('A plan change is already pending. Cancel it first.');
     }
 
-    const validTiers: PlanTier[] = ['free', 'pro', 'ultra'];
+    const validTiers: PlanTier[] = ['free', 'basic', 'pro', 'ultra'];
     if (!validTiers.includes(newPlan)) {
       throw new BadRequestException('Invalid plan tier');
     }

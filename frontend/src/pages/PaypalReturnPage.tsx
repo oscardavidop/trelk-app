@@ -1,25 +1,60 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useSubscriptionStore } from '../stores/subscription';
 import { CheckCircle2, XCircle, Loader2, ExternalLink, ArrowLeft, Sparkles } from 'lucide-react';
 
 const PENDING_SUB_KEY = 'trelk:pendingSubscription';
 
 export default function PaypalReturnPage() {
+  const { t } = useTranslation('subscription');
   const [params] = useSearchParams();
   const cancelled = params.get('cancelled') === 'true';
   const pendingSub = localStorage.getItem(PENDING_SUB_KEY);
-  const [secondsLeft, setSecondsLeft] = useState(3);
+  const [secondsLeft, setSecondsLeft] = useState(0);
   const [triedClose, setTriedClose] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
 
-  // Auto-close attempt after PayPal approval
+  const startPolling = useSubscriptionStore((s) => s.startPolling);
+  const stopPolling = useSubscriptionStore((s) => s.stopPolling);
+  const realStatus = useSubscriptionStore((s) => s.realStatus);
+
+  // Start polling when page mounts (after PayPal approval)
+  useEffect(() => {
+    if (cancelled || !pendingSub) return;
+    startPolling(pendingSub);
+  }, [cancelled, pendingSub, startPolling]);
+
+  // Auto-close attempt only AFTER subscription becomes ACTIVE
   useEffect(() => {
     if (cancelled) return;
+
+    let attempts = 0;
+    const pollTimeout = 60; // max 60 attempts (3 minutes)
+
+    const checkReadyInterval = setInterval(() => {
+      attempts++;
+      if (realStatus === 'ACTIVE' || attempts >= pollTimeout) {
+        setShowCountdown(true);
+        clearInterval(checkReadyInterval);
+      }
+    }, 3000);
+
+    return () => clearInterval(checkReadyInterval);
+  }, [cancelled, realStatus]);
+
+  // Countdown to close
+  useEffect(() => {
+    if (cancelled || !showCountdown) return;
+    
+    setSecondsLeft(3);
 
     const interval = setInterval(() => {
       setSecondsLeft((s) => {
         if (s <= 1) {
           clearInterval(interval);
           setTriedClose(true);
+          stopPolling();
           try { window.close(); } catch { /* ignored */ }
           return 0;
         }
@@ -28,7 +63,7 @@ export default function PaypalReturnPage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [cancelled]);
+  }, [cancelled, showCountdown, stopPolling]);
 
   if (cancelled) {
     return (
@@ -47,13 +82,13 @@ export default function PaypalReturnPage() {
         </div>
 
         <h1 className="text-[24px] font-bold text-white mb-2.5 text-center leading-tight">
-          Payment Cancelled
+          {t('paypal_return_cancelled_title', 'Payment Cancelled')}
         </h1>
         <p
           className="text-[14px] text-center leading-relaxed max-w-[280px] mb-10"
           style={{ color: '#7d8b97' }}
         >
-          No charges were made. You can return to Telegram and try again anytime.
+          {t('paypal_return_cancelled_desc', 'No charges were made. You can return to Telegram and try again anytime.')}
         </p>
 
         <a
@@ -62,14 +97,14 @@ export default function PaypalReturnPage() {
           style={{ background: 'linear-gradient(135deg, #248BDA, #1a6fba)' }}
         >
           <ArrowLeft size={18} />
-          Back to Telegram
+          {t('paypal_return_back_cta', 'Back to Telegram')}
         </a>
 
         <p
           className="text-[11px] text-center mt-5 max-w-[260px] leading-relaxed"
           style={{ color: '#4d5d6b' }}
         >
-          If the button doesn't work, open Telegram manually and return to the bot.
+          {t('paypal_return_back_hint', "If the button doesn't work, open Telegram manually and return to the bot.")}
         </p>
       </div>
     );
@@ -95,23 +130,23 @@ export default function PaypalReturnPage() {
       </div>
 
       <h1 className="text-[24px] font-bold text-white mb-2.5 text-center leading-tight">
-        Payment Received!
+        {t('paypal_return_received_title', 'Payment Received!')}
       </h1>
 
-      {pendingSub ? (
+      {realStatus === 'ACTIVE' ? (
         <div className="flex items-center gap-2.5 mb-4">
-          <Loader2 size={14} className="animate-spin" style={{ color: '#248BDA' }} />
-          <span className="text-[14px] font-medium" style={{ color: '#5eaadf' }}>
-            Activating your subscription…
+          <CheckCircle2 size={14} style={{ color: '#22c55e' }} />
+          <span className="text-[14px] font-medium" style={{ color: '#22c55e' }}>
+            {t('paypal_return_confirmed', 'Subscription confirmed!')}
           </span>
         </div>
       ) : (
-        <p
-          className="text-[14px] text-center leading-relaxed max-w-[280px] mb-4"
-          style={{ color: '#7d8b97' }}
-        >
-          Your payment is being processed and your plan will be activated shortly.
-        </p>
+        <div className="flex items-center gap-2.5 mb-4">
+          <Loader2 size={14} className="animate-spin" style={{ color: '#248BDA' }} />
+          <span className="text-[14px] font-medium" style={{ color: '#5eaadf' }}>
+            {t('paypal_return_activating', 'Activating your subscription…')}
+          </span>
+        </div>
       )}
 
       {/* Timeline steps */}
@@ -121,9 +156,9 @@ export default function PaypalReturnPage() {
       >
         <div className="flex flex-col gap-3.5">
           {[
-            { done: true, label: 'Payment authorized by PayPal' },
-            { done: true, label: 'Subscription record created' },
-            { done: false, label: 'Features activated on your account', loading: true },
+            { done: true, label: t('paypal_return_step_1', 'Payment authorized by PayPal') },
+            { done: true, label: t('paypal_return_step_2', 'Subscription record created') },
+            { done: false, label: t('paypal_return_step_3', 'Features activated on your account'), loading: true },
           ].map((step, i) => (
             <div key={i} className="flex items-center gap-3">
               <div
@@ -154,28 +189,37 @@ export default function PaypalReturnPage() {
         </div>
       </div>
 
-      {/* Auto-close countdown */}
-      {!triedClose ? (
+      {/* Auto-close countdown - only show after activation confirmed */}
+      {showCountdown && !triedClose ? (
         <div
           className="w-full max-w-[320px] rounded-[14px] px-4 py-3 mb-4 text-center"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p className="text-[13px]" style={{ color: '#7d8b97' }}>
-            Closing in{' '}
+            {t('paypal_return_closing_in', 'Closing in')}{' '}
             <span className="text-white font-bold">{secondsLeft}s</span>
             …
           </p>
         </div>
-      ) : (
+      ) : showCountdown && triedClose ? (
         <div
           className="w-full max-w-[320px] rounded-[14px] px-4 py-3 mb-4 text-center"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p className="text-[12px]" style={{ color: '#7d8b97' }}>
-            Couldn't auto-close. Use the button below.
+            {t('paypal_return_autoclose_failed', "Couldn't auto-close. Use the button below.")}
           </p>
         </div>
-      )}
+      ) : !realStatus || realStatus === 'FREE' ? (
+        <div
+          className="w-full max-w-[320px] rounded-[14px] px-4 py-3 mb-4 text-center"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <p className="text-[12px]" style={{ color: '#7d8b97' }}>
+            {t('paypal_return_waiting', 'Waiting for payment confirmation…')}
+          </p>
+        </div>
+      ) : null}
 
       <a
         href="tg://"
@@ -183,7 +227,7 @@ export default function PaypalReturnPage() {
         style={{ background: 'linear-gradient(135deg, #248BDA, #1a6fba)' }}
       >
         <Sparkles size={17} />
-        Open Telegram
+        {t('paypal_return_open_telegram', 'Open Telegram')}
         <ExternalLink size={15} className="opacity-70" />
       </a>
 
@@ -191,7 +235,9 @@ export default function PaypalReturnPage() {
         className="text-[11px] text-center mt-4 max-w-[280px] leading-relaxed"
         style={{ color: '#4d5d6b' }}
       >
-        Return to the bot — your subscription activates automatically within seconds.
+        {realStatus === 'ACTIVE'
+          ? t('paypal_return_ready_desc', 'Your subscription is ready! Open Telegram to see your new premium features.')
+          : t('paypal_return_pending_desc', 'Return to the bot — your subscription activates automatically within seconds.')}
       </p>
     </div>
   );

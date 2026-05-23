@@ -36,6 +36,12 @@ export default function SubscriptionSettings({
 }: Props) {
   const { t } = useTranslation('subscription');
   const { subscription } = features;
+  const provider = realSub?.provider ?? 'paypal';
+  const providerLabel = provider === 'telegram_card'
+    ? t('provider_telegram_card', 'Telegram Card')
+    : provider === 'telegram_stars'
+      ? t('provider_telegram_stars', 'Telegram Stars')
+      : t('provider_paypal', 'PayPal');
   const tier = subscription.tier;
   const hasPendingChange = subscription.change?.status === 'pending';
   const hasRealActions = realStatus === 'ACTIVE' || realStatus === 'SUSPENDED' || realStatus === 'ACTIVE_CANCEL_SCHEDULED' || realStatus === 'PAST_DUE';
@@ -198,7 +204,9 @@ export default function SubscriptionSettings({
                     {t('cancel_subscription', 'Cancel Subscription')}
                   </div>
                   <div className="text-[13px] font-medium text-tg-hint mt-0.5">
-                    {t('cancel_subscription_desc', 'Access continues until end of billing period')}
+                    {t('cancel_subscription_desc', {
+                      defaultValue: `Access continues until the end of the billing period on ${providerLabel}`,
+                    })}
                   </div>
                 </div>
               </button>
@@ -309,17 +317,26 @@ export default function SubscriptionSettings({
                     {t('past_due_title', 'Payment Failed')}
                   </div>
                   <div className="text-[13px] text-tg-hint leading-snug mb-3">
-                    {t('past_due_desc', 'Your payment could not be processed. Update your payment method in PayPal to restore access.')}
+                    {provider === 'paypal'
+                      ? t('past_due_desc_paypal', 'Your payment could not be processed. Update your payment method in PayPal to restore access.')
+                      : t('past_due_desc_telegram', 'Your payment could not be processed. Open the app to renew or switch plans.')}
                   </div>
-                  <a
-                    href="https://www.paypal.com/myaccount/autopay/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[13px] text-white font-bold active:scale-95 transition-transform bg-red-500 px-3.5 py-2 rounded-full shadow-sm"
-                  >
-                    <ExternalLink size={14} />
-                    {t('manage_billing', 'Manage in PayPal')}
-                  </a>
+                  {provider === 'paypal' ? (
+                    <a
+                      href="https://www.paypal.com/myaccount/autopay/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[13px] text-white font-bold active:scale-95 transition-transform bg-red-500 px-3.5 py-2 rounded-full shadow-sm"
+                    >
+                      <ExternalLink size={14} />
+                      {t('manage_billing', 'Manage in PayPal')}
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 text-[13px] text-white font-bold bg-red-500 px-3.5 py-2 rounded-full shadow-sm">
+                      <ExternalLink size={14} />
+                      {providerLabel}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -16,6 +16,21 @@ export function celebrateConfetti() {
   haptic.notify('success');
 }
 
+export function celebrateConfettiSubtle() {
+  confetti({
+    particleCount: 36,
+    spread: 52,
+    startVelocity: 17,
+    gravity: 1.05,
+    scalar: 0.92,
+    ticks: 130,
+    origin: { y: 0.72 },
+    colors: ['#10b981', '#22c55e', '#38bdf8', '#f59e0b'],
+    disableForReducedMotion: true,
+  });
+  haptic.notify('success');
+}
+
 export function smallConfetti() {
   confetti({
     particleCount: 30,

@@ -1,11 +1,15 @@
-import { Controller, Post, Get, Body, Req, UseGuards, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Req, UseGuards, Query, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AnalyticsTrackingService } from './analytics-tracking.service';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 function extractUserId(req: any): number {
   const u = req.user;
-  return u?.authTelegram?.id || u?.authUser?.telegramId || u?.authUser?.id || 0;
+  const userId = u?.authTelegram?.id || u?.authUser?.telegramId || u?.authUser?.id;
+  if (!userId || Number.isNaN(Number(userId)) || Number(userId) <= 0) {
+    throw new UnauthorizedException('Invalid authenticated Telegram user');
+  }
+  return Number(userId);
 }
 
 @Controller('api/v1/ui/analytics')

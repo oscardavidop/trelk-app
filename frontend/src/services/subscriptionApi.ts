@@ -106,6 +106,7 @@ export interface RealSubscription {
   id: string;
   plan_id: string;
   status: string;
+  provider?: 'paypal' | 'telegram_stars' | 'telegram_card';
   next_billing_date: string | null;
   amount: number | null;
   currency: string;

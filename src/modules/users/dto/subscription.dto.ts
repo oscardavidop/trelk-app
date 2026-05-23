@@ -2,8 +2,8 @@
 import { IsIn, IsBoolean, IsString, IsNotEmpty, IsUrl, Matches, IsOptional, IsDateString } from 'class-validator';
 
 export class ChangePlanDto {
-  @IsIn(['free', 'pro', 'ultra'])
-  plan: 'free' | 'pro' | 'ultra';
+  @IsIn(['free', 'basic', 'pro', 'ultra'])
+  plan: 'free' | 'basic' | 'pro' | 'ultra';
 }
 
 export class AutoRenewDto {

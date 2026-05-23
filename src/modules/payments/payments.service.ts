@@ -255,19 +255,36 @@ export class PaymentsService {
   }
 
   private sanitizeSubscription(sub: any) {
+    const provider = sub.provider || 'paypal';
+    const normalizedAmount = this.normalizeAmount(sub.amount, sub.currency, provider);
+
     return {
       _id: String(sub._id),
       paypal_subscription_id: sub.paypal_subscription_id,
       status: sub.status,
       plan_id: sub.plan_id,
-      amount: sub.amount,
+      amount: normalizedAmount,
       currency: sub.currency,
+      provider,
+      telegram_charge_id: sub.telegram_charge_id ?? null,
       next_billing_date: sub.next_billing_date,
       start_time: sub.start_time,
       paypal_payerId: this.maskId(sub.paypal_payerId),
       createdAt: sub.createdAt,
       updatedAt: sub.updatedAt,
     };
+  }
+
+  private normalizeAmount(amount: any, currency: string | undefined, provider: string): number {
+    const n = Number(amount ?? 0);
+    if (!Number.isFinite(n)) return 0;
+
+    // Backward compatibility: early telegram_card records were stored in cents.
+    if (provider === 'telegram_card' && (currency ?? '').toUpperCase() !== 'XTR' && n >= 100) {
+      return Math.round((n / 100) * 100) / 100;
+    }
+
+    return Math.round(n * 100) / 100;
   }
 
   private sanitizeEvent(event: any) {

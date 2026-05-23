@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
   BadRequestException,
+  UnauthorizedException,
   Logger,
 } from '@nestjs/common';
 import { BearerAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -75,15 +76,12 @@ export class SubscriptionController {
     // Get real subscription status to know if we can call PayPal
     const status = await this.paymentsClient.getUserStatus(telegramId);
     const subscription = status?.subscription;
+    const provider = subscription?.provider ?? 'paypal';
 
-    // If user has a real PayPal subscription in a state where suspend/activate applies, use it
-    const canTogglePaypal =
-      subscription?.id &&
-      (status.status === 'ACTIVE' || status.status === 'SUSPENDED');
-
-    if (canTogglePaypal) {
-      // Delegate to PayPal suspend/activate — also updates local DB via webhook
-      await this.paymentsClient.setAutoRenew(telegramId, subscription!.id, dto.auto_renew);
+    if (provider === 'paypal' && subscription?.id && (status.status === 'ACTIVE' || status.status === 'SUSPENDED')) {
+      await this.paymentsClient.setAutoRenew(telegramId, subscription.id, dto.auto_renew);
+    } else if (provider === 'telegram_stars' || provider === 'telegram_card') {
+      await this.paymentsClient.toggleTelegramAutoRenew(telegramId, dto.auto_renew);
     } else {
       // Fallback: only update local flag (no real subscription to toggle)
       await this.userService.setAutoRenew(telegramId, dto.auto_renew);
@@ -170,6 +168,45 @@ export class SubscriptionController {
   @Post('revise')
   async revise(@Body() dto: ReviseSubscriptionDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+    const provider = status.subscription?.provider ?? 'paypal';
+
+    // Guardrail: if a downgrade is already scheduled, do not allow any further
+    // plan changes until it is explicitly cancelled.
+    if (status.subscription?.scheduled_plan_id) {
+      throw new BadRequestException(
+        'Ya tienes un downgrade pendiente. Cancela el downgrade programado antes de realizar otro cambio de plan.',
+      );
+    }
+
+    if (provider === 'telegram_stars' || provider === 'telegram_card') {
+      const plans = await this.paymentsClient.getPlans();
+      const targetPlan = plans.find((plan) => plan.plan_id === dto.new_plan_id);
+      const normalizedName = String(targetPlan?.name ?? '').toLowerCase();
+
+      let targetTier: 'basic' | 'pro' | 'ultra';
+      if (normalizedName === 'ultra') {
+        targetTier = 'ultra';
+      } else if (normalizedName === 'pro') {
+        targetTier = 'pro';
+      } else if (normalizedName === 'basic') {
+        targetTier = 'basic';
+      } else {
+        throw new BadRequestException('Invalid target plan for Telegram provider');
+      }
+
+      await this.userService.requestPlanChange(telegramId, targetTier);
+
+      this.logger.log(
+        `Plan revision scheduled locally for Telegram provider ${provider}: user ${telegramId} → plan=${dto.new_plan_id} (${targetTier})`,
+      );
+
+      return {
+        ok: true,
+        approvalUrl: null,
+        requiresApproval: false,
+      };
+    }
 
     const result = await this.paymentsClient.reviseSubscription(
       telegramId,
@@ -206,8 +243,14 @@ export class SubscriptionController {
   @Post('cancel')
   async cancelSubscription(@Body() dto: CancelActiveSubscriptionDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+    const provider = status.subscription?.provider ?? 'paypal';
 
-    await this.paymentsClient.cancelSubscription(telegramId, dto.subscription_id);
+    if (provider === 'paypal') {
+      await this.paymentsClient.cancelSubscription(telegramId, dto.subscription_id);
+    } else {
+      await this.paymentsClient.cancelStarsSubscription(telegramId);
+    }
 
     this.logger.log(
       `Subscription cancelled for user ${telegramId}: sub=${dto.subscription_id}`,
@@ -225,7 +268,14 @@ export class SubscriptionController {
   @Post('resume')
   async resumeSubscription(@Body() dto: ResumeSubscriptionDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
-    await this.paymentsClient.resumeSubscription(telegramId, dto.subscription_id);
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+    const provider = status.subscription?.provider ?? 'paypal';
+
+    if (provider === 'paypal') {
+      await this.paymentsClient.resumeSubscription(telegramId, dto.subscription_id);
+    } else {
+      await this.paymentsClient.toggleTelegramAutoRenew(telegramId, true);
+    }
     this.logger.log(`Subscription resumed for user ${telegramId}: sub=${dto.subscription_id}`);
     return { ok: true, status: 'resumed' };
   }
@@ -239,6 +289,20 @@ export class SubscriptionController {
   @Post('cancel-downgrade')
   async cancelDowngrade(@Body() dto: CancelDowngradeAppDto, @Req() req: any) {
     const telegramId = this.extractTelegramId(req);
+    const status = await this.paymentsClient.getUserStatus(telegramId);
+    const provider = status.subscription?.provider ?? 'paypal';
+
+    if (provider === 'telegram_stars' || provider === 'telegram_card') {
+      await this.userService.cancelPlanChange(telegramId);
+      this.logger.log(`Scheduled downgrade cancelled locally for Telegram provider ${provider}: user ${telegramId}`);
+      return {
+        ok: true,
+        approvalUrl: null,
+        requiresApproval: false,
+        status: 'downgrade_cancelled',
+      };
+    }
+
     const result = await this.paymentsClient.cancelScheduledDowngrade(
       telegramId,
       dto.subscription_id,
@@ -346,10 +410,16 @@ export class SubscriptionController {
 
   private extractTelegramId(req: any): number {
     const user = req.user;
-    return (
+    const telegramId = (
       user.authTelegram?.id ||
       user.authUser?.telegramId ||
       user.authUser?.id
     );
+
+    if (!telegramId || Number.isNaN(Number(telegramId)) || Number(telegramId) <= 0) {
+      throw new UnauthorizedException('Invalid authenticated Telegram user');
+    }
+
+    return Number(telegramId);
   }
 }

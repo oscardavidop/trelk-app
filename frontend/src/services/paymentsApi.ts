@@ -27,6 +27,8 @@ export interface SubscriptionItem {
   plan_id: string;
   amount: number;
   currency: string;
+  provider?: 'paypal' | 'telegram_stars' | 'telegram_card';
+  telegram_charge_id?: string | null;
   next_billing_date: string | null;
   start_time: string;
   paypal_payerId: string;

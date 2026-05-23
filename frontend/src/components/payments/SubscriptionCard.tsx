@@ -71,12 +71,26 @@ export default function SubscriptionCard({
 
   // ── ESTADO: CON SUSCRIPCIÓN ──
   const status = STATUS_KEYS[subscription.status] || STATUS_KEYS.ACTIVE;
+  const provider = subscription.provider || 'paypal';
+  const providerLabel =
+    provider === 'telegram_card'
+      ? t('provider_telegram_card', 'Telegram Card')
+      : provider === 'telegram_stars'
+        ? t('provider_telegram_stars', 'Telegram Stars')
+        : t('provider_paypal', 'PayPal');
   const nextBilling = subscription.next_billing_date
     ? new Date(subscription.next_billing_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
     : null;
   const startDate = subscription.start_time
     ? new Date(subscription.start_time).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
     : null;
+
+  const amountText = (() => {
+    if ((subscription.currency || '').toUpperCase() === 'XTR') {
+      return `${Math.round(subscription.amount)} XTR`;
+    }
+    return `$${Number(subscription.amount || 0).toFixed(2)} ${subscription.currency}`;
+  })();
 
   return (
     <div className="rounded-[24px] bg-tg-secondary border border-tg-border/40 overflow-hidden shadow-sm">
@@ -94,7 +108,9 @@ export default function SubscriptionCard({
             </div>
             <div>
               <p className="text-[17px] font-bold text-tg-text leading-tight mb-0.5">{t('premium_subscription', 'Premium Subscription')}</p>
-              <p className="text-[13px] font-medium text-tg-hint">{t('monthly_plan_paypal', 'Monthly Plan via PayPal')}</p>
+              <p className="text-[13px] font-medium text-tg-hint">
+                {t('monthly_plan_provider', { provider: providerLabel, defaultValue: `Monthly plan via ${providerLabel}` })}
+              </p>
             </div>
           </div>
           <span className={`px-2.5 py-1 rounded-[8px] text-[10px] font-bold uppercase tracking-wider border shadow-sm ${status.bg} ${status.text} ${status.border}`}>
@@ -108,7 +124,7 @@ export default function SubscriptionCard({
 
         {/* Grid de Información */}
         <div className="grid grid-cols-2 gap-y-5 gap-x-3">
-          <InfoRow label={t('price', 'Price')} value={`$${subscription.amount} ${subscription.currency}`} />
+          <InfoRow label={t('price', 'Price')} value={amountText} />
           <InfoRow label={t('plan_start', 'Started On')} value={startDate || '—'} />
           <InfoRow label={t('frequency', 'Billing Cycle')} value={t('monthly', 'Monthly')} />
           <InfoRow label={t('next_billing', 'Next Billing')} value={nextBilling || '—'} highlight />
@@ -122,12 +138,23 @@ export default function SubscriptionCard({
               {subscription.paypal_subscription_id}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-tg-hint tracking-wide">Payer ID</span>
-            <span className="text-[12px] font-mono font-medium text-tg-text bg-tg-hint/10 px-2.5 py-1 rounded-[8px] border border-tg-border/30">
-              {subscription.paypal_payerId}
-            </span>
-          </div>
+          {provider === 'paypal' ? (
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] font-semibold text-tg-hint tracking-wide">Payer ID</span>
+              <span className="text-[12px] font-mono font-medium text-tg-text bg-tg-hint/10 px-2.5 py-1 rounded-[8px] border border-tg-border/30">
+                {subscription.paypal_payerId}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] font-semibold text-tg-hint tracking-wide">
+                {t('payment_method', 'Payment Method')}
+              </span>
+              <span className="text-[12px] font-medium text-tg-text bg-tg-hint/10 px-2.5 py-1 rounded-[8px] border border-tg-border/30">
+                {providerLabel}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Resumen Histórico (Opcional si vienen props) */}

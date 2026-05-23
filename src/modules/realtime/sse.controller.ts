@@ -51,17 +51,18 @@ export class SSEController {
     const cached = await this.redis.getSession(token);
     let userIdNum: number;
     if (cached) {
-      userIdNum = cached.authTelegram?.id || cached.authUser?.telegramId || 0;
+      const userId = cached.authTelegram?.id || cached.authUser?.telegramId || cached.authUser?.id;
+      userIdNum = Number(userId);
     } else {
       const tokenDoc = await this.tokenModel.findOne({ session_id: token, revoked: false }).exec();
       if (!tokenDoc) {
         res.status(401).send({ error: 'Invalid token' });
         return;
       }
-      userIdNum = tokenDoc.sub;
+      userIdNum = Number(tokenDoc.sub);
     }
 
-    if (!userIdNum) {
+    if (!Number.isFinite(userIdNum) || userIdNum <= 0) {
       res.status(401).send({ error: 'Invalid user' });
       return;
     }

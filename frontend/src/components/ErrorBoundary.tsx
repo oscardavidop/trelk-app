@@ -34,6 +34,16 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p className="text-[14px] text-tg-hint text-center mb-6 max-w-[280px] leading-relaxed">
             An unexpected error occurred. Please try again.
           </p>
+          <code className="text-xs text-red-500 bg-red-100 px-3 py-2 rounded mb-6 max-w-[90%] overflow-x-auto">
+            {this.state.error?.message || 'No error details available.'}
+          </code>
+          <pre className="text-xs text-red-500 bg-red-100 px-3 py-2 rounded mb-6 max-w-[90%] overflow-x-auto">
+            {this.state.error?.stack || 'No stack trace available.'}
+          </pre>
+          {/* detailed error information */}
+          
+
+
           <button
             onClick={this.handleRetry}
             className="flex items-center gap-2 px-5 py-3 bg-tg-accent text-white rounded-[14px] font-semibold text-[14px] active:scale-95 transition-transform"
