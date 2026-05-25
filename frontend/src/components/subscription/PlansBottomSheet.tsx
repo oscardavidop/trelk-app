@@ -113,10 +113,21 @@ interface Props {
         reason?: 'pending_confirmation' | 'error';
         message?: string;
     }>;
-    onRevise?: (subscriptionId: string, planId: string) => void;
+    onRevise?: (subscriptionId: string, planId: string, isUpgrade: boolean) => Promise<{
+        ok: boolean;
+        approvalUrl: string;
+        reason?: 'pending_confirmation' | 'error';
+        message?: string;
+    }>;
     actionLoading?: boolean;
     /** PayPal plan_id of a pending scheduled downgrade, if any */
     scheduledPlanId?: string | null;
+    /** Optional plan_id to preselect when the sheet opens */
+    initialSelectedPlanId?: string | null;
+    /** Opens PaymentMethodModal automatically when sheet opens */
+    openPaymentModalOnOpen?: boolean;
+    /** Called once the auto-open signal has been consumed */
+    onPaymentModalOpened?: () => void;
     onPaymentSuccess?: () => void;
 }
 
@@ -134,6 +145,9 @@ export default function PlansBottomSheet({
     onRevise,
     actionLoading,
     scheduledPlanId,
+    initialSelectedPlanId,
+    openPaymentModalOnOpen,
+    onPaymentModalOpened,
     onPaymentSuccess,
 }: Props) {
     const { t } = useTranslation('subscription');
@@ -153,12 +167,16 @@ export default function PlansBottomSheet({
     const [mounted, setMounted] = useState(false);
     const [animateIn, setAnimateIn] = useState(false);
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [isReviseFlow, setIsReviseFlow] = useState(false);
     const sheetRef = useRef<HTMLDivElement>(null);
     const startYRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (isOpen) {
-            setSelectedName(computeDefault());
+            const preselectedById = initialSelectedPlanId
+                ? realPlans.find((plan) => plan.plan_id === initialSelectedPlanId)?.name.toLowerCase()
+                : null;
+            setSelectedName(preselectedById ?? computeDefault());
             setMounted(true);
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => setAnimateIn(true));
@@ -174,7 +192,13 @@ export default function PlansBottomSheet({
         }
         return () => { document.body.style.overflow = ''; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
+    }, [computeDefault, initialSelectedPlanId, isOpen, realPlans]);
+
+    useEffect(() => {
+        if (!isOpen || !openPaymentModalOnOpen) return;
+        setPaymentModalOpen(true);
+        onPaymentModalOpened?.();
+    }, [isOpen, onPaymentModalOpened, openPaymentModalOnOpen]);
 
     const handleClose = useCallback(() => {
         setAnimateIn(false);
@@ -202,6 +226,8 @@ export default function PlansBottomSheet({
 
     const isAlreadyScheduled = !!scheduledPlanName && selectedName === scheduledPlanName && !isCurrentPlan;
     const isBlockedByCancel = realStatus === 'ACTIVE_CANCEL_SCHEDULED' && selectedName !== currentTier.toLowerCase();
+    const isBlockedBySuspended = realStatus === 'SUSPENDED';
+    const isBlockedByExpired = realStatus === 'EXPIRED';
 
     // Upgrade vs. downgrade by backend-ordered plan list (sorted by price asc)
     const tierOrder = realPlans.map((p) => p.name.toLowerCase());
@@ -211,18 +237,21 @@ export default function PlansBottomSheet({
 
     // ── Handlers / labels ────────────────────────────────────────────────────
     const handleCTA = () => {
-        if (!selectedPlan || isCurrentPlan || actionLoading || isBlockedByCancel || isAlreadyScheduled) return;
+        if (!selectedPlan || isCurrentPlan || actionLoading || isBlockedByCancel || isAlreadyScheduled || isBlockedBySuspended || isBlockedByExpired) return;
         if (isRealActive && realSubscriptionId && onRevise) {
-            onRevise(realSubscriptionId, selectedPlan.plan_id);
+            setIsReviseFlow(true);
         } else {
-            setPaymentModalOpen(true);
+            setIsReviseFlow(false);
         }
+        setPaymentModalOpen(true);
     };
 
     const ctaLabel = (): string => {
         if (isCurrentPlan) return t('plan_current', 'Your Current Plan');
         if (isAlreadyScheduled) return t('plan_already_scheduled', 'Scheduled for next cycle');
         if (isBlockedByCancel) return t('plan_blocked_cancel', 'Resubscribe to change plan');
+        if (isBlockedBySuspended) return t('action_blocked_suspended', 'Account suspended');
+        if (isBlockedByExpired) return t('action_blocked_expired', 'Subscription expired');
         if (!selectedPlan) return t('subscribe_to', { plan: selectedName });
         if (isRealActive) {
             return isUpgrade
@@ -247,6 +276,7 @@ export default function PlansBottomSheet({
     const handlePaymentSuccess = useCallback(() => {
         onPaymentSuccess?.();
         setPaymentModalOpen(false);
+        setIsReviseFlow(false);
         handleClose();
     }, [handleClose, onPaymentSuccess]);
 
@@ -558,15 +588,17 @@ export default function PlansBottomSheet({
                                         <Check size={15} strokeWidth={3} />
                                         {t('plan_current', 'Your Current Plan')}
                                     </div>
-                                ) : isBlockedByCancel || isAlreadyScheduled ? (
+                                ) : isBlockedByCancel || isAlreadyScheduled || isBlockedBySuspended || isBlockedByExpired ? (
                                     <div
                                         className="w-full py-3.5 rounded-[16px] text-[14px] font-bold text-center flex items-center justify-center gap-2"
                                         style={{
-                                            background: isBlockedByCancel ? 'rgba(245,158,11,0.08)' : 'rgba(56,189,248,0.08)',
-                                            color: isBlockedByCancel ? '#f59e0b' : '#38bdf8',
+                                            background: isBlockedByCancel ? 'rgba(245,158,11,0.08)' : isBlockedBySuspended || isBlockedByExpired ? 'rgba(239,68,68,0.08)' : 'rgba(56,189,248,0.08)',
+                                            color: isBlockedByCancel ? '#f59e0b' : isBlockedBySuspended || isBlockedByExpired ? '#ef4444' : '#38bdf8',
                                             border: isBlockedByCancel
                                                 ? '1px solid rgba(245,158,11,0.2)'
-                                                : '1px solid rgba(56,189,248,0.2)',
+                                                : isBlockedBySuspended || isBlockedByExpired
+                                                    ? '1px solid rgba(239,68,68,0.2)'
+                                                    : '1px solid rgba(56,189,248,0.2)',
                                         }}
                                     >
                                         {ctaIcon()}
@@ -663,9 +695,16 @@ export default function PlansBottomSheet({
             {createPortal(content, document.body)}
             <PaymentMethodModal
                 isOpen={paymentModalOpen}
-                onClose={() => setPaymentModalOpen(false)}
+                onClose={() => { setPaymentModalOpen(false); setIsReviseFlow(false); }}
                 selectedPlan={selectedPlan}
                 onPayPal={async (planId: string) => {
+                    if (isReviseFlow && realSubscriptionId && onRevise && selectedPlan) {
+                        try {
+                            return await onRevise(realSubscriptionId, selectedPlan.plan_id, isUpgrade);
+                        } catch (e: any) {
+                            return { ok: false, approvalUrl: '', reason: 'error' as const, message: e?.message ?? 'Failed' };
+                        }
+                    }
                     if (!onPayPalCheckout) {
                         return { ok: false, approvalUrl: '', reason: 'error' as const };
                     }
@@ -685,6 +724,7 @@ export default function PlansBottomSheet({
                     }
                 }}
                 onSuccess={handlePaymentSuccess}
+                autoStartPayPal={isReviseFlow}
             />
         </>
     );

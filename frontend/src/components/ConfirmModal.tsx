@@ -1,8 +1,9 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { modalVariants, overlayVariants, MOTION } from '../design';
 
 // -- Confirm Modal Premium --
@@ -18,11 +19,12 @@ export function ConfirmModal({
     message: string;
     confirmLabel: string;
     confirmColor?: string;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
     onCancel: () => void;
 }) {
     const { t } = useTranslation();
     const modalRef = useRef<HTMLDivElement>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -33,6 +35,7 @@ export function ConfirmModal({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
+            if (isLoading) return;
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
                 onCancel();
             }
@@ -42,7 +45,17 @@ export function ConfirmModal({
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [onCancel]);
+    }, [onCancel, isLoading]);
+
+    const handleConfirm = async () => {
+        if (isLoading) return;
+        setIsLoading(true);
+        try {
+            await onConfirm();
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const modalContent = (
         <motion.div
@@ -77,17 +90,23 @@ export function ConfirmModal({
                     <motion.button
                         whileTap={MOTION.tap}
                         onClick={onCancel}
-                        className="flex-1 py-3.5 rounded-[16px] bg-tg-surface text-tg-text text-[15px] font-semibold transition-colors"
+                        disabled={isLoading}
+                        className="flex-1 py-3.5 rounded-[16px] bg-tg-surface text-tg-text text-[15px] font-semibold transition-colors disabled:opacity-40"
                     >
                         {t('common:cancel', 'Cancel')}
                     </motion.button>
                     <motion.button
-                        whileTap={MOTION.tap}
-                        onClick={onConfirm}
-                        className="flex-1 py-3.5 rounded-[16px] text-white text-[15px] font-bold shadow-sm"
+                        whileTap={isLoading ? undefined : MOTION.tap}
+                        onClick={handleConfirm}
+                        disabled={isLoading}
+                        className="flex-1 py-3.5 rounded-[16px] text-white text-[15px] font-bold shadow-sm flex items-center justify-center gap-2 disabled:opacity-80"
                         style={{ background: confirmColor || 'var(--tg-accent)' }}
                     >
-                        {confirmLabel}
+                        {isLoading ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            confirmLabel
+                        )}
                     </motion.button>
                 </div>
             </motion.div>

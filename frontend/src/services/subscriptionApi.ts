@@ -85,6 +85,7 @@ export interface SubscriptionResponse {
 export type RealSubStatus =
   | 'FREE'
   | 'ACTIVE'
+  | 'APPROVAL_PENDING'
   | 'ACTIVE_CANCEL_SCHEDULED'   // Cancelled but access still active until period end
   | 'SUSPENDED'
   | 'PAST_DUE'
@@ -112,6 +113,7 @@ export interface RealSubscription {
   currency: string;
   start_time: string | null;
   cancelled_at: string | null;
+  approval_url?: string | null; // URL de aprobación de PayPal (para revisiones de suscripción)
   /** True = user cancelled but premium access continues until next_billing_date */
   cancel_at_period_end: boolean;
   /** Non-null = a plan downgrade is scheduled for next billing cycle */

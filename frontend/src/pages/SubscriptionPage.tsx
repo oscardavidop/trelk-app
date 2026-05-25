@@ -5,306 +5,23 @@ import { useSubscriptionStore } from '../stores/subscription';
 import { useToastStore } from '../stores';
 import { useTelegram } from '../hooks/useTelegram';
 import type { PlanTier } from '../services/subscriptionApi';
-import { createPortal } from 'react-dom';
 import SubscriptionHero, { TIER_META } from '../components/subscription/SubscriptionHero';
 import SubscriptionSettings from '../components/subscription/SubscriptionSettings';
 import SubscriptionUsage from '../components/subscription/SubscriptionUsage';
 import SubscriptionBenefits from '../components/subscription/SubscriptionBenefits';
 import PlansBottomSheet from '../components/subscription/PlansBottomSheet';
 import BillingTimeline from '../components/subscription/BillingTimeline';
+import PremiumSuccessModal, { type SuccessExperiencePayload, type SuccessKind } from '../components/subscription/PremiumSuccessModal';
 import StickyHeader from '@/components/StickyHeader';
-import { Loader2, Crown, CheckCircle2, Clock, Sparkles, ChevronRight, ArrowUpCircle, X } from 'lucide-react';
-import { celebrateConfettiSubtle } from '../lib/delight';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { Loader2, Crown, CheckCircle2, Clock, Sparkles, ChevronRight, ArrowUpCircle } from 'lucide-react';
 
 const SUCCESS_SHOWN_KEY = 'trelk:lastSuccessExperienceShown';
-
-type SuccessKind = 'new_purchase' | 'upgrade_success' | 'welcome_back' | 'renewal_success' | 'restored';
-
-interface SuccessExperiencePayload {
-    kind: SuccessKind;
-    planName: string;
-    provider: string;
-    amount: number | null;
-    currency: string;
-    nextRenewal: string | null;
-    autoRenew: boolean;
-    invoiceId: string;
-    timeRemaining: string;
-    unlockedFeatures: string[];
-    signature: string;
-}
-
-function PremiumSuccessModal({
-    isOpen,
-    kind,
-    planName,
-    provider,
-    amount,
-    currency,
-    nextRenewal,
-    autoRenew,
-    invoiceId,
-    timeRemaining,
-    unlockedFeatures,
-    onClose,
-    onViewSubscription,
-}: {
-    isOpen: boolean;
-    kind: SuccessKind;
-    planName: string;
-    provider: string;
-    amount: number | null;
-    currency: string;
-    nextRenewal: string | null;
-    autoRenew: boolean;
-    invoiceId: string;
-    timeRemaining: string;
-    unlockedFeatures: string[];
-    onClose: () => void;
-    onViewSubscription: () => void;
-}) {
-    const { t } = useTranslation('subscription');
-    const highlightFeatures = unlockedFeatures.slice(0, 2);
-
-    useEffect(() => {
-        if (!isOpen) return;
-        celebrateConfettiSubtle();
-        const t1 = setTimeout(() => celebrateConfettiSubtle(), 360);
-        return () => {
-            clearTimeout(t1);
-        };
-    }, [isOpen]);
-
-    if (!isOpen) return null;
-
-    return createPortal(
-        <div
-            className="fixed inset-0 z-[9999] flex flex-col justify-end bg-black/70 animate-fade-in"
-            style={{
-                backdropFilter: 'blur(10px)',
-            }}
-        >
-            <div
-                className="relative bg-tg-bg w-full md:mx-auto md:w-[400px] lg:w-[450px] max-h-[560px] min-h-[420px] rounded-t-[26px] overflow-hidden flex flex-col animate-slide-up"
-                style={{
-                    boxShadow: '0 -20px 60px rgba(0,0,0,0.45)',
-                    willChange: 'transform',
-                }}
-            >
-                <div className="flex justify-center pt-2.5 pb-1.5">
-                    <div className="w-11 h-1 rounded-full bg-white/15" />
-                </div>
-
-                <div
-                    className="absolute inset-x-0 top-0 h-28"
-                    style={{
-                        background: 'radial-gradient(85% 120% at 50% 0%, rgba(16,185,129,0.22), rgba(16,185,129,0))',
-                    }}
-                />
-
-                <div className="absolute right-4 top-4 flex gap-1.5 pointer-events-none">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <span
-                            key={i}
-                            className="w-1.5 h-1.5 rounded-full animate-pulse"
-                            style={{
-                                background: i % 2 === 0 ? '#34d399' : '#38bdf8',
-                                opacity: 0.65,
-                                animationDelay: `${i * 120}ms`,
-                            }}
-                        />
-                    ))}
-                </div>
-
-                <button
-                    onClick={onClose}
-                    className="absolute right-3 top-3 z-10 w-8 h-8 rounded-full bg-tg-surface/60 border border-tg-border/35 text-tg-hint flex items-center justify-center active:scale-95 transition-transform"
-                >
-                    <X size={15} />
-                </button>
-
-                <div className="relative px-5 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
-                    <div className="w-12 h-12 rounded-[14px] bg-emerald-500/12 border border-emerald-500/30 shadow-sm flex items-center justify-center mb-3">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                    </div>
-
-                    <h3 className="text-[24px] leading-tight font-extrabold text-tg-text tracking-[-0.02em]">
-                        {t(`success_kind_${kind}_title`, 'Welcome to Premium')}
-                    </h3>
-                    <p className="text-[14px] text-tg-hint mt-1.5 leading-relaxed">
-                        {t(`success_kind_${kind}_subtitle`, 'Your account has been upgraded instantly.')}
-                    </p>
-
-                    <div className="mt-3 flex items-center gap-2.5">
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/12 border border-emerald-500/25 text-[11px] font-semibold text-emerald-300 uppercase">
-                            {planName}
-                        </span>
-                        <span className="px-2.5 py-1 rounded-full bg-tg-surface/60 border border-tg-border/35 text-[11px] font-semibold text-tg-hint">
-                            {provider}
-                        </span>
-                    </div>
-
-                    <div className="mt-4 rounded-[18px] border border-tg-border/35 bg-tg-surface/40 p-3.5">
-                        <div className="flex items-center justify-between text-[13px]">
-                            <span className="text-tg-hint">{t('receipt_next_renewal', 'Next renewal')}</span>
-                            <span className="text-tg-text font-semibold">{nextRenewal ?? '—'}</span>
-                        </div>
-                        {amount != null && (
-                            <div className="mt-2 pt-2 border-t border-tg-border/25 flex items-center justify-between text-[13px]">
-                                <span className="text-tg-hint">{t('receipt_amount', 'Amount')}</span>
-                                <span className="text-emerald-400 font-semibold">{`${amount} ${currency}`}</span>
-                            </div>
-                        )}
-                        <div className="mt-2 pt-2 border-t border-tg-border/25 flex items-center justify-between text-[13px]">
-                            <span className="text-tg-hint">{t('receipt_auto_renew', 'Auto renew')}</span>
-                            <span className="text-tg-text font-semibold">{autoRenew ? t('common:yes', 'Yes') : t('common:no', 'No')}</span>
-                        </div>
-                        <div className="mt-2 pt-2 border-t border-tg-border/25 flex items-center justify-between text-[13px]">
-                            <span className="text-tg-hint">{t('receipt_invoice', 'Invoice')}</span>
-                            <span className="text-tg-text font-semibold truncate max-w-[60%] text-right">{invoiceId}</span>
-                        </div>
-                        <div className="mt-2 pt-2 border-t border-tg-border/25 flex items-center justify-between text-[13px]">
-                            <span className="text-tg-hint">{t('receipt_time_remaining', 'Time remaining')}</span>
-                            <span className="text-tg-text font-semibold">{timeRemaining}</span>
-                        </div>
-                    </div>
-
-                    {highlightFeatures.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {highlightFeatures.map((f) => (
-                                <span key={f} className="px-2.5 py-1 rounded-full bg-tg-surface/55 border border-tg-border/35 text-[11px] font-medium text-tg-hint">
-                                    {f}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-
-                    <button
-                        onClick={onClose}
-                        className="w-full mt-4 py-3.5 rounded-[16px] text-[15px] font-bold text-white active:scale-[0.985] transition-transform"
-                        style={{
-                            background: 'linear-gradient(135deg, var(--tg-accent, #3390ec) 0%, rgba(51,144,236,0.85) 100%)',
-                            boxShadow: '0 6px 22px rgba(51,144,236,0.28), inset 0 1px 0 rgba(255,255,255,0.16)',
-                        }}
-                    >
-                        {t('premium_continue_cta', 'Continue')}
-                    </button>
-                    <button
-                        onClick={onViewSubscription}
-                        className="w-full mt-2 py-3 rounded-[14px] text-[14px] font-semibold text-tg-hint border border-tg-border/35 bg-tg-surface/45 active:scale-[0.99] transition-transform"
-                    >
-                        {t('premium_view_subscription_cta', 'View subscription')}
-                    </button>
-                </div>
-            </div>
-        </div>,
-        document.body,
-    );
-}
-
-export const showConfirmPopup = (options: {
-    title: string,
-    message: string,
-    confirmLabel: string,
-    onConfirm: () => void,
-    onCancel: () => void
-}) => {
-    const webApp = (window as any).Telegram?.WebApp;
-
-    if (!webApp) return;
-
-    webApp.showPopup({
-        title: options.title,
-        message: options.message,
-        buttons: [
-            { id: 'confirm', type: 'default', text: options.confirmLabel },
-            { id: 'cancel', type: 'cancel', text: 'Cancel' },
-        ],
-    }, (buttonId: string) => {
-        if (buttonId === 'confirm') {
-            options.onConfirm();
-        } else {
-            options.onCancel();
-        }
-    });
-};
-
-// ── Confirm Modal Premium Estilo iOS ────────────────────────────────
-export function ConfirmModal({
-    title,
-    message,
-    confirmLabel,
-    confirmColor,
-    onConfirm,
-    onCancel,
-}: {
-    title: string;
-    message: string;
-    confirmLabel: string;
-    confirmColor?: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-}) {
-    const { t } = useTranslation();
-    const modalRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                onCancel();
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [onCancel]);
-
-    const modalContent = (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md px-5 animate-fade-in">
-            <div
-                ref={modalRef}
-                className="bg-tg-secondary border border-tg-border/40 rounded-[24px] p-6 max-w-[400px] w-full shadow-2xl animate-scale-in flex flex-col max-h-[80vh]"
-            >
-                <h3 className="text-[20px] font-bold text-tg-text mb-3 flex-shrink-0 leading-tight">
-                    {title}
-                </h3>
-
-                <div className="overflow-y-auto mb-6 pr-2 custom-scrollbar">
-                    <p className="text-[14px] font-medium text-tg-hint leading-relaxed">
-                        {message}
-                    </p>
-                </div>
-
-                <div className="flex gap-3 mt-auto flex-shrink-0">
-                    <button
-                        onClick={onCancel}
-                        className="flex-1 py-3.5 rounded-[16px] bg-tg-surface text-tg-text text-[15px] font-semibold transition-colors hover:bg-tg-surface/80 active:bg-tg-surface/60"
-                    >
-                        {t('common:cancel', 'Cancel')}
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        className="flex-1 py-3.5 rounded-[16px] text-white text-[15px] font-bold transition-transform active:scale-95 shadow-sm"
-                        style={{ background: confirmColor || 'var(--tg-accent)' }}
-                    >
-                        {confirmLabel}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-    return createPortal(modalContent, document.body);
-}
+const PENDING_SUB_KEY = 'trelk:pendingSubscription';
+const PENDING_METHOD_KEY = 'trelk:pendingPaymentMethod';
+const PENDING_PAYPAL_URL_KEY = 'trelk:pendingPaypalUrl';
+const PENDING_PAYPAL_PLAN_KEY = 'trelk:pendingPaypalPlan';
+const PENDING_PAYPAL_CREATED_AT_KEY = 'trelk:pendingPaypalCreatedAt';
 
 // ── Main Page ────────────────────────────────────
 export default function SubscriptionPage() {
@@ -324,6 +41,7 @@ export default function SubscriptionPage() {
         startPolling, stopPolling,
     } = useSubscriptionStore();
 
+
     const [modal, setModal] = useState<{
         title: string;
         message: string;
@@ -332,11 +50,13 @@ export default function SubscriptionPage() {
         action: () => Promise<void>;
     } | null>(null);
     const [plansOpen, setPlansOpen] = useState(false);
+    const [openPendingPaymentModal, setOpenPendingPaymentModal] = useState(false);
     const [showPremiumSuccess, setShowPremiumSuccess] = useState(false);
     const [successPayload, setSuccessPayload] = useState<SuccessExperiencePayload | null>(null);
     const settingsRef = useRef<HTMLDivElement>(null);
     const prevWasActiveRef = useRef(false);
     const hadPendingDuringSessionRef = useRef(false);
+    const pendingSuccessKindRef = useRef<SuccessKind>('new_purchase');
 
     // ── Initial load ──────────────────────────────
     useEffect(() => {
@@ -362,8 +82,12 @@ export default function SubscriptionPage() {
         const justActivated = isNowActive && !prevWasActiveRef.current;
         const fromPendingFlow = isNowActive && hadPendingDuringSessionRef.current;
 
-        if (isNowActive && (justActivated || fromPendingFlow)) {
-            const signature = `${realSub?.id ?? 'sub'}:${realSub?.next_billing_date ?? 'na'}:${realSub?.status ?? 'ACTIVE'}`;
+        // Gate on fromPendingFlow only — justActivated is always true on first render
+        // (prevWasActiveRef starts as false), causing false triggers on page refresh.
+        if (isNowActive && fromPendingFlow) {
+            // Signature = subscription ID only (stable across billing cycles).
+            // Using next_billing_date caused false triggers after each renewal.
+            const signature = realSub?.id ?? 'sub-unknown';
             const lastShown = localStorage.getItem(SUCCESS_SHOWN_KEY);
 
             if (lastShown !== signature) {
@@ -379,7 +103,7 @@ export default function SubscriptionPage() {
                         : t('payment_method_paypal', 'PayPal');
 
                 setSuccessPayload({
-                    kind: justActivated ? 'new_purchase' : 'restored',
+                    kind: pendingSuccessKindRef.current,
                     planName: planLabel,
                     provider: providerLabel,
                     amount: typeof realSub?.amount === 'number' ? realSub.amount : null,
@@ -488,26 +212,33 @@ export default function SubscriptionPage() {
         }
     }, [checkout, buildUrls, webApp, haptic, showToast, t]);
 
-    const handleRealRevise = useCallback(async (subscriptionId: string, newPlanId: string) => {
+    const handleRealRevise = useCallback(async (subscriptionId: string, newPlanId: string, isUpgrade: boolean): Promise<{
+        ok: boolean;
+        approvalUrl: string;
+        reason?: 'pending_confirmation' | 'error';
+        message?: string;
+    }> => {
+        pendingSuccessKindRef.current = isUpgrade ? 'upgrade_success' : 'welcome_back';
         try {
             const { return_url, cancel_url } = buildUrls();
             const result = await revise(subscriptionId, newPlanId, return_url, cancel_url);
             if (result.approvalUrl) {
                 haptic?.notificationOccurred('success');
-                showToast(t('paypal_opening', 'Opening PayPal... Approve the plan change.'), 'info');
-                webApp?.openLink(result.approvalUrl);
+                return { ok: true, approvalUrl: result.approvalUrl };
             } else {
                 // No approval needed (immediate revision)
                 showToast(t('plan_changed', 'Plan changed successfully!'), 'success');
                 haptic?.notificationOccurred('success');
                 loadRealStatus();
                 load();
+                return { ok: true, approvalUrl: '' };
             }
         } catch (e: any) {
             haptic?.notificationOccurred('error');
             showToast(e.message || t('revise_error', 'Failed to change plan'), 'error');
+            return { ok: false, approvalUrl: '', message: e.message };
         }
-    }, [revise, buildUrls, webApp, haptic, showToast, t, loadRealStatus, load]);
+    }, [revise, buildUrls, haptic, showToast, t, loadRealStatus, load]);
 
     const handleCancelReal = useCallback(() => {
         setModal({
@@ -542,6 +273,7 @@ export default function SubscriptionPage() {
 
     const handleResume = useCallback(async () => {
         if (!realSub?.id) return;
+        pendingSuccessKindRef.current = 'welcome_back';
         try {
             await resume(realSub.id);
             showToast(t('subscription_resumed', 'Subscription resumed!'), 'success');
@@ -578,6 +310,25 @@ export default function SubscriptionPage() {
             },
         });
     }, [realSub, cancelDowngrade, buildUrls, showToast, haptic, t, webApp]);
+
+    const handleOpenPendingPaymentModal = useCallback(() => {
+        if (!realSub?.approval_url) return;
+
+        haptic?.impactOccurred('medium');
+
+        localStorage.setItem(PENDING_SUB_KEY, realSub.id || 'paypal-waiting');
+        localStorage.setItem(PENDING_METHOD_KEY, 'paypal');
+        localStorage.setItem(PENDING_PAYPAL_URL_KEY, realSub.approval_url);
+        if (realSub.plan_id) {
+            localStorage.setItem(PENDING_PAYPAL_PLAN_KEY, realSub.plan_id);
+        } else {
+            localStorage.removeItem(PENDING_PAYPAL_PLAN_KEY);
+        }
+        localStorage.setItem(PENDING_PAYPAL_CREATED_AT_KEY, String(Date.now()));
+
+        setOpenPendingPaymentModal(true);
+        setPlansOpen(true);
+    }, [haptic, realSub]);
 
     // ── Loading state ─────────────────────────────
     if ((loading && !features) || (realLoading && realStatus === 'FREE' && !features)) {
@@ -664,6 +415,31 @@ export default function SubscriptionPage() {
             {/* ── 1. Hero ──────────────────────────────────────────── */}
             <SubscriptionHero features={features} realStatus={realStatus} realSub={realSub} plans={plans} />
 
+
+            {/* OPEN APPROVAL URL CALLACTION */}
+            {
+                realStatus === 'PENDING' && realSub && realSub.approval_url && (
+                    <>
+                        <div className="px-5">
+                            <button
+                                onClick={handleOpenPendingPaymentModal}
+                                className="w-full py-4 rounded-[20px] text-white text-[16px] font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
+                                style={{
+                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                    boxShadow: '0 4px 20px rgba(245,158,11,0.35)',
+                                }}
+                            >
+                                <Crown size={18} className="drop-shadow-sm" />
+                                {t('complete_payment', 'Complete your payment')}
+                                <ChevronRight size={17} className="opacity-80" />
+                            </button>
+                        </div>
+                    </>
+
+                )
+            }
+
+
             {/* ── 1b. Billing Timeline (pending downgrade or cancel) ─ */}
             {(realSub?.scheduled_plan_id || realStatus === 'ACTIVE_CANCEL_SCHEDULED') && (
                 <BillingTimeline
@@ -691,20 +467,23 @@ export default function SubscriptionPage() {
                         <ChevronRight size={17} className="opacity-80" />
                     </button>
                 ) : (
-                    /* Premium → Change / Manage Plan CTA */
-                    <button
-                        onClick={() => { haptic?.impactOccurred('light'); setPlansOpen(true); }}
-                        className="w-full py-3.5 px-4 rounded-[20px] text-[15px] font-semibold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
-                        style={{
-                            background: `${TIER_META[tier]?.color ?? '#8b5cf6'}18`,
-                            color: TIER_META[tier]?.color ?? '#8b5cf6',
-                            border: `1.5px solid ${TIER_META[tier]?.color ?? '#8b5cf6'}30`,
-                        }}
-                    >
-                        <ArrowUpCircle size={17} className="shrink-0" />
-                        {t('change_plan', 'Change Plan')}
-                        <ChevronRight size={15} className="opacity-60 ml-auto" />
-                    </button>
+
+                    // if already sheduled to downgrade, hide the change plan button to avoid confusion (since changing plan would also remove the scheduled downgrade)
+                    realSub?.scheduled_plan_id || realStatus === 'ACTIVE_CANCEL_SCHEDULED' ? null : (
+                        <button
+                            onClick={() => { haptic?.impactOccurred('light'); setPlansOpen(true); }}
+                            className="w-full py-3.5 px-4 rounded-[20px] text-[15px] font-semibold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform duration-150"
+                            style={{
+                                background: `${TIER_META[tier]?.color ?? '#8b5cf6'}18`,
+                                color: TIER_META[tier]?.color ?? '#8b5cf6',
+                                border: `1.5px solid ${TIER_META[tier]?.color ?? '#8b5cf6'}30`,
+                            }}
+                        >
+                            <ArrowUpCircle size={17} className="shrink-0" />
+                            {t('change_plan', 'Change Plan')}
+                            <ChevronRight size={15} className="opacity-60 ml-auto" />
+                        </button>
+                    )
                 )}
             </div>
 
@@ -756,8 +535,12 @@ export default function SubscriptionPage() {
                 realStatus={realStatus}
                 realSubscriptionId={realSub?.id ?? null}
                 realPlans={plans}
+                initialSelectedPlanId={realSub?.plan_id ?? null}
+                openPaymentModalOnOpen={openPendingPaymentModal}
+                onPaymentModalOpened={() => setOpenPendingPaymentModal(false)}
                 onCheckout={handleRealCheckout}
                 onPayPalCheckout={async (planId: string) => {
+                    pendingSuccessKindRef.current = 'new_purchase';
                     try {
                         const { return_url, cancel_url } = buildUrls();
                         const approvalUrl = await checkout(planId, return_url, cancel_url);
@@ -794,7 +577,7 @@ export default function SubscriptionPage() {
             )}
 
             <PremiumSuccessModal
-                isOpen={showPremiumSuccess}
+                isOpen={showPremiumSuccess && successPayload !== null}
                 kind={successPayload?.kind ?? 'new_purchase'}
                 planName={successPayload?.planName ?? t('plan_pro', 'Pro')}
                 provider={successPayload?.provider ?? t('payment_method_paypal', 'PayPal')}

@@ -85,8 +85,8 @@ export default function PaymentDetailModal({ event, onClose }: PaymentDetailModa
           {/* Detalles de Suscripción */}
           {isSubscription && event.resource && (
             <Section title={t('subscription', 'Subscription')}>
-              <Row label="ID" value={event.resource.id || '—'} mono />
-              <Row label={t('status', 'Status')} value={event.resource.status || '—'} highlight />
+              <Row label="ID" value={event.resource.id || event.subscriptionId || '—'} mono />
+              <Row label={t('status', 'Status')} value={event.resource.status  || '—'} highlight />
               <Row label={t('plan_id', 'Plan ID')} value={event.resource.plan_id || '—'} mono />
               {event.resource.start_time && (
                 <Row label={t('start', 'Started On')} value={new Date(event.resource.start_time).toLocaleDateString(undefined)} />
@@ -100,7 +100,7 @@ export default function PaymentDetailModal({ event, onClose }: PaymentDetailModa
           {/* Detalles de Pago */}
           {isPayment && event.resource && (
             <Section title={t('payment_details', 'Payment Details')}>
-              <Row label="Transaction ID" value={event.resource.id || '—'} mono />
+              <Row label="Transaction ID" value={event.resource.id || event.subscriptionId || '—'} mono />
               <Row label={t('status', 'Status')} value={event.resource.state || '—'} highlight />
               {event.resource.amount && (
                 <Row

@@ -78,61 +78,61 @@ type StatusConfig = {
   Icon: React.ElementType;
 };
 
-function getStatusConfig(realStatus?: RealSubStatus): StatusConfig {
+function getStatusConfig(realStatus?: RealSubStatus, plan?: PlanTier): StatusConfig {
   switch (realStatus) {
     case 'ACTIVE':
       return {
         label: 'Active',
-        color: '#22c55e',
-        bg: 'rgba(34,197,94,0.14)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: CheckCircle2,
       };
 
     case 'ACTIVE_CANCEL_SCHEDULED':
       return {
         label: 'Ending Soon',
-        color: '#f59e0b',
-        bg: 'rgba(245,158,11,0.14)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: CalendarX2,
       };
 
     case 'SUSPENDED':
       return {
         label: 'Suspended',
-        color: '#f59e0b',
-        bg: 'rgba(245,158,11,0.14)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: PauseCircle,
       };
 
     case 'CANCELLED':
       return {
         label: 'Cancelled',
-        color: '#ef4444',
-        bg: 'rgba(239,68,68,0.14)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: XCircle,
       };
 
     case 'PAST_DUE':
       return {
         label: 'Past Due',
-        color: '#ef4444',
-        bg: 'rgba(239,68,68,0.14)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: AlertTriangle,
       };
 
     case 'PENDING':
       return {
         label: 'Activating',
-        color: '#38bdf8',
-        bg: 'rgba(56,189,248,0.14)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: Clock3,
       };
 
     default:
       return {
         label: 'Free',
-        color: '#9ca3af',
-        bg: 'rgba(156,163,175,0.12)',
+        color: TIER_META[plan ?? 'free'].color,
+        bg: TIER_META[plan ?? 'free'].soft,
         Icon: Zap,
       };
   }
@@ -199,7 +199,7 @@ export default function SubscriptionHero({
   const tier = subscription.tier;
   const meta = TIER_META[tier];
 
-  const statusCfg = getStatusConfig(realStatus);
+  const statusCfg = getStatusConfig(realStatus, tier);
   const StatusIcon = statusCfg.Icon;
 
   const billingDate =
@@ -370,7 +370,7 @@ export default function SubscriptionHero({
                   <div className="text-[13px] font-semibold text-white/80">
                     → {scheduledPlanMeta.displayName}
                     {scheduledPlanMeta.price > 0 && (
-                      <span className="text-white/55"> · ${scheduledPlanMeta.price.toFixed(2)}/{t('per_month_short', 'mo')}</span>
+                      <span className="text-white/55"> · ${scheduledPlanMeta.price.toFixed(2)}{t('per_month_short', 'mo')}</span>
                     )}
                     <span className="text-white/40"> · {formatDate(realSub?.next_billing_date)}</span>
                   </div>

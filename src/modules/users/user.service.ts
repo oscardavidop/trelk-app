@@ -591,6 +591,7 @@ export class UserService {
   }
 
   private zeroDailyCounters(features: IUserProFeatures) {
+    if (!features?.limits) return;
     features.limits.downloads_per_day.used = 0;
     features.limits.ai_requests_per_day.used = 0;
     features.limits.premium_ai_requests_per_day.used = 0;

@@ -212,17 +212,43 @@ export default function PaymentsPage() {
               <>
                 {/* Subscription cards list */}
                 <div className="space-y-4">
-                  {store.subscriptions.map((sub) => (
-                    <SubscriptionCard
-                      key={sub._id}
-                      subscription={sub}
-                      totalSpent={[]}
-                      totalSubscriptions={0}
-                      onCancel={sub.status === 'ACTIVE' ? handleCancel : undefined}
-                      cancelling={store.cancelling}
-                      onViewEvents={handleViewEvents}
-                    />
-                  ))}
+                  {(() => {
+                    const activeStatuses = ['ACTIVE', 'SUSPENDED', 'ACTIVE_CANCEL_SCHEDULED', 'PENDING', 'PAST_DUE'];
+                    const activeSubs = store.subscriptions.filter(s => activeStatuses.includes(s.status));
+                    const pastSubs = store.subscriptions.filter(s => !activeStatuses.includes(s.status));
+                    return (
+                      <>
+                        {activeSubs.map((sub) => (
+                          <SubscriptionCard
+                            key={sub._id}
+                            subscription={sub}
+                            totalSpent={[]}
+                            totalSubscriptions={0}
+                            onCancel={sub.status === 'ACTIVE' ? handleCancel : undefined}
+                            cancelling={store.cancelling}
+                            onViewEvents={handleViewEvents}
+                          />
+                        ))}
+                        {pastSubs.length > 0 && (
+                          <>
+                            <h4 className="text-[12px] font-semibold text-tg-hint uppercase tracking-wider mt-3 mb-1 px-1">
+                              {t('past_subscriptions', 'Past Subscriptions')}
+                            </h4>
+                            {pastSubs.map((sub) => (
+                              <SubscriptionCard
+                                key={sub._id}
+                                subscription={sub}
+                                totalSpent={[]}
+                                totalSubscriptions={0}
+                                cancelling={store.cancelling}
+                                onViewEvents={handleViewEvents}
+                              />
+                            ))}
+                          </>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Events timeline for selected subscription */}

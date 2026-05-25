@@ -19,6 +19,8 @@ interface Props {
         message?: string;
     }>;
     onSuccess: () => void;
+    /** When true, skips the idle method-selection screen and immediately starts PayPal (revise mode). */
+    autoStartPayPal?: boolean;
 }
 
 type PaymentMethod = 'stars' | 'paypal' | 'card';
@@ -41,7 +43,9 @@ const PENDING_SUB_KEY = 'trelk:pendingSubscription';
 const PENDING_METHOD_KEY = 'trelk:pendingPaymentMethod';
 const PENDING_PAYPAL_URL_KEY = 'trelk:pendingPaypalUrl';
 const PENDING_PAYPAL_PLAN_KEY = 'trelk:pendingPaypalPlan';
-const FLOW_TIMEOUT_MS = 18000;
+const PENDING_PAYPAL_CREATED_AT_KEY = 'trelk:pendingPaypalCreatedAt';
+const FLOW_TIMEOUT_MS = 120000; // 2 minutes, after this we consider the flow to be stalled and offer a retry (for PayPal, which can be slow sometimes)
+const PENDING_PAYPAL_URL_MAX_AGE_MS = 1000 * 60 * 20;
 
 const PROCESSING_STATES: PaymentFlowState[] = [
     'opening_provider',
@@ -61,6 +65,7 @@ export default function PaymentMethodModal({
     selectedPlan,
     onPayPal,
     onSuccess,
+    autoStartPayPal = false,
 }: Props) {
     const { t } = useTranslation('subscription');
 
@@ -77,6 +82,7 @@ export default function PaymentMethodModal({
     const [paypalPendingNotice, setPaypalPendingNotice] = useState<string | null>(null);
     const timersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
     const successHandledRef = useRef(false);
+    const pendingPaypalAutoOpenedRef = useRef(false);
     const startPolling = useSubscriptionStore((s) => s.startPolling);
     const realStatus = useSubscriptionStore((s) => s.realStatus);
     const isPremium = useSubscriptionStore((s) => s.isPremium);
@@ -91,7 +97,29 @@ export default function PaymentMethodModal({
         localStorage.removeItem(PENDING_METHOD_KEY);
         localStorage.removeItem(PENDING_PAYPAL_URL_KEY);
         localStorage.removeItem(PENDING_PAYPAL_PLAN_KEY);
+        localStorage.removeItem(PENDING_PAYPAL_CREATED_AT_KEY);
     }, []);
+
+    const getReusablePendingPaypalUrl = useCallback(() => {
+        const pendingUrl = localStorage.getItem(PENDING_PAYPAL_URL_KEY);
+        if (!pendingUrl || !selectedPlan) return null;
+
+        const pendingPlan = localStorage.getItem(PENDING_PAYPAL_PLAN_KEY);
+        const createdAt = Number(localStorage.getItem(PENDING_PAYPAL_CREATED_AT_KEY) ?? '0');
+        const isFresh = Number.isFinite(createdAt) && createdAt > 0 && (Date.now() - createdAt) <= PENDING_PAYPAL_URL_MAX_AGE_MS;
+
+        if (pendingPlan && pendingPlan !== selectedPlan.plan_id) {
+            clearPendingSession();
+            return null;
+        }
+
+        if (!isFresh) {
+            clearPendingSession();
+            return null;
+        }
+
+        return pendingUrl;
+    }, [clearPendingSession, selectedPlan]);
 
     const queueFlowState = useCallback((nextState: PaymentFlowState, delayMs: number) => {
         const timer = setTimeout(() => {
@@ -140,6 +168,15 @@ export default function PaymentMethodModal({
         }
     }, [clearFlowTimers, clearPendingSession]);
 
+    const openExternalLink = useCallback((url: string) => {
+        const webApp = (window as any).Telegram?.WebApp;
+        if (webApp?.openLink) {
+            webApp.openLink(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    }, []);
+
     useEffect(() => {
         if (isOpen) {
             clearFlowTimers();
@@ -147,7 +184,7 @@ export default function PaymentMethodModal({
 
             const pendingSub = localStorage.getItem(PENDING_SUB_KEY);
             const pendingMethod = localStorage.getItem(PENDING_METHOD_KEY) as PaymentMethod | null;
-            const pendingPaypalUrl = localStorage.getItem(PENDING_PAYPAL_URL_KEY);
+            const pendingPaypalUrl = getReusablePendingPaypalUrl();
             const defaultMethod: PaymentMethod = selectedPlan?.stars_price ? 'stars' : 'paypal';
 
             // Si hay un URL de PayPal pendiente, reabrirlo automáticamente
@@ -159,8 +196,12 @@ export default function PaymentMethodModal({
                 localStorage.setItem(PENDING_SUB_KEY, 'paypal-waiting');
                 startPolling('paypal-waiting');
                 armTimeoutState();
-                
-                // Reabrir PayPal en background (usuario ya lo vio, solo continuar esperando)
+
+                if (!pendingPaypalAutoOpenedRef.current) {
+                    pendingPaypalAutoOpenedRef.current = true;
+                    openExternalLink(pendingPaypalUrl);
+                }
+
                 setMounted(true);
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => setAnimateIn(true));
@@ -198,6 +239,7 @@ export default function PaymentMethodModal({
             }
         } else {
             clearFlowTimers();
+            pendingPaypalAutoOpenedRef.current = false;
             setAnimateIn(false);
             const timer = setTimeout(() => {
                 setMounted(false);
@@ -205,7 +247,7 @@ export default function PaymentMethodModal({
             return () => clearTimeout(timer);
         }
         return undefined;
-    }, [clearFlowTimers, isOpen, scheduleActivationFlow, selectedPlan?.stars_price, startPolling, armTimeoutState, t]);
+    }, [clearFlowTimers, isOpen, scheduleActivationFlow, selectedPlan?.stars_price, startPolling, armTimeoutState, t, getReusablePendingPaypalUrl, openExternalLink]);
 
     useEffect(() => {
         return () => {
@@ -248,10 +290,9 @@ export default function PaymentMethodModal({
     const showFlowView = flowState !== 'idle';
 
     const handleClose = useCallback(() => {
-        if (isLockedState) return;
         setAnimateIn(false);
         setTimeout(onClose, 300);
-    }, [isLockedState, onClose]);
+    }, [onClose]);
 
     const pollActivation = useCallback((isCard = false, source: 'fresh' | 'restore' = 'fresh') => {
         localStorage.setItem(PENDING_SUB_KEY, 'telegram-payment');
@@ -342,22 +383,17 @@ export default function PaymentMethodModal({
         setFlowState('opening_provider');
 
         const openPendingApprovalUrl = () => {
-            const pendingUrl = localStorage.getItem(PENDING_PAYPAL_URL_KEY);
+            const pendingUrl = getReusablePendingPaypalUrl();
             if (!pendingUrl) return false;
 
             localStorage.setItem(PENDING_SUB_KEY, 'paypal-waiting');
             localStorage.setItem(PENDING_METHOD_KEY, 'paypal');
             localStorage.setItem(PENDING_PAYPAL_PLAN_KEY, selectedPlan.plan_id);
+            localStorage.setItem(PENDING_PAYPAL_CREATED_AT_KEY, String(Date.now()));
             setFlowState('waiting_payment');
             setPaypalPendingNotice(t('paypal_pending_resume_hint', 'You already have a PayPal confirmation pending. Tap the button below to continue.'));
             armTimeoutState();
-
-            const webApp = (window as any).Telegram?.WebApp;
-            if (webApp?.openLink) {
-                webApp.openLink(pendingUrl);
-            } else {
-                window.open(pendingUrl, '_blank');
-            }
+            openExternalLink(pendingUrl);
 
             startPolling('paypal-waiting');
             return true;
@@ -386,6 +422,8 @@ export default function PaymentMethodModal({
                     setFlowState('waiting_payment');
                     localStorage.setItem(PENDING_SUB_KEY, 'paypal-waiting');
                     localStorage.setItem(PENDING_METHOD_KEY, 'paypal');
+                    localStorage.setItem(PENDING_PAYPAL_PLAN_KEY, selectedPlan.plan_id);
+                    localStorage.setItem(PENDING_PAYPAL_CREATED_AT_KEY, String(Date.now()));
                     startPolling('paypal-waiting');
                     armTimeoutState();
                     return;
@@ -398,6 +436,7 @@ export default function PaymentMethodModal({
             // Guardar el URL para recuperarlo si el usuario cierra la página
             localStorage.setItem(PENDING_PAYPAL_URL_KEY, result.approvalUrl);
             localStorage.setItem(PENDING_PAYPAL_PLAN_KEY, selectedPlan.plan_id);
+            localStorage.setItem(PENDING_PAYPAL_CREATED_AT_KEY, String(Date.now()));
             localStorage.setItem(PENDING_SUB_KEY, 'paypal-waiting');
             localStorage.setItem(PENDING_METHOD_KEY, 'paypal');
             
@@ -406,12 +445,7 @@ export default function PaymentMethodModal({
             armTimeoutState();
             
             // Abrir PayPal en nueva ventana (NO cerrar la modal)
-            const webApp = (window as any).Telegram?.WebApp;
-            if (webApp?.openLink) {
-                webApp.openLink(result.approvalUrl);
-            } else {
-                window.open(result.approvalUrl, '_blank');
-            }
+            openExternalLink(result.approvalUrl);
             
             // Iniciar polling para detectar cuando se complete el pago
             startPolling('paypal-waiting');
@@ -419,7 +453,14 @@ export default function PaymentMethodModal({
             console.error('PayPal flow error:', e);
             setFlowState('failed');
         }
-    }, [selectedPlan, clearFlowTimers, queueFlowState, armTimeoutState, onPayPal, startPolling, t]);
+    }, [selectedPlan, clearFlowTimers, queueFlowState, armTimeoutState, onPayPal, startPolling, t, getReusablePendingPaypalUrl, openExternalLink]);
+
+    // Auto-start PayPal flow when opened in revise mode (skip idle screen)
+    useEffect(() => {
+        if (autoStartPayPal && flowState === 'idle' && mounted && isOpen) {
+            beginPayPalFlow();
+        }
+    }, [autoStartPayPal, flowState, mounted, isOpen, beginPayPalFlow]);
 
     const handleStarsPay = useCallback(async () => {
         if (!selectedPlan || starsLoading) return;
@@ -716,7 +757,7 @@ export default function PaymentMethodModal({
                 transition: 'all .28s cubic-bezier(.32,.72,0,1)',
             }}
             onMouseDown={(e) => {
-                if (e.target === e.currentTarget && !isLockedState) handleClose();
+                if (e.target === e.currentTarget) handleClose();
             }}
         >
             <div
@@ -764,7 +805,7 @@ export default function PaymentMethodModal({
                         style={{
                             background: 'rgba(255,255,255,0.06)',
                             border: '1px solid rgba(255,255,255,0.05)',
-                            opacity: isLockedState ? 0.45 : 1,
+                            opacity: 1,
                         }}
                     >
                         <X size={16} style={{ color: 'rgba(255,255,255,0.65)' }} />
@@ -1078,17 +1119,6 @@ export default function PaymentMethodModal({
                                     </div>
                                 )}
 
-                                {PROCESSING_STATES.includes(flowState) && (
-                                    <div className="mt-4 space-y-2">
-                                        <div className="h-[10px] rounded-full overflow-hidden bg-slate-700/20">
-                                            <div className="h-full rounded-full animate-pulse" style={{ width: `${Math.max(18, (flowProgressIndex + 1) * 18)}%`, background: `linear-gradient(90deg, ${providerTheme.accentSoft}, ${providerTheme.accent})` }} />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 opacity-80">
-                                            <div className="h-[46px] rounded-[14px] bg-slate-700/15 border border-slate-500/20 animate-pulse" />
-                                            <div className="h-[46px] rounded-[14px] bg-slate-700/15 border border-slate-500/20 animate-pulse" />
-                                        </div>
-                                    </div>
-                                )}
 
                                 {currentFlowMethod === 'paypal' && paypalPendingNotice && (flowState === 'waiting_payment' || flowState === 'timeout') && (
                                     <div className="mt-3 space-y-2.5">
@@ -1101,14 +1131,9 @@ export default function PaymentMethodModal({
                                         </div>
                                         <button
                                             onClick={() => {
-                                                const pendingUrl = localStorage.getItem(PENDING_PAYPAL_URL_KEY);
+                                                const pendingUrl = getReusablePendingPaypalUrl();
                                                 if (!pendingUrl) return;
-                                                const webApp = (window as any).Telegram?.WebApp;
-                                                if (webApp?.openLink) {
-                                                    webApp.openLink(pendingUrl);
-                                                } else {
-                                                    window.open(pendingUrl, '_blank');
-                                                }
+                                                openExternalLink(pendingUrl);
                                             }}
                                             className="w-full py-3 rounded-[16px] text-[13px] font-semibold text-[#bfdbfe] border border-blue-400/35 bg-blue-500/10 active:scale-[0.99] transition-transform"
                                         >

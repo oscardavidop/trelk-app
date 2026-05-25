@@ -4,11 +4,11 @@ import {
   fetchSubscriptions,
   fetchSubscriptionEvents,
   fetchHistory,
-  cancelSubscription as apiCancel,
   type SubscriptionItem,
   type PaymentEventItem,
   type SpentSummary,
 } from '../services/paymentsApi';
+import { cancelRealSubscription } from '../services/subscriptionApi';
 
 interface PaymentsState {
   // Summary
@@ -177,7 +177,7 @@ export const usePaymentsStore = create<PaymentsState>((set, get) => ({
   cancel: async (subscriptionId: string) => {
     set({ cancelling: true });
     try {
-      await apiCancel(subscriptionId);
+      await cancelRealSubscription(subscriptionId);
       // Refresh summary after cancel
       await get().loadSummary();
       await get().loadSubscriptions();

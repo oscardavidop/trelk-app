@@ -99,5 +99,6 @@
   "status_cancelling": "Cancelando",
   "status_suspended": "Suspendida",
   "status_expired": "Vencida",
-  "status_pending": "Pendiente"
+  "status_pending": "Pendiente",
+  "past_subscriptions": "Suscripciones anteriores"
 }

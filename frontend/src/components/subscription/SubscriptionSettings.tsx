@@ -63,55 +63,7 @@ export default function SubscriptionSettings({
         <div className="flex flex-col">
 
           {/* ── Auto Renew ── */}
-          {
-
-            realStatus !== 'ACTIVE_CANCEL_SCHEDULED' && (
-              tier !== 'free' && (
-                <button
-                  className={`w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors ${hasPendingChange ? 'border-b border-tg-border/20' : ''
-                    }`}
-                  onClick={() => {
-                    haptic?.impactOccurred('light');
-                    onAutoRenewToggle();
-                  }}
-                >
-                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                    <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 flex items-center justify-center flex-shrink-0">
-                      <RefreshCcw size={18} className="text-sky-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[16px] font-semibold text-tg-text leading-tight">{t('auto_renew', 'Auto-Renew')}</div>
-                      <div className="text-[13px] font-medium text-tg-hint mt-0.5 truncate">
-                        {subscription.auto_renew
-                        ? t('will_auto_renew', {
-                            date: realSub?.next_billing_date
-                              ? new Date(realSub.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                              : '—',
-                          })
-                        : t('will_not_renew')}
-                      </div>
-                    </div>
-                  </div>
-
-
-                  {/* Tailwind Custom Toggle Switch */}
-
-                  <div
-                    className={`flex-shrink-0 ml-3 w-[46px] h-[26px] rounded-full p-1 transition-colors duration-300 ease-in-out relative ${subscription.auto_renew ? 'bg-tg-accent' : 'bg-tg-hint/30'
-                      }`}
-                    role="switch"
-                    aria-checked={subscription.auto_renew}
-                  >
-                    <div
-                      className={`w-[18px] h-[18px] bg-white rounded-full shadow-sm transform transition-transform duration-300 ease-in-out ${subscription.auto_renew ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                    />
-                  </div>
-
-                </button>
-              )
-            )}
-
+        
           {/* ── Pending Change ── */}
           {hasPendingChange && (
             <div className="p-4 bg-amber-500/5">
@@ -172,7 +124,11 @@ export default function SubscriptionSettings({
                       {/* Use billing_preview.amount (reflects scheduled downgrade price) over current amount */}
                       {realSub.billing_preview
                         ? `${realSub.billing_preview.currency} ${realSub.billing_preview.amount.toFixed(2)}`
-                        : `${realSub.currency} ${realSub.amount?.toFixed(2)}`}
+                        : realSub.amount != null
+                          ? `${realSub.currency} ${realSub.amount.toFixed(2)}`
+                          : plans.find(p => p.plan_id === realSub.plan_id)?.price != null
+                            ? `USD ${plans.find(p => p.plan_id === realSub.plan_id)!.price.toFixed(2)}`
+                            : '—'}
                     </span>
                     {realSub.billing_preview && realSub.scheduled_plan_id && (
                       <span className="ml-1 text-[11px] text-blue-400 font-semibold">
@@ -185,33 +141,7 @@ export default function SubscriptionSettings({
             </div>
           )}
 
-          {/* ── Cancelar suscripción PayPal ── (solo si ACTIVE) */}
-          {realStatus === 'ACTIVE' && onCancelReal && (
-            <div className="border-t border-tg-border/20">
-              <button
-                onClick={() => {
-                  haptic?.impactOccurred('medium');
-                  onCancelReal();
-                }}
-                disabled={actionLoading}
-                className="w-full flex items-center gap-3.5 p-4 text-left active:bg-red-500/5 transition-colors disabled:opacity-50"
-              >
-                <div className="w-[34px] h-[34px] rounded-[10px] bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                  <Ban size={18} className="text-red-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[16px] font-semibold text-red-500 leading-tight">
-                    {t('cancel_subscription', 'Cancel Subscription')}
-                  </div>
-                  <div className="text-[13px] font-medium text-tg-hint mt-0.5">
-                    {t('cancel_subscription_desc', {
-                      defaultValue: `Access continues until the end of the billing period on ${providerLabel}`,
-                    })}
-                  </div>
-                </div>
-              </button>
-            </div>
-          )}
+
 
           {/* ── Cancellation scheduled (ACTIVE_CANCEL_SCHEDULED) ── */}
           {realStatus === 'ACTIVE_CANCEL_SCHEDULED' && (
@@ -372,6 +302,83 @@ export default function SubscriptionSettings({
             </div>
           )}
 
+  {
+
+            realStatus !== 'ACTIVE_CANCEL_SCHEDULED' && (
+              tier !== 'free' && (
+                <button
+                  className={`w-full flex items-center justify-between p-4 text-left active:bg-tg-hint/10 transition-colors ${hasPendingChange ? 'border-b border-tg-border/20' : ''
+                    }`}
+                  onClick={() => {
+                    haptic?.impactOccurred('light');
+                    onAutoRenewToggle();
+                  }}
+                >
+                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                    <div className="w-[34px] h-[34px] rounded-[10px] bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                      <RefreshCcw size={18} className="text-sky-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[16px] font-semibold text-tg-text leading-tight">{t('auto_renew', 'Auto-Renew')}</div>
+                      <div className="text-[13px] font-medium text-tg-hint mt-0.5 truncate">
+                        {subscription.auto_renew
+                          ? t('will_auto_renew', {
+                            date: realSub?.next_billing_date
+                              ? new Date(realSub.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                              : '—',
+                          })
+                          : t('will_not_renew')}
+                      </div>
+                    </div>
+                  </div>
+
+
+                  {/* Tailwind Custom Toggle Switch */}
+
+                  <div
+                    className={`flex-shrink-0 ml-3 w-[46px] h-[26px] rounded-full p-1 transition-colors duration-300 ease-in-out relative ${subscription.auto_renew ? 'bg-tg-accent' : 'bg-tg-hint/30'
+                      }`}
+                    role="switch"
+                    aria-checked={subscription.auto_renew}
+                  >
+                    <div
+                      className={`w-[18px] h-[18px] bg-white rounded-full shadow-sm transform transition-transform duration-300 ease-in-out ${subscription.auto_renew ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                    />
+                  </div>
+
+                </button>
+              )
+            )}
+
+
+          {/* ── Cancelar suscripción PayPal ── (solo si ACTIVE) */}
+          {realStatus === 'ACTIVE' && onCancelReal && (
+            <div className="border-t border-tg-border/20">
+              <button
+                onClick={() => {
+                  haptic?.impactOccurred('medium');
+                  onCancelReal();
+                }}
+                disabled={actionLoading}
+                className="w-full flex items-center gap-3.5 p-4 text-left active:bg-red-500/5 transition-colors disabled:opacity-50"
+              >
+                <div className="w-[34px] h-[34px] rounded-[10px] bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <Ban size={18} className="text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[16px] font-semibold text-red-500 leading-tight">
+                    {t('cancel_subscription', 'Cancel Subscription')}
+                  </div>
+                  <div className="text-[13px] font-medium text-tg-hint mt-0.5">
+                    {t('cancel_subscription_desc', {
+                      defaultValue: `Access continues until the end of the billing period on ${providerLabel}`,
+                    })}
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>
